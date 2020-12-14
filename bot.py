@@ -1,6 +1,5 @@
 import os, sys, discord, platform, random, aiohttp, json, time, asyncio
 from discord.ext import commands,tasks
-from utils.lists import roasts_list
 from discord.ext.commands.cooldowns import BucketType
 from utils.help import EmbedHelpCommand
 import asyncpg
@@ -8,9 +7,6 @@ if not os.path.isfile("config.py"):
 	sys.exit("'config.py' not found! Please add it and try again.")
 else:
 	import config
-
-
-
 colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
             0x2EFAD2,0xFF729D,0xA172FF,0x72A3FF,0xFF0000,0x0DAA00,0x171EFF,0x8BD6F9,0x8E44AD,0x9B59B6,]
 
@@ -21,13 +17,8 @@ intents = discord.Intents.default()
 intents.members = True
 #intents.presences = True
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("yeet ","y ","Y ","Yeet "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
-#bot = commands.Bot(command_prefix=commands.when_mentioned_or("Beta ","beta "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
-#declarations
-#TOKEN = os.getenv("DISCORD_TOKEN")
-TOKEN = "NzUwMjM2MjIwNTk1ODk2Mzcw.X03l7Q.sC1NA7kusFCB778Em5aw0LyNVTo"
-#Beta
-#TOKEN = "Nzc4NTc0NzU2NjA0NTQzMDI2.X7T-Pw.r4of7QgJV686GLsLutR6lZjHEBU"
+bot = commands.Bot(command_prefix=commands.when_mentioned_or("r ","rpg "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+TOKEN = "Nzg3ODk0NzE4NDc0MjIzNjE2.X9bmIw.2zLU0V8U4sCwLxlYSojBTLpKd9Y"
 
 for extension in config.STARTUP_COGS:
 		try:
@@ -80,8 +71,8 @@ class CommandErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             if ctx.author.id in [571957935270395925]:
                 await ctx.reinvoke()
-            elif ctx.guild.id in [748786284373475358,748754737695948860,774113408378863666]:
-                await ctx.reinvoke()
+            #elif ctx.guild.id in [748786284373475358,748754737695948860,774113408378863666]:
+                #await ctx.reinvoke()
             else:
                 embed=discord.Embed(title="<:warn:779698024212463637> | Command on Cooldown",color = random.choice(colourlist))
                 embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=" Please wait before using this command again. You can use this command in {:.2f} s'seconds again.".format(error.retry_after), inline=False)
@@ -96,7 +87,8 @@ class CommandErrorHandler(commands.Cog):
             #embed.add_field(name="'```py\n%s\n```' % traceback.format_exc()",value="\u200b", inline=False)
             await ctx.send(embed=embed)
 
-#loop = asyncio.get_event_loop()
-#bot.pool = loop.run_until_complete(asyncpg.create_pool(database="Yeet Bot DB",user="postgres",password="Welcome1"))
+loop = asyncio.get_event_loop()
+#bot.pool = loop.run_until_complete(asyncpg.create_pool(database="Database",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
+bot.pool = loop.run_until_complete(asyncpg.create_pool(database="database",user="postgres",password="Welcome1"))
 bot.add_cog(CommandErrorHandler(bot))       
 bot.run(TOKEN)
