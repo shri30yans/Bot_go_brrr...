@@ -20,6 +20,12 @@ intents.members = True
 bot = commands.Bot(command_prefix=commands.when_mentioned_or("r ","rpg "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
 TOKEN = "Nzg3ODk0NzE4NDc0MjIzNjE2.X9bmIw.2zLU0V8U4sCwLxlYSojBTLpKd9Y"
 
+@tasks.loop(seconds=300)
+async def status_update():
+    await bot.wait_until_ready()
+    await bot.change_presence(status = discord.Status.online, activity =discord.Activity(type = discord.ActivityType.listening, name = f' to \"Yeet help\" in {str(len(bot.guilds))} Servers with {str(len(bot.users) + 1)} users.'))
+
+
 for extension in config.STARTUP_COGS:
 		try:
 			bot.load_extension(extension)
