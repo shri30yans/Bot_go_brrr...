@@ -1,0 +1,12 @@
+discord.py
+aiohttp
+praw
+asyncpg
+colour
+#urbandict
+Pillow
+#googletrans
+jishaku
+numpy
+git+https://github.com/Gelbpunkt/aiowiki #wikipedia
+git+https://github.com/Rapptz/discord-ext-menus #menus
