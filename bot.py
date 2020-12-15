@@ -93,8 +93,17 @@ class CommandErrorHandler(commands.Cog):
             #embed.add_field(name="'```py\n%s\n```' % traceback.format_exc()",value="\u200b", inline=False)
             await ctx.send(embed=embed)
 
+'''import ssl
+AWS_DATABASE_URL ="postgres://postgres:Welcome1@database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com:5432/database"
+ctx = ssl.create_default_context(cafile="")
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+await db.set_bind(AWS_DATABASE_URL, echo=True, ssl=ctx)
+await db.gino.create_all()'''
+
 loop = asyncio.get_event_loop()
-#bot.pool = loop.run_until_complete(asyncpg.create_pool(database="Database",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
-bot.pool = loop.run_until_complete(asyncpg.create_pool(database="database",user="postgres",password="Welcome1"))
+bot.pool = loop.run_until_complete(asyncpg.create_pool(database="database",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
+#bot.pool = loop.run_until_complete(asyncpg.create_pool(database="database",user="postgres",password="Welcome1"))
 bot.add_cog(CommandErrorHandler(bot))       
 bot.run(TOKEN)
