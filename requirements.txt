@@ -9,4 +9,4 @@ colour
 jishaku
 #numpy
 #git+https://github.com/Gelbpunkt/aiowiki #wikipedia
-#git+https://github.com/Rapptz/discord-ext-menus #menus
+git+https://github.com/Rapptz/discord-ext-menus #menus

@@ -1,4 +1,4 @@
-import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap,aiowiki
+import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
 from discord.ext import commands,tasks
 
 colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
