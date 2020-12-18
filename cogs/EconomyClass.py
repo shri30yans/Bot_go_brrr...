@@ -95,6 +95,7 @@ class Economy(commands.Cog):
     @commands.command(name="Give", help='Deposit all coinss stuff in xp')
     async def give(self,ctx,user_mentioned:discord.Member,amt:int):
         user=ctx.author
+
         if amt<=0:
             await ctx.send(f"You can't give zero or negative coins, dum-dum")
         else:
@@ -106,11 +107,13 @@ class Economy(commands.Cog):
                     if amt > user_balance["coins"]:
                         await ctx.send(f"You can't give what you don't have.")
                     else:
+                        await self.create_account(user,user_balance)
+                        await self.create_account(user_mentioned,user_mentioned_balance)
                         await connection.execute("UPDATE rpgdatabase SET coins = $1 WHERE user_id=$2",user_balance["coins"]-amt,user.id)
                         await connection.execute("UPDATE rpgdatabase SET coins = $1 WHERE user_id=$2",user_mentioned_balance["coins"]+amt,user_mentioned.id)
                         await ctx.send(f"You gave {user_mentioned.name}, {amt} coins.")
     
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    '''@commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command(name="Inventory", help='Inventory of a user')
     async def inventory(self,ctx,user:discord.Member=None):
         user=user or ctx.author
@@ -118,11 +121,9 @@ class Economy(commands.Cog):
         # create a transaction for that connection
             async with connection.transaction():
                 balance = await connection.fetchrow("SELECT * FROM rpgdatabase WHERE user_id=$1",user.id)
-                inventory = await connection.fetchrow("SELECT * FROM Inventory WHERE user_id=$1",user.id)
-                if balance==None or inventory==None :
-                    await connection.execute("INSERT INTO rpgdatabase (user_id,coins,xp) VALUES ($1,0,0)",user.id)
-                    await connection.execute("INSERT INTO inventory (user_id) VALUES ($1)",user.id)
-                    balance = await connection.fetchrow("SELECT * FROM rpgdatabase WHERE user_id=$1",user.id) 
+                #inventory = await connection.fetchrow("SELECT * FROM rpgdatabase WHERE user_id=$1",user.id)
+                balance,xp
+                
                 
                 balance=dict(balance)
                 coins_amt=balance["coins"]
@@ -134,9 +135,17 @@ class Economy(commands.Cog):
                 embed.add_field(name="xp:",value=f"{xp_amt} ")
                 embed.add_field(name="Inventory:",value=f"{inventory_items} ")
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-                await ctx.send(embed=embed)
+                await ctx.send(embed=embed)'''
 
-        
+    async def create_account(self,user,balance,xp=1):
+        if balance==None or xp==None :
+            async with self.bot.pool.acquire() as connection:
+        # create a transaction for that connection
+                async with connection.transaction():
+                    await connection.execute("INSERT INTO rpgdatabase (user_id,coins,xp) VALUES ($1,0,0)",user.id)
+                    await connection.execute("INSERT INTO rpgdatabase (user_id) VALUES ($1)",user.id)
+                    balance = await connection.fetchrow("SELECT * FROM rpgdatabase WHERE user_id=$1",user.id) 
+
 
     '''user=ctx.author
         user=await self.bot.pg_con.fetch("SELECT * FROM rpgdatabase WHERE user_id==$1",user.id)
