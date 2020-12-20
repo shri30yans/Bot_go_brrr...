@@ -54,53 +54,44 @@ class CommandErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        
+        if hasattr(ctx.command, 'on_error'):
+            return
 
 
         if isinstance(error, commands.MissingRequiredArgument):
-            embed=discord.Embed(title="<:warn:779698024212463637> | Missing Argument",description="Oops...You forgot to use your brains. <:emoji_brain:774595551655362591>",color = random.choice(colourlist))
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Missing Argument",description="Oops...You missed an argument.",color = random.choice(colourlist))
             embed.add_field(name="You are missing a required argument.",value="Type \"Yeet help <command-name>\" to learn how to use a command.", inline=False)
             await ctx.send(embed=embed)
 
         elif isinstance(error, commands.MemberNotFound):
-            embed=discord.Embed(title="<:warn:779698024212463637> | Invalid User",description="Brain.exe stopped working. <:emoji_brain:774595551655362591> ", color = random.choice(colourlist))
-            embed.add_field(name="lol you noob",value="Mention a valid user", inline=False)
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Invalid User",description="Mention a valid user", color = random.choice(colourlist))
+            embed.add_field(name="An incorrect user was mentioned",value="Mention a user or a users user id", inline=False)
             await ctx.send(embed=embed)
         
+        elif isinstance(error,commands.CommandNotFound):pass
 
-        elif isinstance(error, commands.CommandNotFound):pass
-        
-        elif isinstance(error, commands.MemberNotFound):
-            embed=discord.Embed(title="<:warn:779698024212463637> | Invalid User",description="Brain.exe stopped working. <:emoji_brain:774595551655362591> ", color = random.choice(colourlist))
-            embed.add_field(name="lol you noob",value="Mention a valid user", inline=False)
+        elif isinstance(error,commands.errors.BadArgument):
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Invalid Argument",color = random.choice(colourlist))
+            embed.add_field(name="You passed a incorrect or invalid argument", value=" Please make sure that you are using the correct format.\n Type \"r help command_name\" to learn how to use a command.", inline=False)
             await ctx.send(embed=embed)
-        
+
         elif isinstance(error, commands.CommandOnCooldown):
             if ctx.author.id in [571957935270395925]:
                 await ctx.reinvoke()
             #elif ctx.guild.id in [748786284373475358,748754737695948860,774113408378863666]:
                 #await ctx.reinvoke()
             else:
-                embed=discord.Embed(title="<:warn:779698024212463637> | Command on Cooldown",color = random.choice(colourlist))
+                embed=discord.Embed(title="<:warn:789487083802460200>  | Command on Cooldown",color = random.choice(colourlist))
                 embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=" Please wait before using this command again. You can use this command in {:.2f} s'seconds again.".format(error.retry_after), inline=False)
                 await ctx.send(embed=embed)
-        
-        
-
-        
         else:
-            embed=discord.Embed(title="<:warn:779698024212463637> | Goddamn Karen!",description="I knew I could count on you for screwing this up...",color = random.choice(colourlist))
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Goddamn Karen!",description="I knew I could count on you for screwing this up...",color = random.choice(colourlist))
             embed.add_field(name="Something went wrong. Try again later",value=f"{error}", inline=False)
-            #embed.add_field(name="'```py\n%s\n```' % traceback.format_exc()",value="\u200b", inline=False)
+            #embed.add_field(name='Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            #traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)", inline=False)
             await ctx.send(embed=embed)
 
-'''import ssl
-AWS_DATABASE_URL ="postgres://postgres:Welcome1@database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com:5432/database"
-ctx = ssl.create_default_context(cafile="")
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
-await db.set_bind(AWS_DATABASE_URL, echo=True, ssl=ctx)
-await db.gino.create_all()'''
 
 loop = asyncio.get_event_loop()
 bot.pool = loop.run_until_complete(asyncpg.create_pool(database="postgres",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))

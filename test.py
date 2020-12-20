@@ -1,31 +1,26 @@
-import colour 
-string="DarKTurquoise/(255,255,255)/(255,255,255)"
-string=string.replace(" ", "")
-string=string.split("/")
-#print(string)
-if len(string)>3:
-    print("too many arguements")
-    string=["green","green","black"]
-elif len(string)<3:
-    print("too less arguements")
-    string=["green","green","black"]
-else:    
-    for clr in string:
-        if clr=="":
-            if string.index(clr) == 2:
-                print("2")
-                string[string.index(clr)]="black"
-            elif string.index(clr) == 1 or string.index(clr) == 0:
-                string[string.index(clr)]="green"
-        else:
-            try:
-                colour.Color(str(clr))
-            except:
-                if string.index(clr) == 2:
-                    print("2")
-                    string[string.index(clr)]="black"
-                elif string.index(clr) == 1 or string.index(clr) == 0:
-                    string[string.index(clr)]="green"
-                    #print(f"wrong {clr}")
-                #break
-print(string)
+# python
+import urllib
+import json
+import aiohttp
+import asyncio
+
+async def main():
+# url = "http://api.giphy.com/v1/gifs/search"
+    params = urllib.parse.urlencode({
+    "q": "StarWars",
+    "api_key": "oDTSbME4wt0vrDLJ1r1ZEL1tlxuXLFwy",
+    "limit": "1",
+    "rating": "pg-13"
+     })
+# with urllib.request.urlopen(url, params) as response:
+#     data = json.loads(response.read())
+# print(json.dumps(data, sort_keys=True, indent=4))
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get("http://api.giphy.com/v1/gifs/search",params=params) as resp:
+            response= json.loads(await resp.text())
+            response=response["data"][0]["images"]["downsized_large"]["url"]
+            print(response)
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())

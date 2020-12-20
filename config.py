@@ -8,7 +8,7 @@ OWNERS = [571957935270395925]
 #BLACKLIST = []
  # Default cogs that I have created for the template
 STARTUP_COGS = [
-    "cogs.UtilityClass","jishaku","cogs.EconomyClass"
+    "cogs.UtilityClass","jishaku","cogs.EconomyClass","cogs.StarWarsClass"
     
 ]
 #For taking Emoji's
