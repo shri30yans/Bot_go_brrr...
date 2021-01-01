@@ -124,12 +124,12 @@ def add_text_height(im,top_text,bottom_text,y1,y2,font_path='Custom_Fonts/impact
         y += line_height
     return im
 
-def star_wars_font(text,font_path='/Custom_Fonts/StarJedi.ttf', font_size=8,stroke_width=5):
+def star_wars_font(text,font_path='Custom_Fonts/StarJedi.ttf', font_size=8,stroke_width=5):
     # load image
     #im = image_path
     
     #im = add_margin(im, 200, 20, 20, 20,colour)
-    im= Image.open("Utils/Images/star-wars-background.jpg")
+    im= Image.open("utils/Images/star-wars-background.jpg")
     draw = ImageDraw.Draw(im)
     image_width, image_height = im.size
 
