@@ -1,6 +1,6 @@
-import os, sys, discord, platform, random, aiohttp, json, time, asyncio
+import os, sys, discord, platform, random, aiohttp, json, time, asyncio,traceback
 from discord.ext import commands,tasks
-from discord.ext.commands.cooldowns import BucketType
+#from discord.ext.commands.cooldowns import BucketType
 from utils.help import EmbedHelpCommand
 import asyncpg
 if not os.path.isfile("config.py"):
@@ -17,7 +17,7 @@ intents = discord.Intents.default()
 intents.members = True
 #intents.presences = True
 
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("r ","rpg "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+bot = commands.Bot(command_prefix=commands.when_mentioned_or("sw ","!s ","!S ","!SW ","!sw ","!sW ","!Sw "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
 TOKEN = "Nzg3ODk0NzE4NDc0MjIzNjE2.X9bmIw.2zLU0V8U4sCwLxlYSojBTLpKd9Y"
 
 @tasks.loop(seconds=300)
@@ -58,7 +58,6 @@ class CommandErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-
         if isinstance(error, commands.MissingRequiredArgument):
             embed=discord.Embed(title="<:warn:789487083802460200>  | Missing Argument",description="Oops...You missed an argument.",color = random.choice(colourlist))
             embed.add_field(name="You are missing a required argument.",value="Type \"Yeet help <command-name>\" to learn how to use a command.", inline=False)
@@ -75,6 +74,40 @@ class CommandErrorHandler(commands.Cog):
             embed=discord.Embed(title="<:warn:789487083802460200>  | Invalid Argument",color = random.choice(colourlist))
             embed.add_field(name="You passed a incorrect or invalid argument", value=" Please make sure that you are using the correct format.\n Type \"r help command_name\" to learn how to use a command.", inline=False)
             await ctx.send(embed=embed)
+        
+        elif isinstance(error,TypeError):pass
+
+        elif isinstance(error, commands.BotMissingPermissions):
+            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+            if len(missing) > 2:
+                fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
+            else:
+                fmt = ' and '.join(missing)
+            missing_permissions = 'I need the **{}** permission(s) to run this command.'.format(fmt)
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Bot doesn't have required permissions",color = random.choice(colourlist))
+            embed.add_field(name="Please give me the required permissions and try again.", value=f"{missing_permissions}", inline=False)
+            await ctx.send(embed=embed)
+
+        elif isinstance(error, commands.MissingPermissions):
+            missing = [perm.replace('_', ' ').replace('guild', 'server').title() for perm in error.missing_perms]
+            if len(missing) > 2:
+                fmt = '{}, and {}'.format("**, **".join(missing[:-1]), missing[-1])
+            else:
+                fmt = ' and '.join(missing)
+            missing_permissions = 'You need the **{}** permission(s) to use this command.'.format(fmt)
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Missing Permissions",color = random.choice(colourlist))
+            embed.add_field(name="You don't have the required permissions", value=f"{missing_permissions}", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            embed=discord.Embed(title="<:warn:789487083802460200>  | Maximimum Concurrency",color = random.choice(colourlist))
+            embed.add_field(name="The same command is currently ongoing in this channel.", value=f"Use a different Channel or wait until the current command is completed.", inline=False)
+            await ctx.send(embed=embed)
+        
+        # elif isinstance(error, commands.UserInputError):
+        #     await ctx.send("Invalid input.")
+        #     await self.send_command_help(ctx)
+        #     return
 
         elif isinstance(error, commands.CommandOnCooldown):
             if ctx.author.id in [571957935270395925]:
@@ -86,10 +119,12 @@ class CommandErrorHandler(commands.Cog):
                 embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=" Please wait before using this command again. You can use this command in {:.2f} s'seconds again.".format(error.retry_after), inline=False)
                 await ctx.send(embed=embed)
         else:
+            #traceback=traceback.format_exception(type(error), error, error.__traceback__)
             embed=discord.Embed(title="<:warn:789487083802460200>  | Goddamn Karen!",description="I knew I could count on you for screwing this up...",color = random.choice(colourlist))
-            embed.add_field(name="Something went wrong. Try again later",value=f"{error}", inline=False)
             #embed.add_field(name='Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-            #traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)", inline=False)
+            #etype, value, tb = sys.exc_info()
+            embed.add_field(name="Something went wrong. Try again later",value=f"{error} \n {traceback.format_exc()}", inline=False)
+
             await ctx.send(embed=embed)
 
 

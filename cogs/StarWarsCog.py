@@ -3,6 +3,7 @@ from discord.ext import commands,tasks
 import praw,prawcore
 colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
             0x2EFAD2,0xFF729D,0xA172FF,0x72A3FF,0xFF0000,0x0DAA00,0x171EFF,0x8BD6F9,0x8E44AD,0x9B59B6,]
+MemeDir = "Utils/Media/Meme Templates"
 
 reddit = praw.Reddit(
      client_id="us0vshvKCbFtaQ",
@@ -71,7 +72,7 @@ class StarWarsCommands(commands.Cog):
             url=url+keyword
             async with session.get(url) as resp:
                 response= json.loads(str(await resp.text()))
-                print(response)
+                #print(response)
                 number_of_responses = response.get("count")
                 if number_of_responses==0:
                     embed = discord.Embed(title ="No Search Results",description=f"Enter a different keyword or be more specific.",color = random.choice(colourlist),timestamp=ctx.message.created_at)
@@ -93,14 +94,14 @@ class StarWarsCommands(commands.Cog):
                 embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
                 await ctx.send(embed=embed)
 
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    '''@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Gif", help='Posts a StarWars gif  \n\" +gif keyword keyword\" ')
     async def star_wars_gif(self,ctx,*arguments):
         response =  ' '.join(arguments) 
         params = urllib.parse.urlencode({
                 "q": f"'Star Wars' + {response}",
                 "api_key": "oDTSbME4wt0vrDLJ1r1ZEL1tlxuXLFwy",
-                "limit": "15",
+                "limit": "30",
                 "rating": "pg-13"
                 })
         async with aiohttp.ClientSession() as session:
@@ -113,7 +114,7 @@ class StarWarsCommands(commands.Cog):
                 else:
                     embed = discord.Embed(title ="No Search Results",description=f"Enter a different keyword or be more specific.",color = random.choice(colourlist),timestamp=ctx.message.created_at)
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-                    await ctx.send(embed=embed)
+                    await ctx.send(embed=embed)'''
 
     '''@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Gif", help='Posts a StarWars gif  \n\" +gif keyword keyword\" ')
@@ -136,27 +137,7 @@ class StarWarsCommands(commands.Cog):
                 #response=response["data"][random.randint(0,(len(response["data"]))-1)]["images"]["downsized_large"]["url"]
                 await ctx.send(response)'''
     
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Sticker",aliases=["stick","stk"], help='Posts a StarWars gif  \n\" +sticker keyword keyword\"\nAliases:Stick, stk ')
-    async def star_wars_sticker(self,ctx,*arguments):
-        response =  ' '.join(arguments) 
-        params = urllib.parse.urlencode({
-                "q": f"'Star Wars' + {response}",
-                "api_key": "oDTSbME4wt0vrDLJ1r1ZEL1tlxuXLFwy",
-                "limit": "10",
-                "rating": "pg-13"
-                })
-        async with aiohttp.ClientSession() as session:
-            async with session.get("http://api.giphy.com/v1/stickers/search",params=params) as resp:
-                response= json.loads(await resp.text())
-                meta=response["meta"]["status"]
-                if meta==200:
-                    response=response["data"][random.randint(0,(len(response["data"]))-1)]["images"]["downsized_large"]["url"]
-                    await ctx.send(response)
-                else:
-                    embed = discord.Embed(title ="No Search Results",description=f"Enter a different keyword or be more specific.",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                    embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-                    await ctx.send(embed=embed)
 
+    
 def setup(bot):
     bot.add_cog(StarWarsCommands(bot))
