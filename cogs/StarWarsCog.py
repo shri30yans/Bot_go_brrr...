@@ -1,6 +1,7 @@
 import os, sys, discord, platform, random, aiohttp, json,time,asyncio,urllib
 from discord.ext import commands,tasks
 import praw,prawcore
+from utils.quotes import quotes_list
 colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
             0x2EFAD2,0xFF729D,0xA172FF,0x72A3FF,0xFF0000,0x0DAA00,0x171EFF,0x8BD6F9,0x8E44AD,0x9B59B6,]
 MemeDir = "utils/Media/Meme Templates"
@@ -84,15 +85,16 @@ class StarWarsCommands(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Quote",aliases=["quotes"], help='Gets a Star Wars Quote \n\" +quote\" \n Alias: quotes')
     async def quote(self,ctx):
-        async with aiohttp.ClientSession() as session:
-            async with session.get("http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote") as resp:
-                response= json.loads(str(await resp.text()))
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.get("http://swquotesapi.digitaljedi.dk/api/SWQuote/RandomStarWarsQuote") as resp:
+                #response= json.loads(str(await resp.text()))
                 #print(response)
-                quote = response.get("starWarsQuote")
-                embed = discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                embed = discord.Embed(title ="Star Wars Quotes",description=quote,color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-                await ctx.send(embed=embed)
+                #quote = response.get("starWarsQuote")
+        quote=random.choice(quotes_list)
+        embed = discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
+        embed = discord.Embed(title ="Star Wars Quotes",description=f"{quote['Quote']} \n                  - {quote['Speaker']}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+        embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
+        await ctx.send(embed=embed)
 
     '''@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Gif", help='Posts a StarWars gif  \n\" +gif keyword keyword\" ')

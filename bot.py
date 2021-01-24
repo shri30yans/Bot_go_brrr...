@@ -16,8 +16,8 @@ colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E7
 intents = discord.Intents.default()
 intents.members = True
 #intents.presences = True
-
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("sw ","!s ","!S ","!SW ","!sw ","!sW ","!Sw "),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+#"!s ","!S ","!SW ","!sw ","!sW ","!Sw "
+bot = commands.Bot(command_prefix=commands.when_mentioned_or("sw ","SW","sW","Sw"),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
 TOKEN = "Nzg3ODk0NzE4NDc0MjIzNjE2.X9bmIw.2zLU0V8U4sCwLxlYSojBTLpKd9Y"
 
 @tasks.loop(seconds=300)

@@ -12,14 +12,19 @@ class ImageEditor(commands.Cog):
         self.bot = bot
     @commands.cooldown(1, 12, commands.BucketType.user)
     @commands.group(name="text",aliases=['swtext'],invoke_without_command=True, help=f'Create memes with inbuilt templates or create a custom meme \n\" Yeet memecreate <templatename> \" or \"Yeet memecreate custom <attachment> \" \n Alias: creatememe')
-    async def SW_font_convert(self,ctx):
-        #image = utils.addtext.star_wars_font(text="Star Wars")
-        image = utils.addtext.star_wars_font(text="Star Wars")
-        output_buffer = BytesIO()
-        image.save(output_buffer, "png")  # or whatever format
-        output_buffer.seek(0)
-        await ctx.send(file=discord.File(fp=output_buffer, filename="Star Wars Font"))
-        #image.show()
+    async def SW_font_convert(self,ctx,*text):
+        async with ctx.typing():
+            
+            if len(text) > 1:
+                text =  ' '.join(text) 
+            else:
+                text=str(text[0])
+            
+            image = utils.addtext.star_wars_font(text=text)
+            output_buffer = BytesIO()
+            image.save(output_buffer, "png")  # or whatever format
+            output_buffer.seek(0)
+            await ctx.send(file=discord.File(fp=output_buffer, filename="Star Wars Font.png"))
 
     @commands.cooldown(1, 12, commands.BucketType.user)
     @commands.group(name="MemeList",aliases=['listmeme'],invoke_without_command=True, help=f'Create memes with inbuilt templates or create a custom meme \n\" Yeet memecreate <templatename> \" or \"Yeet memecreate custom <attachment> \" \n Alias: creatememe')
@@ -31,7 +36,6 @@ class ImageEditor(commands.Cog):
     
     #exception discord.ext.commands.MaxConcurrencyReached(number, per)
     #Maximum ongoing is 1 per user
-    #@commands.max_concurrency(1)
     @commands.cooldown(1, 12, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user, wait=False)
     @commands.group(name="MemeCreate",aliases=['creatememe'],invoke_without_command=True, help=f'Create memes with inbuilt templates or create a custom meme \n\" Yeet memecreate <templatename> \" or \"Yeet memecreate custom <attachment> \" \n Alias: creatememe')
@@ -48,103 +52,106 @@ class ImageEditor(commands.Cog):
             if bottom_text_strings.lower()=="blank":
                 bottom_text_strings=""
             return top_text_strings,bottom_text_strings
+        
+        async with ctx.typing():
 
-        if template_name in ["abilitytospeak"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/ability_to_speak.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["liar","anakinliar"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/anakin_liar.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["archives","archivesincomplete"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/archives_incomplete.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["everywordwrong","everyword"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/every_word_wrong.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["ikwhattodo","strengthtodoit"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/ik_what_to_do.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["no"]:
-            top_text_strings,bottom_text_strings=await questions()
-            img = Image.open("utils/Images/Meme Templates/luke_no.jpg")
-            #image=utils.addtext.generate_meme(img,top_text=top_text_strings,bottom_text=bottom_text_strings)
-            image=utils.addtext.add_text_height(img,top_text=top_text_strings,bottom_text=bottom_text_strings,y1=100,y2=223)
-        
-        elif template_name in ["democracy","ilovedemocracy"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/palaptine_democracy.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["unexpected"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/unexpected_this_is.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["confusion"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/visible_confusion.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["sworetodestroy"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/you_have_become_the_very_thing_swore_to_destroy.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["underestimate"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/you_underestimate_my_power.jpg")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-        
-        elif template_name in ["destroy","destroyyou"]:
-            text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
-            if text_strings.lower()=="blank":
-                text_strings=""
-            img = Image.open("utils/Images/Meme Templates/dont_make_me_destroy.png")
-            image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
-
-
-
+            if template_name in ["abilitytospeak"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/ability_to_speak.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
             
-        else:
-            embed=discord.Embed(title="No Meme Template Found",description=f'The requested Meme Template was not found. Try \"MemeList\" to get a list of a the templates.',color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-            await ctx.send(embed=embed)
-            return
-        
-        output_buffer = BytesIO()
-        image.save(output_buffer, "png")  # or whatever format
-        output_buffer.seek(0)
-        await ctx.send(file=discord.File(fp=output_buffer, filename="StarWarsMeme.png"))       
+            elif template_name in ["liar","anakinliar"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/anakin_liar.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["archives","archivesincomplete"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/archives_incomplete.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["everywordwrong","everyword"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/every_word_wrong.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["ikwhattodo","strengthtodoit"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/ik_what_to_do.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["no"]:
+                top_text_strings,bottom_text_strings=await questions()
+                img = Image.open("utils/Images/Meme Templates/luke_no.jpg")
+                #image=utils.addtext.generate_meme(img,top_text=top_text_strings,bottom_text=bottom_text_strings)
+                image=utils.addtext.add_text_height(img,top_text=top_text_strings,bottom_text=bottom_text_strings,y1=100,y2=223)
+            
+            elif template_name in ["democracy","ilovedemocracy"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/palaptine_democracy.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["unexpected"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/unexpected_this_is.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["confusion"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/visible_confusion.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["sworetodestroy"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/you_have_become_the_very_thing_swore_to_destroy.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["underestimate"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/you_underestimate_my_power.jpg")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+            
+            elif template_name in ["destroy","destroyyou"]:
+                text_strings=await self.text_input_function(ctx,"Meme Creator","Enter the top text: (50 Characters Max)\n Type \"Blank\" to keep it blank.")
+                if text_strings.lower()=="blank":
+                    text_strings=""
+                img = Image.open("utils/Images/Meme Templates/dont_make_me_destroy.png")
+                image=utils.addtext.generate_meme(img,top_text=text_strings,bottom_text="")
+
+
+
+                
+            else:
+                embed=discord.Embed(title="No Meme Template Found",description=f'The requested Meme Template was not found. Try \"MemeList\" to get a list of a the templates.',color = random.choice(colourlist),timestamp=ctx.message.created_at)
+                embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
+                await ctx.send(embed=embed)
+                return
+            
+            
+            output_buffer = BytesIO()
+            image.save(output_buffer, "png")  # or whatever format
+            output_buffer.seek(0)
+            await ctx.send(file=discord.File(fp=output_buffer, filename="StarWarsMeme.png"))       
         
         
         # async def template_finding_function(ctx):
@@ -182,12 +189,13 @@ class ImageEditor(commands.Cog):
         #Converts it into bytes
         bytes = await asset.read()
         #converts it into a PIL Image object
-        with Image.open(BytesIO(bytes)) as attachment:
-            image=utils.addtext.generate_meme(attachment,top_text=top_text_strings,bottom_text=bottom_text_strings)
-            output_buffer = BytesIO()
-            image.save(output_buffer, "png")  # or whatever format
-            output_buffer.seek(0)
-            await ctx.send(file=discord.File(fp=output_buffer, filename="Created-Meme-Yeet_Bot.png"))
+        async with ctx.typing():
+            with Image.open(BytesIO(bytes)) as attachment:
+                image=utils.addtext.generate_meme(attachment,top_text=top_text_strings,bottom_text=bottom_text_strings)
+                output_buffer = BytesIO()
+                image.save(output_buffer, "png")  # or whatever format
+                output_buffer.seek(0)
+                await ctx.send(file=discord.File(fp=output_buffer, filename="Created-Meme-Yeet_Bot.png"))
     
     async def text_input_function(self,ctx,title:str,text:str):
         question_embed=await ctx.send(embed=discord.Embed(title =title,description=text,color = random.choice(colourlist),timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot "))
