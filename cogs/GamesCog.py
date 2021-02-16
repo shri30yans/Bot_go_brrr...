@@ -728,17 +728,17 @@
 
 
 
-#     @commands.Cog.listener()
-#     async def on_reaction_add(self, ctx, user):
-#         if ctx.message.channel.name == "one-word-story":
-#             all_reacts = ctx.message.reactions
-#             print(all_reacts)
-#             if all_reacts[0].count == 3:
-#                 await ctx.message.delete()
-#             elif all_reacts[1].count == 3:
-#                 await self.OWS(ctx.message)
-#         #except Exception as error:
-#             #return'''
+    # @commands.Cog.listener()
+    # async def on_reaction_add(self, ctx, user):
+    #     if ctx.message.channel.name == "one-word-story":
+    #         all_reacts = ctx.message.reactions
+    #         print(all_reacts)
+    #         if all_reacts[0].count == 3:
+    #             await ctx.message.delete()
+    #         elif all_reacts[1].count == 3:
+    #             await self.OWS(ctx.message)
+    #     #except Exception as error:
+    #         #return'''
         
 # def setup(bot):
 #     bot.add_cog(Games(bot))
