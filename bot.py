@@ -17,13 +17,23 @@ intents = discord.Intents.default()
 intents.members = True
 #intents.presences = True
 #"!s ","!S ","!SW ","!sw ","!sW ","!Sw "
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("sw ","SW","sW","Sw"),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
-TOKEN = "Nzg3ODk0NzE4NDc0MjIzNjE2.X9bmIw.2zLU0V8U4sCwLxlYSojBTLpKd9Y"
+bot = commands.Bot(command_prefix=commands.when_mentioned_or("s","S"),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+TOKEN = "ODAwMzcxNDM0Nzg1ODY1Nzg5.YARJ_A.S635Hi7EzmBvnSq0k2Is1jAkRvQ"
 
-@tasks.loop(seconds=300)
+@tasks.loop(seconds=60)
 async def status_update():
     await bot.wait_until_ready()
-    await bot.change_presence(status = discord.Status.online, activity =discord.Activity(type = discord.ActivityType.listening, name = f' to \"Yeet help\" in {str(len(bot.guilds))} Servers with {str(len(bot.users) + 1)} users.'))
+    list_of_statuses=[ discord.Activity(type = discord.ActivityType.playing, name = f'with your Mom'),
+                        discord.Activity(type = discord.ActivityType.watching, name = f'Shri30yans Gaming'),
+                        discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
+                        discord.Activity(type = discord.ActivityType, name = f"Browsing Reddit"),
+                        discord.Activity(type = discord.ActivityType, name = f"Lmao")]
+
+    activity=random.choice(list_of_statuses)
+
+    await bot.change_presence(status = discord.Status.online, activity =activity)
+
+status_update.start()
 
 
 for extension in config.STARTUP_COGS:
@@ -128,8 +138,8 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(embed=embed)
 
 
-loop = asyncio.get_event_loop()
-bot.pool = loop.run_until_complete(asyncpg.create_pool(database="postgres",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
+# asyncpgloop = asyncio.get_event_loop()
+# bot.pool = asyncpgloop.run_until_complete(asyncpg.create_pool(database="postgres",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
 #bot.pool = loop.run_until_complete(asyncpg.create_pool(database="database",user="postgres",password="Welcome1"))
 bot.add_cog(CommandErrorHandler(bot))       
 bot.run(TOKEN)
