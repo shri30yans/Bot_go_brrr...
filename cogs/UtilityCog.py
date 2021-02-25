@@ -9,7 +9,7 @@ class Utility(commands.Cog):
         self.bot = bot
    
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Invite", help='Sends Invite link for bot \n Yeet invite ')
+    @commands.command(name="Invite", help='Sends Invite link for bot \n sw invite ')
     async def invite(self,ctx):
         embed= discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
         #insert_field_at(index, *, name, value, inline=True)¶
