@@ -31,15 +31,18 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, ctx, user):
+        upvote_limit=1
+        downvote_limit=1
         if user == self.bot.user:
             return
         if ctx.message.channel.id == config.suggestions_channel_id:
-            all_reacts = ctx.message.reactions
-            print(all_reacts)
-            if all_reacts[0].count == 3:pass
+            all_reacts=ctx.message.reactions
+            for reaction in all_reacts:
+                if str(reaction) == config.upvote_reaction and reaction.count >= upvote_limit+1:
+                    print("pp")
+                if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
+                    await ctx.message.delete()
 
-            elif all_reacts[1].count == 5:
-                await ctx.message.delete()
 
 
         #except Exception as error:
