@@ -7,19 +7,18 @@ colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E7
 class Utility(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
-<<<<<<< HEAD
-   
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Invite", help='Sends Invite link for bot \n sw invite ')
-    async def invite(self,ctx):
-        embed= discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-        #insert_field_at(index, *, name, value, inline=True)¶
-        embed.add_field(name="You can invite me here:",value="[Direct Invite](https://discord.com/oauth2/authorize?client_id=787894718474223616&permissions=0&scope=bot)",inline=False)
-        #embed.add_field(name="Join our Discord Support Server:",value="[Discord Server](https://discord.gg/C3XkFwrdER)",inline=False)
-        #embed.add_field(name="Mail for business enquiries:",value="yeetbotdev@gmail.com",inline=False)
-        author_avatar=ctx.author.avatar_url
-        embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • Yeet Bot ")
-        await ctx.send(embed=embed)
+
+    # @commands.cooldown(1, 3, commands.BucketType.user)
+    # @commands.command(name="Invite", help='Sends Invite link for bot \n sw invite ')
+    # async def invite(self,ctx):
+    #     embed= discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
+    #     #insert_field_at(index, *, name, value, inline=True)¶
+    #     embed.add_field(name="You can invite me here:",value="[Direct Invite](https://discord.com/oauth2/authorize?client_id=787894718474223616&permissions=0&scope=bot)",inline=False)
+    #     #embed.add_field(name="Join our Discord Support Server:",value="[Discord Server](https://discord.gg/C3XkFwrdER)",inline=False)
+    #     #embed.add_field(name="Mail for business enquiries:",value="yeetbotdev@gmail.com",inline=False)
+    #     author_avatar=ctx.author.avatar_url
+    #     embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • Yeet Bot ")
+    #     await ctx.send(embed=embed)
     
     
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -41,10 +40,7 @@ class Utility(commands.Cog):
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Yeet Bot ")
         await ctx.send(embed=embed)
         
-    
-=======
 
->>>>>>> 82469ece1e7b3c451c5f0c0c1c2b48e160e447f1
     
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Ping", help='Tells the Ping of a server \n Yeet ping')

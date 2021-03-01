@@ -1,6 +1,7 @@
 import os, sys, discord, platform, random, aiohttp, json,time,asyncio
 from discord.ext import commands,tasks
 import config
+import cogs.EconomyCog as EconomyCog
 colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
             0x2EFAD2,0xFF729D,0xA172FF,0x72A3FF,0xFF0000,0x0DAA00,0x171EFF,0x8BD6F9,0x8E44AD,0x9B59B6,]
 
@@ -15,33 +16,7 @@ class Events(commands.Cog):
         '''self.commands_updates_channel=self.bot.get_channel(780683552827899904) 
         self.new_guild_updates_channel=self.bot.get_channel(780683709179232256) 
         self.left_guild_updates_channel=self.bot.get_channel(780706537664413706)''' 
-    
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        if message.author == self.bot.user:
-            return
-        elif message.channel.id==config.suggestions_channel_id:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
-        elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
-        else:
-            return
-
-    @commands.Cog.listener()
-    async def on_reaction_add(self, ctx, user):
-        upvote_limit=8
-        downvote_limit=5
-        if user == self.bot.user:
-            return
-        if ctx.message.channel.id == config.suggestions_channel_id:
-            all_reacts=ctx.message.reactions
-            for reaction in all_reacts:
-                if str(reaction) == config.upvote_reaction and reaction.count >= upvote_limit+1:
-                    pass
-                if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
-                    await ctx.message.delete()
+  
 
 
 
