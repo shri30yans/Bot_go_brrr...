@@ -1,8 +1,8 @@
-import os, sys, discord, platform, random, aiohttp, json, time, asyncio,traceback
+import os, sys, discord, platform, random, aiohttp, json, time, asyncio,traceback,asyncpg
 from discord.ext import commands,tasks
 #from discord.ext.commands.cooldowns import BucketType
 from utils.help import EmbedHelpCommand
-import asyncpg
+import config
 if not os.path.isfile("config.py"):
 	sys.exit("'config.py' not found! Please add it and try again.")
 else:
@@ -16,8 +16,8 @@ colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E7
 intents = discord.Intents.default()
 intents.members = True
 #intents.presences = True
-bot = commands.Bot(command_prefix=commands.when_mentioned_or("?"),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
-TOKEN = "ODAwMzcxNDM0Nzg1ODY1Nzg5.YARJ_A.S635Hi7EzmBvnSq0k2Is1jAkRvQ"
+bot = commands.Bot(command_prefix=commands.when_mentioned_or(config.prefix),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+TOKEN = config.TOKEN
 
 @tasks.loop(minutes=5)
 async def status_update():
@@ -70,7 +70,7 @@ class CommandErrorHandler(commands.Cog):
 
         if isinstance(error, commands.MissingRequiredArgument):
             embed=discord.Embed(title="<:warn:789487083802460200>  | Missing Argument",description="Oops...You missed an argument.",color = random.choice(colourlist))
-            embed.add_field(name="You are missing a required argument.",value="Type \"Yeet help <command-name>\" to learn how to use a command.", inline=False)
+            embed.add_field(name="You are missing a required argument.",value=f"Type \"{config.prefix} help <command-name>\" to learn how to use a command.", inline=False)
             await ctx.send(embed=embed)
 
         elif isinstance(error, commands.MemberNotFound):
@@ -82,7 +82,7 @@ class CommandErrorHandler(commands.Cog):
 
         elif isinstance(error,commands.errors.BadArgument):
             embed=discord.Embed(title="<:warn:789487083802460200>  | Invalid Argument",color = random.choice(colourlist))
-            embed.add_field(name="You passed a incorrect or invalid argument", value=" Please make sure that you are using the correct format.\n Type \"r help command_name\" to learn how to use a command.", inline=False)
+            embed.add_field(name="You passed a incorrect or invalid argument", value=f" Please make sure that you are using the correct format.\n Type \"{config.prefix} help command_name\" to learn how to use a command.", inline=False)
             await ctx.send(embed=embed)
         
         elif isinstance(error,TypeError):pass

@@ -6,7 +6,7 @@ class Economy(commands.Cog):
         self.bot = bot
 
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @commands.command(name="Bal",aliases=["account","stats"], help='Balance of a user')
+    @commands.command(name="Bal",aliases=["account","stats","karma","acc"], help='Balance of a user')
     async def bal(self,ctx,user:discord.Member=None):
         user=user or ctx.author
         if user.bot:
@@ -21,8 +21,18 @@ class Economy(commands.Cog):
                     user_account=dict(user_account)
                     embed=discord.Embed(title=f"{user.name}'s Balance")
                     embed.add_field(name="Balance:",value=f"{user_account['credits']} Credits")
-                    embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • Star Wars Bot ")
+                    embed.add_field(name="Karma:",value=f"{user_account['karma']} Karma")
+                    embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
                     await ctx.send(embed=embed)
+
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.command(name="Beg", help='Beg for cash')
+    async def beg(self,ctx):
+        user=ctx.author
+        amt=random.randint(1,20)
+        await self.create_account(user)
+        await self.add_credits(user=ctx.message.author,amt=amt)
+        await ctx.send(f"Someone gave you {amt} credits")
 
 
     #async def create_account(self,ctx,user:discord.Member):
@@ -35,13 +45,26 @@ class Economy(commands.Cog):
                         #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
                     else: 
                     # create an account                  
-                        await connection.execute('INSERT INTO info (user_id,credits) VALUES ($1,0)',user.id)
+                        await connection.execute('INSERT INTO info (user_id,credits,karma) VALUES ($1,0,0)',user.id)
 
 
                 else:
                     return
     
-    async def add_credit(self,user,amt):
+    async def add_karma(self,user,amt):
+        #user=ctx.author
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+
+                if user.bot:
+                    return
+                else: 
+                    await self.create_account(user)
+
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
+
+    async def add_credits(self,user,amt):
         #user=ctx.author
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
@@ -79,11 +102,9 @@ class Economy(commands.Cog):
         # else:
         #     return
 
-        if "Stonks".lower() in message.content.lower():
-            amt= random.randint(300,100)
-            await self.add_credit(user=message.author,amt=amt)
-
-
+        # if "Stonks".lower() in message.content.lower():
+        #     amt= random.randint(300,100)
+        #     await self.add_karma(user=message.author,amt=amt)
 
     @commands.Cog.listener()
     async def on_reaction_add(self,reaction,user):
@@ -100,14 +121,43 @@ class Economy(commands.Cog):
                 if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
                     await reaction.message.delete()
         else:
+            #if reaction.author == user: return
             if str(reaction) == config.upvote_reaction:
-                amt = random.randint(1,4)
-                await self.add_credit(user=reaction.message.author,amt=amt)
+                amt = random.randint(1,3)
+                await self.add_karma(user=reaction.message.author,amt=amt)
 
                     
             if str(reaction) == config.downvote_reaction:
-                amt = random.randint(-1,-4)
-                await self.add_credit(user=reaction.message.author,amt=amt)
+                amt = random.randint(-3,-1)
+                await self.add_karma(user=reaction.message.author,amt=amt)
+
+            if str(reaction) == config.upvote_reaction and reaction.count >= 10:
+                amt=50
+                await self.add_credits(user=reaction.message.author,amt=amt)
+   
+    @commands.Cog.listener()
+    async def on_reaction_remove(self,reaction,user):
+        upvote_limit = 8
+        downvote_limit = 5
+        if user.bot:
+            return
+
+        if reaction.message.channel.id == config.suggestions_channel_id:
+            all_reacts=reaction.message.reactions
+            for reaction in all_reacts:
+                if str(reaction) == config.upvote_reaction and reaction.count >= upvote_limit+1:
+                    pass
+                if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
+                    await reaction.message.delete()
+        else:
+            if str(reaction) == config.upvote_reaction:
+                amt = random.randint(-3,-1)
+                await self.add_karma(user=reaction.message.author,amt=amt)
+
+                    
+            if str(reaction) == config.downvote_reaction:
+                amt = random.randint(1,3)
+                await self.add_karma(user=reaction.message.author,amt=amt)
                 
     
     # @commands.cooldown(1, 5, commands.BucketType.user)
