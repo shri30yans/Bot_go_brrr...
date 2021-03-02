@@ -121,16 +121,18 @@ class Economy(commands.Cog):
                 if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
                     await reaction.message.delete()
         else:
-            if reaction.author == user: return
+            if reaction.message.author == user: return
 
             if str(reaction) == config.upvote_reaction:
                 amt = random.randint(0,2)
                 await self.add_karma(user=reaction.message.author,amt=amt)
+                print("Upvote add")
 
                     
             if str(reaction) == config.downvote_reaction:
                 amt = random.randint(-3,-1)
                 await self.add_karma(user=reaction.message.author,amt=amt)
+                print("Downvote add")
 
             if str(reaction) == config.upvote_reaction and reaction.count >= 10:
                 amt=50
@@ -151,16 +153,18 @@ class Economy(commands.Cog):
                 if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
                     await reaction.message.delete()
         else:
-            if reaction.author == user: return
+            if reaction.message.author == user: return
 
             if str(reaction) == config.upvote_reaction:
                 amt = random.randint(-3,-1)
                 await self.add_karma(user=reaction.message.author,amt=amt)
+                print("Upvote rem")
 
                     
             if str(reaction) == config.downvote_reaction:
                 amt = random.randint(0,2)
                 await self.add_karma(user=reaction.message.author,amt=amt)
+                print("Downvote rem")
                 
     
     # @commands.cooldown(1, 5, commands.BucketType.user)
