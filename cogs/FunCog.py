@@ -13,7 +13,6 @@ class Fun(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Concentrate",aliases=["concentratationmode","studytime","failinginexams","sendhelp"], help=f'Makes sure you concentrate \n \"{config.prefix}Concentratation mode 5m\". Time can be entered in (s|m|h|d), Default time is 10 mins.Aliases:"ConcentratationMode","StudyTime","FailinginExams","sendhelp"')
     async def concentrate(self,ctx,members: commands.Greedy[discord.Member],time:str="5m"):
-            warned_names=""
             pos = ["s","m","h","d"]
             time_dict = {"s" : 1, "m" : 60, "h" : 3600, "d": 3600*24}
             unit = time[-1]
@@ -48,11 +47,9 @@ class Fun(commands.Cog):
             await ctx.send(embed=embed)
 
             await asyncio.sleep(int(time_secs))
-            for mbr in members:
-                try : 
-                    await mbr.remove_roles(role)
-
-                except : 
+            try:
+                await ctx.author.remove_roles(role)
+            except : 
                     await ctx.send("Failed to remove concentration mode!")
 
 def setup(bot):
