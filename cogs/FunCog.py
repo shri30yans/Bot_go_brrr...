@@ -9,7 +9,6 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot    
     
-    @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Concentrate",aliases=["concentratationmode","studytime","failinginexams","sendhelp"], help=f'Makes sure you concentrate \n \"{config.prefix}Concentratation mode 5m\". Time can be entered in (s|m|h|d), Default time is 10 mins.Aliases:"ConcentratationMode","StudyTime","FailinginExams","sendhelp"')
