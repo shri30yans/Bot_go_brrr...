@@ -139,7 +139,6 @@ class CommandErrorHandler(commands.Cog):
             #embed.add_field(name='Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
             #etype, value, tb = sys.exc_info()
             embed.add_field(name="Something went wrong. Try again later",value=f"{error} \n {traceback.format_exc()}", inline=False)
-
             await ctx.send(embed=embed)
 
 asyncpgloop = asyncio.get_event_loop()
