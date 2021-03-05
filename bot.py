@@ -64,7 +64,6 @@ async def on_ready():
 
 class CommandErrorHandler(commands.Cog):
     #https://gist.github.com/EvieePy/7822af90858ef65012ea500bcecf1612
-
     def __init__(self, bot):
         self.bot = bot
 
