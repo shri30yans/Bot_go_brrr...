@@ -36,21 +36,19 @@ class Fun(commands.Cog):
             try: 
                 await ctx.author.add_roles(role)
             except : 
-                await ctx.send("Concentration Mode failed. Check my perms.")
-                    
-
+                await ctx.send("Concentration Mode failed. Check my perms.")   
             #else:pass
-            
             embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
             embed.add_field(name=f":mute: | Concentration Mode activated for {ctx.message.author}",value=f"**{ctx.message.author}** was put on concentration mode for **{time}**!")
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name} ")    
             await ctx.send(embed=embed)
+            
 
             await asyncio.sleep(int(time_secs))
             try:
                 await ctx.author.remove_roles(role)
-            except : 
-                    await ctx.send("Failed to remove concentration mode!")
+            except: 
+                await ctx.send("Failed to remove concentration mode!")
 
 def setup(bot):
     bot.add_cog(Fun(bot))

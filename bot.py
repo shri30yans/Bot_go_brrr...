@@ -19,14 +19,20 @@ intents.members = True
 bot = commands.Bot(command_prefix=commands.when_mentioned_or(config.prefix),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
 TOKEN = config.TOKEN
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
 async def status_update():
     await bot.wait_until_ready()
-    list_of_statuses=[ discord.Activity(type = discord.ActivityType.playing, name = f'with your Mom'),
+    list_of_statuses=[ #discord.Activity(type = discord.ActivityType.playing, name = f'with your Mom'),
                         discord.Activity(type = discord.ActivityType.watching, name = f'Shri30yans Gaming'),
-                        discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
-                        discord.Activity(type = discord.ActivityType.watching, name = f"shriyans fail his exams"),
-                        discord.Activity(type = discord.ActivityType.playing, name = f"Cyberpunk on my Toaster")]
+                        #discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
+                        #discord.Activity(type = discord.ActivityType.watching, name = f"shriyans fail his exams"),
+                        discord.Activity(type = discord.ActivityType.playing, name = f"Cyberpunk on my Smart Toilet"),
+                        discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\",10 Hour Version"),
+                        discord.Activity(type = discord.ActivityType.playing, name = f"Knock you on your head, with my stick!"),
+                        discord.Activity(type = discord.ActivityType.watching, name = f"What is sleep?"),
+                        discord.Activity(type = discord.ActivityType.watching, name = f"What is AI and how can Bots take over earth (step-by-step) for beginners"),
+
+                        ]
 
     activity=random.choice(list_of_statuses)
     #activity=list_of_statuses[3]
@@ -138,6 +144,6 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(embed=embed)
 
 asyncpgloop = asyncio.get_event_loop()
-bot.pool = asyncpgloop.run_until_complete(asyncpg.create_pool(database="server bot",user="postgres",password="Welcome1",host="database.ct5p7sdiexg8.ap-south-1.rds.amazonaws.com",port="5432"))
+bot.pool = asyncpgloop.run_until_complete(asyncpg.create_pool(database=config.DATABASE_DETAILS.database,user=config.DATABASE_DETAILS.user,password=config.DATABASE_DETAILS.password,host=config.DATABASE_DETAILS.host,port=config.DATABASE_DETAILS.port))
 bot.add_cog(CommandErrorHandler(bot))       
 bot.run(TOKEN)

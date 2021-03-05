@@ -26,6 +26,37 @@ class Economy(commands.Cog):
                     await ctx.send(embed=embed)
 
     @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.command(name="Event",aliases=["events"], help='Random Event')
+    async def event(self,ctx):
+        user=ctx.author
+        questions=["roses are red","violets are blue"]
+        word=random.choice(questions)
+        shuffled_words = ""
+        word_list=word.split(" ")
+        for x in word_list:
+            x=list(x)
+            random.shuffle(x)
+            shuffled_words = shuffled_words + "".join(x) + " "  
+        await ctx.send(
+        f"""Special Event!
+            Unscramble the words and type them below. Fastest person to type `{shuffled_words}` wins."
+        """)
+        
+        try:
+            msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() == word.lower()), timeout=180.0)
+
+        except asyncio.TimeoutError:
+            await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color,timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f" • {self.bot.user.name} "))
+            
+        else:
+            amt=random.randint(1,20)
+            await self.create_account(user)
+            await self.add_credits(user=ctx.message.author,amt=amt)
+            await ctx.send(f"{msg.author.mention} wins {amt} credits!")
+
+
+
+    @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command(name="Beg", help='Beg for cash')
     async def beg(self,ctx):
         user=ctx.author
@@ -126,13 +157,13 @@ class Economy(commands.Cog):
             if str(reaction) == config.upvote_reaction:
                 amt = random.randint(0,2)
                 await self.add_karma(user=reaction.message.author,amt=amt)
-                print("Upvote add")
+                #print("Upvote add")
 
                     
             if str(reaction) == config.downvote_reaction:
                 amt = random.randint(-3,-1)
                 await self.add_karma(user=reaction.message.author,amt=amt)
-                print("Downvote add")
+                #print("Downvote add")
 
             if str(reaction) == config.upvote_reaction and reaction.count >= 10:
                 amt=50
@@ -158,13 +189,13 @@ class Economy(commands.Cog):
             if str(reaction) == config.upvote_reaction:
                 amt = random.randint(-3,-1)
                 await self.add_karma(user=reaction.message.author,amt=amt)
-                print("Upvote rem")
+               # print("Upvote rem")
 
                     
             if str(reaction) == config.downvote_reaction:
                 amt = random.randint(0,2)
                 await self.add_karma(user=reaction.message.author,amt=amt)
-                print("Downvote rem")
+                #print("Downvote rem")
                 
     
     # @commands.cooldown(1, 5, commands.BucketType.user)

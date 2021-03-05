@@ -1,25 +1,30 @@
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")
+DATABASE_DICT = dict(eval(os.getenv("DISCORD_DATABASE_DETAILS")))
 prefix="?"
-# Can be multiple prefixes, like this: ("!", "?")
-#BOT_PREFIX = commands.when_mentioned_or("yeet ","y ")
-TOKEN = "ODAwMzcxNDM0Nzg1ODY1Nzg5.YARJ_A.S635Hi7EzmBvnSq0k2Is1jAkRvQ"
-#APPLICATION_ID = "YOUR_APPLICATION_ID"
-OWNERS = [571957935270395925]
+class DATABASE_FORMAT:
+    def __init__(self):
+        self.database=DATABASE_DICT["database"]
+        self.user=DATABASE_DICT["user"]
+        self.password=DATABASE_DICT["password"]
+        self.host=DATABASE_DICT["host"]
+        self.port=DATABASE_DICT["port"]
+
+DATABASE_DETAILS= DATABASE_FORMAT()
 #BLACKLIST = []
- # Default cogs that I have created for the template
 STARTUP_COGS = [
     "cogs.UtilityCog","jishaku","cogs.EventsClass","cogs.EconomyCog","cogs.FunCog",
     
 ]
-#For taking Emoji's
-approved_servers_id_list=[748786284373475358,#Amaatra Gaming
-                        774113408378863666,#Yeet Bot support server
-                        779920496140877845,#Yeet Bot Emoji Server 1
-                        781004328391409665]#Yeet Bot Emoji Server 2
+
 muted_role_id=748786284385796123
 suggestions_channel_id=799552024156045332
 meme_channel_id=748786284599705689
 giveaways_channel_id=761123670030286848
+
+
 upvote_reaction="<:Logo_Reddit_Upvote:748810439885979718>"
 downvote_reaction="<:Logo_Reddit_downvote:748810439688716328>"
 reddit_award_trinity="<:reddit_award_trinity:809384449413742633>"
