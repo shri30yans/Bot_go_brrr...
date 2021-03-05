@@ -8,5 +8,6 @@ Pillow
 #googletrans
 jishaku
 #numpy
+python-dotenv
 #git+https://github.com/Gelbpunkt/aiowiki #wikipedia
 git+https://github.com/Rapptz/discord-ext-menus #menus
