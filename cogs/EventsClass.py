@@ -13,9 +13,6 @@ class Events(commands.Cog):
         self.bot = bot
         #self.status_update.start()#pylint: disable=no-member
         # Ignore this error.It is a linter warning.
-        '''self.commands_updates_channel=self.bot.get_channel(780683552827899904) 
-        self.new_guild_updates_channel=self.bot.get_channel(780683709179232256) 
-        self.left_guild_updates_channel=self.bot.get_channel(780706537664413706)''' 
   
 
 

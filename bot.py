@@ -19,7 +19,7 @@ intents.members = True
 bot = commands.Bot(command_prefix=commands.when_mentioned_or(config.prefix),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
 TOKEN = config.TOKEN
 
-@tasks.loop(minutes=10)
+@tasks.loop(minutes=15)
 async def status_update():
     await bot.wait_until_ready()
     list_of_statuses=[ #discord.Activity(type = discord.ActivityType.playing, name = f'with your Mom'),
@@ -27,10 +27,10 @@ async def status_update():
                         #discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
                         #discord.Activity(type = discord.ActivityType.watching, name = f"shriyans fail his exams"),
                         discord.Activity(type = discord.ActivityType.playing, name = f"Cyberpunk on my Smart Toilet"),
-                        discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\",10 Hour Version"),
+                        discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\", 10 Hour Version"),
                         discord.Activity(type = discord.ActivityType.playing, name = f"Knock you on your head, with my stick!"),
-                        discord.Activity(type = discord.ActivityType.watching, name = f"What is sleep?"),
-                        discord.Activity(type = discord.ActivityType.watching, name = f"What is AI and how can Bots take over earth (step-by-step) for beginners"),
+                        discord.Activity(type = discord.ActivityType.watching, name = f"Brrrr..."),
+                        discord.Activity(type = discord.ActivityType.watching, name = f"Taking over the Earth | Step-by-step instructions for beginners"),
 
                         ]
 
@@ -117,6 +117,12 @@ class CommandErrorHandler(commands.Cog):
         elif isinstance(error, commands.MaxConcurrencyReached):
             embed=discord.Embed(title="<:warn:789487083802460200>  | Maximimum Concurrency",color = random.choice(colourlist))
             embed.add_field(name="The same command is currently ongoing in this channel.", value=f"Use a different Channel or wait until the current command is completed.", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif isinstance(error, commands.NotOwner):
+            user = await bot.fetch_user(self.bot.owner_id)
+            embed=discord.Embed(title="<:warn:789487083802460200>  | You are not the owner of this bot.",color = random.choice(colourlist))
+            embed.add_field(name="You need to own this bot to use this command.", value=f"Please ask {user.name} to help you out.", inline=False)
             await ctx.send(embed=embed)
         
         # elif isinstance(error, commands.UserInputError):

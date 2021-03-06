@@ -23,6 +23,7 @@ muted_role_id=748786284385796123
 suggestions_channel_id=799552024156045332
 meme_channel_id=748786284599705689
 giveaways_channel_id=761123670030286848
+events_channel_id=748786284599705688
 
 
 upvote_reaction="<:Logo_Reddit_Upvote:748810439885979718>"
@@ -31,4 +32,7 @@ reddit_award_trinity="<:reddit_award_trinity:809384449413742633>"
 reddit_award_platinum="<:reddit_award_platinum:809383626085105694>"
 reddit_award_gold="<:reddit_award_gold:808916667127300097>"
 reddit_award_silver="<:reddit_award_silver:808916666788347926>"
+reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
+reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
+
 
