@@ -50,5 +50,6 @@ class Fun(commands.Cog):
             except: 
                 await ctx.send("Failed to remove concentration mode!")
 
+
 def setup(bot):
     bot.add_cog(Fun(bot))

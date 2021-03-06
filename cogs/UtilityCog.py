@@ -22,7 +22,7 @@ class Utility(commands.Cog):
     #     await ctx.send(embed=embed)
     
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    #@commands.cooldown(1, 3, commands.BucketType.user)
     
     @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \n {config.prefix}Info \nAliases: serverstats ')
     async def info(self,ctx):
@@ -43,7 +43,7 @@ class Utility(commands.Cog):
         
 
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    #@commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Ping", help=f'Tells the Ping of a server \n{config.prefix}ping')
     async def ping(self,ctx):
         """ Pong! """
@@ -53,7 +53,7 @@ class Utility(commands.Cog):
         embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await message.edit(embed=embed)
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    #@commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats \n{config.prefix}stats \nAliases: serverstats ')
     async def stats(self,ctx):
             #f-strings
@@ -89,7 +89,7 @@ class Utility(commands.Cog):
             embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
             await ctx.send(embed=embed)
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    #@commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Delete",aliases=['del', 'clear'], help=f'Deletes messages \n {config.prefix}delete <number_of _messages> \n Aliases: clear, del')
     async def delete(self,ctx,num:int):
         if ctx.message.author.guild_permissions.manage_messages == True or ctx.author.id == 571957935270395925 :
@@ -226,7 +226,7 @@ class Utility(commands.Cog):
         await ctx.send(embed=embed)'''
     
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Warn", help=f'Warns a user to stop doing a certain activity \n \"{config.prefix}Warn @User <reason>\" or \"{config.prefix}Warn @User @User <reason>\"')
     async def warn(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
             warned_names=""
@@ -268,7 +268,7 @@ class Utility(commands.Cog):
         
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Ban", help=f'Bans a user \n\"{config.prefix}Ban @User <reason>\" or \"{config.prefix}Ban @User @User <reason>\"')
     async def ban(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
             warned_names=""
@@ -302,7 +302,7 @@ class Utility(commands.Cog):
            
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Kick", help=f'Kicks a user \n \"{config.prefix}Kick @User <reason>\" or \"{config.prefix}Kick @User @User <reason>\"')
     async def kick(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
             warned_names=""
@@ -334,7 +334,7 @@ class Utility(commands.Cog):
             await ctx.send(embed=embed)
     
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Giveaway", help=f'Creates a giveaway \n \"{config.prefix}giveaway\"')
     async def giveaway(self,ctx):
         channel = await self.text_input_function(ctx,title="Which channel do you want your giveaway to be in?",text="Mention the channel in which the giveaway would be created.")
@@ -373,7 +373,7 @@ class Utility(commands.Cog):
         # print(giveaway_msg.reactions)
         # winner=random.choice(giveaway_msg.reactions)
         # await ctx.send(f"{winner.user.mention} won the giveaway")
-        new_msg = await channel.fetch_message(giveaway_msg.id)
+        new_msg = await channel.get_message(giveaway_msg.id)
         giveaway_msg = new_msg
         users = await giveaway_msg.reactions[0].users().flatten()
         users.pop(users.index(self.bot.user))

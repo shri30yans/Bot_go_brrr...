@@ -120,7 +120,7 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(embed=embed)
         
         elif isinstance(error, commands.NotOwner):
-            user = await bot.fetch_user(self.bot.owner_id)
+            user = await bot.get_user(self.bot.owner_id)
             embed=discord.Embed(title="<:warn:789487083802460200>  | You are not the owner of this bot.",color = random.choice(colourlist))
             embed.add_field(name="You need to own this bot to use this command.", value=f"Please ask {user.name} to help you out.", inline=False)
             await ctx.send(embed=embed)
