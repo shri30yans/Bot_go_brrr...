@@ -24,7 +24,8 @@ suggestions_channel_id=799552024156045332
 meme_channel_id=748786284599705689
 giveaways_channel_id=761123670030286848
 events_channel_id=748786284599705688
-
+starboard_channel_id=788600643925180426
+#starboard_channel_id=818497930545594408
 
 upvote_reaction="<:Logo_Reddit_Upvote:748810439885979718>"
 downvote_reaction="<:Logo_Reddit_downvote:748810439688716328>"

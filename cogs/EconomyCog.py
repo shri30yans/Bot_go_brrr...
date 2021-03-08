@@ -24,8 +24,29 @@ class Economy(commands.Cog):
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     user_account=dict(user_account)
                     embed=discord.Embed(title=f"{user.name}'s Balance")
-                    embed.add_field(name="Balance:",value=f"{user_account['credits']} Credits")
-                    embed.add_field(name="Karma:",value=f"{user_account['karma']} Karma")
+                    embed.add_field(name="Balance:",value=f"{user_account['credits']} Credits",inline=True)
+                    embed.add_field(name="Karma:",value=f"{user_account['karma']} Karma",inline=True)
+
+                    awards_given_j=json.loads(user_account["awards_given"])
+                    awards_received_j=json.loads(user_account["awards_received"])
+                    awards_given_str,awards_received_str="",""
+
+                    for award in awards_given_j:
+                        awards_given_str=award + ": " + str(awards_given_j[award]) + ", "
+
+                    for award in awards_received_j:
+                        awards_received_str=award + ": " + str(awards_received_j[award])+ ", "
+                    
+                    #if its None, the embed will go empty, so to convert None to a string we do this
+                    awards_given_str=awards_given_str or "None"
+                    awards_received_str= awards_received_str or "None"
+
+                    embed.add_field(name="Awards given:",value=f"{awards_given_str}",inline=False)
+                    embed.add_field(name="Awards received:",value=f"{awards_received_str}",inline=False)
+                    # embed.add_field(name="Upvotes given:",value=f"{user_account['karma']} Karma")
+                    # embed.add_field(name="Upvotes received:",value=f"{user_account['karma']} Karma")
+
+
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                     await ctx.send(embed=embed)
 
@@ -203,8 +224,9 @@ class Economy(commands.Cog):
                     if user.bot:pass
                         #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
                     else: 
-                    # create an account                  
-                        await connection.execute('INSERT INTO info (user_id,credits,karma) VALUES ($1,0,0)',user.id)
+                    # create an account   
+                        empty_json=json.dumps({})         
+                        await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given) VALUES ($1,0,0,$2,$3)',user.id,empty_json,empty_json)
 
 
                 else:
@@ -271,21 +293,50 @@ class Economy(commands.Cog):
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
+        #print(payload.message_id)
         emoji=payload.emoji  
+        all_reacts=message.reactions
+        stars_for_posting=1
+        
+        #starboard
+        for reaction in all_reacts:
+            #if str(emoji) == config.upvote_reaction and reaction.count >= stars_for_posting:
+            if str(emoji) == "⭐"  and reaction.count >= stars_for_posting:
+                async with self.bot.pool.acquire() as connection:
+                    async with connection.transaction():
+                        suggestions_channel=self.bot.get_channel(config.starboard_channel_id) 
+                        star_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
+                        if star_message == None:
+                            embed=discord.Embed(color =self.bot.user.colour,timestamp=message.created_at,description=message.content)
+                            embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
+                            embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+                            if len(message.attachments): #basically if len !=0
+                                embed.set_image(url=message.attachments[0].url)
+                            embed.set_footer(text=f"{message.id} ")
+                            StarMessage = await suggestions_channel.send(f"{reaction.count} {config.upvote_reaction} {channel.mention}",embed=embed)
+                            # if user.bot:pass
+                            #     #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
+                            # else:                 
+                            await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,stars) VALUES ($1,$2,$3)',message.id,StarMessage.id,reaction.count)
+                        else:
+                            star_message=dict(star_message)
+                            star_message["stars"] = reaction.count
+                            StarMessage= await channel.fetch_message(star_message["star_message_id"])
+                            await StarMessage.edit(content=f"{reaction.count} {config.upvote_reaction} {channel.mention}")
         
         if user.bot:#if reaction is by a bot
             return
-        
+        #Upvote add Karma
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(0,2)
             await self.add_karma(user=message.author,amt=amt)
-
+        #Downvote remove Karma
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
             await self.add_karma(user=message.author,amt=amt)
 
         #if any post has 10 or more upvotes, award that posts author 100 credits
-        all_reacts=message.reactions
+
         for reaction in all_reacts:
             if str(emoji) == config.upvote_reaction and reaction.count >= 10:
                 amt=100
@@ -306,7 +357,8 @@ class Economy(commands.Cog):
         
         # else:
         # if reaction.message.author == user: #return #self upvote
-
+        
+        #awards
         for award in awards_list:
             if str(emoji) == award.reaction_id:
                 async with self.bot.pool.acquire() as connection:
@@ -316,7 +368,7 @@ class Economy(commands.Cog):
                         user_account=dict(user_account)
                         if user_account["credits"] < award.cost:
                             await message.remove_reaction(emoji, user)
-                            await message.channel.send("You don't have enough credits to buy this award. Try earning some credits first",delete_after=5)
+                            await message.channel.send(f"{user.mention} You don't have enough credits to buy this award. Try earning some credits first.",delete_after=5)
                         
                         else:
                             if user == message.author:
@@ -341,7 +393,8 @@ class Economy(commands.Cog):
                                     return str(confirm_reaction.emoji) in ['✅', '❌'] and user == confirm_user
 
                                 try:
-                                    confirm_reaction,confirm_user = await self.bot.wait_for('reaction_add',check=check_accept_or_reject, timeout=60)
+                                    confirm_reaction,confirm_user = await self.bot.wait_for('reaction_add',check=check_accept_or_reject, timeout=60)#pylint: disable=unused-argument 
+                                    #disables the confirm_user unusesd argument error
 
                                 except asyncio.TimeoutError:
                                     await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is forfeited.",color = 0xFFD700))
@@ -350,7 +403,7 @@ class Economy(commands.Cog):
                                     if str(confirm_reaction.emoji) == '✅':
                                         await check_message.delete()
                                         await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
-                                        embed = discord.Embed(title=f"You recieved an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that the gave it the {award.name} award.",color = 0xFFD700)
+                                        embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that the gave it the {award.name} award.",color = 0xFFD700)
                                         embed.set_thumbnail(url=str(emoji.url))
                                         embed.set_footer(icon_url= user.avatar_url,text=f"Given by {message.author} • {self.bot.user.name} ")
                                         try:await message.author.send(embed=embed)
@@ -359,6 +412,8 @@ class Economy(commands.Cog):
                                         await self.add_karma(user=message.author,amt=award.karma_given_to_receiver)
                                         await self.add_karma(user=user,amt=award.karma_given_to_giver)
                                         await self.add_credits(user=user,amt = -award.cost)
+                                        await self.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
+                                    
 
                                     
                                     elif str(confirm_reaction.emoji) == '❌':
@@ -367,6 +422,35 @@ class Economy(commands.Cog):
                                         await message.channel.send("Award was cancelled.",delete_after=5)
                                     else:
                                         await message.channel.send("Well, you should not be able to see this. Something went wrong")
+    
+    async def add_awards(self,user_recieving,user_giving,award_name:str):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_recieving.id)
+                user_account= dict(user_account)
+                awards_received=json.loads(user_account["awards_received"])
+                if award_name in awards_received:
+                    awards_received[award_name]=awards_received[award_name] + 1
+                else:
+                    awards_received.update({award_name:1})
+                awards_update=json.dumps(awards_received)
+                await connection.execute("UPDATE info SET awards_received = $1 WHERE user_id=$2",awards_update,user_recieving.id)
+
+
+                
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_giving.id)
+                user_account= dict(user_account)
+                awards_given=json.loads(user_account["awards_given"])
+                if award_name in awards_given:
+                    awards_given[award_name]=awards_given[award_name] + 1
+                else:
+                    awards_given.update({award_name:1})
+                awards_update=json.dumps(awards_given)
+                await connection.execute("UPDATE info SET awards_given = $1 WHERE user_id=$2",awards_update,user_giving.id)
+
+            
+
    
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):  
