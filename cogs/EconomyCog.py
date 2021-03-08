@@ -32,10 +32,10 @@ class Economy(commands.Cog):
                     awards_given_str,awards_received_str="",""
 
                     for award in awards_given_j:
-                        awards_given_str=award + ": " + str(awards_given_j[award]) + ", "
+                        awards_given_str= awards_given_str + award + ": " + str(awards_given_j[award]) + ", "
 
                     for award in awards_received_j:
-                        awards_received_str=award + ": " + str(awards_received_j[award])+ ", "
+                        awards_received_str= awards_received_str + award + ": " + str(awards_received_j[award])+ ", "
                     
                     #if its None, the embed will go empty, so to convert None to a string we do this
                     awards_given_str=awards_given_str or "None"
