@@ -89,6 +89,78 @@ class Economy(commands.Cog):
         await DatabaseFunctions.add_credits(user=ctx.message.author,amt=amt)
         await ctx.send(f"Someone gave you {amt} credits")
 
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.command(name="Gamble", help='Gamble away your money')
+    async def gamble(self,ctx,amt:str):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        user=ctx.author
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await DatabaseFunctions.create_account(user)
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                if amt.lower == "all":
+                    amt = user_account["credits"]
+                else:
+                    try:amt=int(amt)
+                    except:
+                        await ctx.send(f"{amt} is not a valid number. Please use \"all\" or a valid number.")
+                    if amt <= 0:
+                        await ctx.send(f"You can't gamble away zero or negative credits, dum-dum")
+                    elif amt < 20:
+                        await ctx.send(f"Minimum Stakes is 20 credits.")
+                    else:
+                        if amt > user_account["credits"]:
+                            await ctx.send("You can't gamble away what you don't have.")
+                            return
+                        else:
+                            choice=random.choice(["lose","win"])
+                            earnings=random.randint(0,100)
+                            if choice=="lose":
+                                total_earned=-(round(amt*(earnings/100)))
+                                bal=user_account["credits"]+total_earned
+                                await ctx.send(f"You gambled away {amt} and got {total_earned} credits with an {earnings}% decrease. New balance is {bal} credits ")
+                            elif choice=="win":
+                                total_earned=round(amt*(earnings/100))
+                                bal=user_account["credits"]+total_earned
+                                await ctx.send(f"You gambled away {amt} and earned {total_earned} credits with an {earnings}% increase. New balance is {bal} credits ")
+                            else:
+                                await ctx.send("error")
+                            
+                            await DatabaseFunctions.add_credits(user=user,amt=total_earned)
+
+    @commands.cooldown(1,24*60*60, commands.BucketType.user)
+    @commands.command(name="Daily", help='Daily bonus')
+    async def daily_credits(self,ctx):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        user=ctx.author
+        await DatabaseFunctions.create_account(user)
+        amt=100
+        await DatabaseFunctions.add_credits(user=user,amt=amt)        
+
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.command(name="Give", help='Give your credits to others')
+    async def give(self,ctx,user_mentioned:discord.Member,amt:int):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        user=ctx.author
+        if amt<=0:
+            await ctx.send(f"You can't give zero or negative credits, dum-dum")
+        elif user==user_mentioned:
+            await ctx.send(f"You can't give yourself the credits dum dum")
+        elif user_mentioned.bot:
+            await ctx.send(f"Bots don't have accounts dum dum.")
+        else:
+            await DatabaseFunctions.create_account(user)
+            await DatabaseFunctions.create_account(user_mentioned)
+            async with self.bot.pool.acquire() as connection:
+                async with connection.transaction():
+                    user_balance = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                    if amt > user_balance["credits"]:
+                        await ctx.send(f"You can't give what you don't have.")
+                    else:
+                        await DatabaseFunctions.add_credits(user=user,amt=-amt)   
+                        await DatabaseFunctions.add_credits(user=user_mentioned,amt=amt)  
+                        await ctx.send(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")        
+
 #================================================================================
 #                _____                _       
 #                |  ___|              | |      
