@@ -25,11 +25,18 @@ class Events(commands.Cog):
     @commands.is_owner()
     #@commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command(name="Event",aliases=["events"],hidden=True)
-    async def event(self,ctx):
+    async def event(self,ctx,rarity="Random"):
         #user=ctx.author
         rarities_list=["Common","Uncommon","Rare","Epic","Legendary"]
-        rarity=random.choices(rarities_list,weights=(40,30,15,10,5),k=1)[0]#k is the number of elements that can be choosen
-        #rarity=random.choices(rarities_list,weights=(0,0,0,0,1),k=1)[0]
+        if rarity == "Random":
+            #k is the number of elements that can be choosen
+            rarity=random.choices(rarities_list,weights=(40,30,15,10,5),k=1)[0]
+        
+        elif rarity.lower().capitalize() in rarities_list:
+            rarity=rarity.lower().capitalize()
+        
+        else:
+            await ctx.send("Enter a proper rarity. (Common,Uncommon,Rare,Epic,Legendary).")
           
         if rarity == 'Common':
             questions={
@@ -64,7 +71,8 @@ class Events(commands.Cog):
             "I find your lack of _____ disturbing.":"faith",
             "In my experience there is no such thing as ____.":"luck",
             "The fear of ____ is a path to the dark side.":"loss",
-            "I was in VC with my ___":"bsf"
+            "I was in VC with my ___":"bsf",
+
             }
             word=random.choice(list(questions))
             # print(word)
@@ -155,9 +163,9 @@ class Events(commands.Cog):
         else:
             await ctx.send("You should never see this message")
         
-        Economy = self.bot.get_cog('Economy')
-        await Economy.create_account(user=user)
-        await Economy.add_credits(user=user,amt=amt)
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        await DatabaseFunctions.create_account(user=user)
+        await DatabaseFunctions.add_credits(user=user,amt=amt)
 
     
 
