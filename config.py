@@ -15,7 +15,7 @@ class DATABASE_FORMAT:
 DATABASE_DETAILS= DATABASE_FORMAT()
 #BLACKLIST = []
 STARTUP_COGS = [
-    "cogs.UtilityCog","jishaku","cogs.EventsClass","cogs.EconomyCog","cogs.FunCog",
+    "cogs.UtilityCog","jishaku","cogs.EventsCog","cogs.EconomyCog","cogs.FunCog","cogs.DatabaseFunctions","cogs.StarboardCog","cogs.OwnerCog",
     
 ]
 
@@ -29,11 +29,14 @@ starboard_channel_id=788600643925180426
 
 upvote_reaction="<:Logo_Reddit_Upvote:748810439885979718>"
 downvote_reaction="<:Logo_Reddit_downvote:748810439688716328>"
-reddit_award_trinity="<:reddit_award_trinity:809384449413742633>"
+reddit_award_ternion="<:reddit_award_ternion:809384449413742633>"
+reddit_award_argentinum="<:reddit_award_argentinum:818740567734878248>" 
 reddit_award_platinum="<:reddit_award_platinum:809383626085105694>"
 reddit_award_gold="<:reddit_award_gold:808916667127300097>"
 reddit_award_silver="<:reddit_award_silver:808916666788347926>"
 reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
 reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
+
+stars_required_for_starboard=2
 
 

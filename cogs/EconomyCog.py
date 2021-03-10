@@ -3,15 +3,17 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config
 
-awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Trinity_Award]
+awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 class Economy(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
-        #self.bot.loop.create_task(self.startup())#basically runs this function when bot is online and this cog is loaded
+        
+        
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Bal",aliases=["account","stats","karma","acc"], help='Balance of a user')
     async def bal(self,ctx,user:discord.Member=None):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
         user=user or ctx.author
         if user.bot:
             await ctx.send(f"{user.name} is a bot. Bots don't have accounts.")
@@ -20,7 +22,7 @@ class Economy(commands.Cog):
             async with self.bot.pool.acquire() as connection:
             # create a transaction for that connection
                 async with connection.transaction():
-                    await self.create_account(user)
+                    await DatabaseFunctions.create_account(user)
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     user_account=dict(user_account)
                     embed=discord.Embed(title=f"{user.name}'s Balance")
@@ -31,11 +33,17 @@ class Economy(commands.Cog):
                     awards_received_j=json.loads(user_account["awards_received"])
                     awards_given_str,awards_received_str="",""
 
-                    for award in awards_given_j:
-                        awards_given_str= awards_given_str + award + ": " + str(awards_given_j[award]) + ", "
+                    for award_name in awards_given_j:
+                        for award_found in awards_list:
+                            if award_name == award_found.name:
+                                award=award_found
+                                awards_given_str= awards_given_str + award.reaction_id + ": " + str(awards_given_j[award_name]) + ", "
 
-                    for award in awards_received_j:
-                        awards_received_str= awards_received_str + award + ": " + str(awards_received_j[award])+ ", "
+                    for award_name in awards_received_j:
+                        for award_found in awards_list:
+                            if award_name == award_found.name:
+                                award=award_found
+                                awards_received_str= awards_received_str + award.reaction_id + ": " + str(awards_received_j[award_name])+ ", "
                     
                     #if its None, the embed will go empty, so to convert None to a string we do this
                     awards_given_str=awards_given_str or "None"
@@ -44,331 +52,108 @@ class Economy(commands.Cog):
                     embed.add_field(name="Awards given:",value=f"{awards_given_str}",inline=False)
                     embed.add_field(name="Awards received:",value=f"{awards_received_str}",inline=False)
                     # embed.add_field(name="Upvotes given:",value=f"{user_account['karma']} Karma")
-                    # embed.add_field(name="Upvotes received:",value=f"{user_account['karma']} Karma")
+                    # embed.add_field(name="Upvotes received:",value=f"{user_account['karma']} Karma")                                             
 
 
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                     await ctx.send(embed=embed)
 
-    async def startup(self):
-        await self.bot.wait_until_ready()
-        while True:
-            ctx = await self.bot.fetch_channel(config.events_channel_id)
-            await self.event(ctx)
-            least_delay,max_delay=2,2*60# in hours
-            time_interval=random.randint(least_delay*60,max_delay*60)#converts to seconds
-            #time_interval=60
-            await asyncio.sleep(time_interval)
-    
-    # @commands.is_owner()
-    # @commands.cooldown(1, 5, commands.BucketType.user)
-    # @commands.command(name="Event",aliases=["events"],hidden=True)
-    async def event(self,ctx):
-        #user=ctx.author
-        rarities_list=["Common","Uncommon","Rare","Epic","Legendary"]
-        rarity=random.choices(rarities_list,weights=(40,30,15,10,5),k=1)[0]#k is the number of elements that can be choosen
-        #rarity=random.choices(rarities_list,weights=(0,0,0,0,1),k=1)[0]
-        #print(rarity)
-        
-        
-        if rarity == 'Common':
-            questions={
-                "You are in an argument. Quick! Type `No You`.":["no you"],
-                "Some one just said \"Hello there\". Quick! Type `General Kenobi`":["general kenobi"],
-                "Someone just chopped their pp off! Quick! Give them a Wholesome Award. Send the Wholesome Award Emoji.": [config.reddit_award_wholesome],
-                "POV: It's 2018 and you are Shri30yans Gaming. Quick say `Welcome to my Youtube Channel`": ['welcome to my youtube channel'],
-                "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
-                "POV: It's 2019 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
-                #"I just  Type `wholesome`":"wholesome",
-            }
-            word=random.choice(list(questions))
-            # print(word)
-            # print(questions[word])
-            sent_msg =await ctx.send(f"""**{rarity} Event Time!** \n{word}""")
-            try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command(name="Awards",aliases=["award,awardlist"], help='A list of all the awards')
+    async def award_list(self,ctx):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        user=ctx.author
+        async with self.bot.pool.acquire() as connection:
+            # create a transaction for that connection
+            async with connection.transaction():
+                await DatabaseFunctions.create_account(user)
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                user_account=dict(user_account)
+                embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Your balance: **{user_account['credits']} Credits**")
+                awards_string=""
 
-            except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
-            
-            else:
-                user=msg.author
-                amt=random.randint(10,20)
-                await ctx.send(f"{user.mention} wins {amt} credits for answering first!")
-                await self.create_account(user)
-                await self.add_credits(user=user,amt=amt)
-                await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
-            
-        
-        
-        elif rarity == 'Uncommon':
-            questions={"Don't underestimate my _____":"power",
-            "I find your lack of _____ disturbing.":"faith",
-            "In my experience there is no such thing as ____.":"luck",
-            "The fear of ____ is a path to the dark side.":"loss",
-            "I was in VC with my ___":"bsf"
-            }
-            word=random.choice(list(questions))
-            # print(word)
-            # print(questions[word])
-            sent_msg =await ctx.send(f"""**{rarity} Event!**\nWrite the fill the missing part of this sentence. Quick! Fastest person wins! \n*{word}*""")
-            try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() == questions[word].lower()), timeout=180.0)
+                for award in awards_list:
+                    awards_string=awards_string + f"{award.reaction_id} **{award.name}** \n {award.cost} credits \n {award.description} \n"
 
-            except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
-            
-            else:
-                user=msg.author
-                amt=random.randint(20,40)
-                await ctx.send(f"{user.mention} wins {amt} credits! The missing word was `{questions[word]}`")
-                await self.create_account(user)
-                await self.add_credits(user=user,amt=amt)
-                await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
-
-
-
-        elif rarity == 'Rare':
-            questions=["panzer IV","jalapenos","send nudes","takes shit off","dead chat"]
-            word=random.choice(questions)
-            shuffled_words = ""
-            word_list=word.split(" ")
-            for x in word_list:
-                x=list(x)
-                random.shuffle(x)
-                shuffled_words = shuffled_words + "".join(x) + " "  
-            sent_msg = await ctx.send(f"""**{rarity} Event!**\nUnscramble the words and type them below. Fastest person to type `{shuffled_words}` wins.""")
-            try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() == word.lower()), timeout=180.0)
-
-            except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
-            
-            else:
-                user=msg.author
-                amt=random.randint(40,70)
-                await ctx.send(f"{user.mention} wins {amt} credits! The word was `{word}`")
-                await self.create_account(user)
-                await self.add_credits(user=user,amt=amt) 
-                await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
-
-        
-        
-        elif rarity == 'Epic':
-            questions={"Hottest Star Wars Character?":['obi-wan kenobi','kenobi','obi wan','obi-wan','obi wan kenobi',],
-                        "Some one just threw something really far. What are they supposed to say?":["yeet","yeet!"],
-                        "Hottest Harry Potter Character? Go!":['hagrid'],}
-            word=random.choice(list(questions))
-
-            sent_msg = await ctx.send(f"""**{rarity} Event!**\n{word} First person to answer wins!""")
-
-            try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
-
-            except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
-            
-            else:
-                user=msg.author
-                amt=random.randint(80,100)
-                await ctx.send(f"{user.mention} wins {amt} credits! The answer was `{questions[word][0].capitalize()}`")
-                await self.create_account(user)
-                await self.add_credits(user=user,amt=amt)
-                await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
-
-        
-        elif rarity == 'Legendary':
-            questions={"https://i.imgur.com/HBUtYuZ.jpg":['this is fine','this is fine.'],
-                        "https://i.imgur.com/IyX19td.png":["stonks"],
-                        "https://i.imgur.com/2B85WEe.png":['aight imma head out','ight imma head out','alright imma head out'],
-                        "https://i.imgur.com/awn4TlW.png":['where banana'],
-                        "https://i.imgur.com/4OIx1l4.jpg?1":["same","y same"]}
-            word=random.choice(list(questions))
-
-            sent_msg =await ctx.send(f"""**{rarity} Event!** \nEnter the words associated with this meme template.""")
-            await ctx.send(f"""{word}""")
-            
-            try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
-
-            except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
-            
-            else:
-                user=msg.author
-                amt=random.randint(100,150)
-                await ctx.send(f"{user.mention} wins {amt} credits! The answer was {questions[word][0].capitalize()}")
-                await self.create_account(user)
-                await self.add_credits(user=user,amt=amt)
-                await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
-        
-        else:
-            await ctx.send("You should never see this message")
+                embed.add_field(name="Awards:",value=f"{awards_string}",inline=True)
+                embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
+                await ctx.send(embed=embed)
 
     @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.command(name="Beg", help='Beg for cash')
     async def beg(self,ctx):
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
         user=ctx.author
         amt=random.randint(1,20)
-        await self.create_account(user)
-        await self.add_credits(user=ctx.message.author,amt=amt)
+        await DatabaseFunctions.create_account(user)
+        await DatabaseFunctions.add_credits(user=ctx.message.author,amt=amt)
         await ctx.send(f"Someone gave you {amt} credits")
 
-
-    #async def create_account(self,ctx,user:discord.Member):
-    async def create_account(self,user:discord.Member):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                if user_account == None:
-                    if user.bot:pass
-                        #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
-                    else: 
-                    # create an account   
-                        empty_json=json.dumps({})         
-                        await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given) VALUES ($1,0,0,$2,$3)',user.id,empty_json,empty_json)
-
-
-                else:
-                    return
-    
-    async def add_karma(self,user,amt):
-        #user=ctx.author
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-
-                if user.bot:
-                    return
-                else: 
-                    await self.create_account(user)
-
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
-
-    async def add_credits(self,user,amt):
-        #user=ctx.author
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-
-                if user.bot:
-                    return
-                else: 
-                    await self.create_account(user)
-
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
-                #await ctx.send(f"Someone gave you {earnings} credits")
-
-
-# _____                _       
-# |  ___|              | |      
-# | |____   _____ _ __ | |_ ___ 
-# |  __\ \ / / _ \ '_ \| __/ __|
-# | |___\ V /  __/ | | | |_\__ \
-# \____/ \_/ \___|_| |_|\__|___/
-      
+#================================================================================
+#                _____                _       
+#                |  ___|              | |      
+#                | |____   _____ _ __ | |_ ___ 
+#                |  __\ \ / / _ \ '_ \| __/ __|
+#                | |___\ V /  __/ | | | |_\__ \
+#                \____/ \_/ \___|_| |_|\__|___/      
+#================================================================================
     @commands.Cog.listener()
     async def on_message(self,message):
         if message.author == self.bot.user:
             return
 
         elif message.channel.id==config.suggestions_channel_id:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
+            if message.content.startswith("//"):
+                return
+            else:
+                await message.add_reaction(config.upvote_reaction)
+                await message.add_reaction(config.downvote_reaction)
 
         elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
             await message.add_reaction(config.upvote_reaction)
             await message.add_reaction(config.downvote_reaction)
 
-        # else:
-        #     return
-
-        # if "Stonks".lower() in message.content.lower():
-        #     amt= random.randint(300,100)
-        #     await self.add_karma(user=message.author,amt=amt)
-
 
     @commands.Cog.listener()
-    async def on_raw_reaction_add(self,payload):  
+    async def on_raw_reaction_add(self,payload): 
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
-        #print(payload.message_id)
         emoji=payload.emoji  
         all_reacts=message.reactions
-        stars_for_posting=1
-        
-        #starboard
-        for reaction in all_reacts:
-            #if str(emoji) == config.upvote_reaction and reaction.count >= stars_for_posting:
-            if str(emoji) == "⭐"  and reaction.count >= stars_for_posting:
-                async with self.bot.pool.acquire() as connection:
-                    async with connection.transaction():
-                        suggestions_channel=self.bot.get_channel(config.starboard_channel_id) 
-                        star_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
-                        if star_message == None:
-                            embed=discord.Embed(color =self.bot.user.colour,timestamp=message.created_at,description=message.content)
-                            embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
-                            embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
-                            if len(message.attachments): #basically if len !=0
-                                embed.set_image(url=message.attachments[0].url)
-                            embed.set_footer(text=f"{message.id} ")
-                            StarMessage = await suggestions_channel.send(f"{reaction.count} {config.upvote_reaction} {channel.mention}",embed=embed)
-                            # if user.bot:pass
-                            #     #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
-                            # else:                 
-                            await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,stars) VALUES ($1,$2,$3)',message.id,StarMessage.id,reaction.count)
-                        else:
-                            star_message=dict(star_message)
-                            star_message["stars"] = reaction.count
-                            StarMessage= await channel.fetch_message(star_message["star_message_id"])
-                            await StarMessage.edit(content=f"{reaction.count} {config.upvote_reaction} {channel.mention}")
-        
+
+                  
         if user.bot:#if reaction is by a bot
             return
         #Upvote add Karma
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(0,2)
-            await self.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
         #Downvote remove Karma
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
-            await self.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
 
         #if any post has 10 or more upvotes, award that posts author 100 credits
-
         for reaction in all_reacts:
             if str(emoji) == config.upvote_reaction and reaction.count >= 10:
                 amt=100
-                await self.add_credits(user=message.author,amt=amt)
+                await DatabaseFunctions.add_credits(user=message.author,amt=amt)
                 return
-
-
-        # upvote_limit = 8
-        # downvote_limit = 5
-        # #in Suggestions channel
-        # if channel.id == config.suggestions_channel_id:
-        #     all_reacts=message.reactions
-        #     for reaction in all_reacts:
-        #         if str(reaction) == config.upvote_reaction and reaction.count >= upvote_limit+1:
-        #             pass
-        #         if str(reaction) == config.downvote_reaction and reaction.count >= downvote_limit+1:
-        #             await reaction.message.delete()
-        
-        # else:
-        # if reaction.message.author == user: #return #self upvote
-        
         #awards
         for award in awards_list:
             if str(emoji) == award.reaction_id:
                 async with self.bot.pool.acquire() as connection:
                     async with connection.transaction():
-                        await self.create_account(user)
+                        await DatabaseFunctions.create_account(user)
                         user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                         user_account=dict(user_account)
                         if user_account["credits"] < award.cost:
                             await message.remove_reaction(emoji, user)
-                            await message.channel.send(f"{user.mention} You don't have enough credits to buy this award. Try earning some credits first.",delete_after=5)
+                            await message.channel.send(f"{user.mention} You don't have enough credits to buy this {award.name} award. Try earning some credits first.",delete_after=5)
                         
                         else:
                             if user == message.author:
@@ -397,22 +182,29 @@ class Economy(commands.Cog):
                                     #disables the confirm_user unusesd argument error
 
                                 except asyncio.TimeoutError:
-                                    await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is forfeited.",color = 0xFFD700))
+                                    await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is cancelled.",color = 0xFFD700))
 
                                 else:
                                     if str(confirm_reaction.emoji) == '✅':
                                         await check_message.delete()
                                         await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
+
                                         embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that the gave it the {award.name} award.",color = 0xFFD700)
                                         embed.set_thumbnail(url=str(emoji.url))
-                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {message.author} • {self.bot.user.name} ")
+                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.mention} • {self.bot.user.name} ")
+
                                         try:await message.author.send(embed=embed)
                                         except:pass
+                                        
+                                        if award.starboard_post:#starboard_post is a boolean value
+                                            await self.award_post_to_starboard(message=message,channel=message.channel,user=user,award=award)
 
-                                        await self.add_karma(user=message.author,amt=award.karma_given_to_receiver)
-                                        await self.add_karma(user=user,amt=award.karma_given_to_giver)
-                                        await self.add_credits(user=user,amt = -award.cost)
-                                        await self.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
+                                        await DatabaseFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
+                                        await DatabaseFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
+                                        await DatabaseFunctions.add_credits(user=user,amt = -award.cost)
+                                        await DatabaseFunctions.add_credits(user=message.author,amt = award.credits_given_to_receiver)
+                                        await DatabaseFunctions.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
+
                                     
 
                                     
@@ -422,38 +214,10 @@ class Economy(commands.Cog):
                                         await message.channel.send("Award was cancelled.",delete_after=5)
                                     else:
                                         await message.channel.send("Well, you should not be able to see this. Something went wrong")
-    
-    async def add_awards(self,user_recieving,user_giving,award_name:str):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
 
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_recieving.id)
-                user_account= dict(user_account)
-                awards_received=json.loads(user_account["awards_received"])
-                if award_name in awards_received:
-                    awards_received[award_name]=awards_received[award_name] + 1
-                else:
-                    awards_received.update({award_name:1})
-                awards_update=json.dumps(awards_received)
-                await connection.execute("UPDATE info SET awards_received = $1 WHERE user_id=$2",awards_update,user_recieving.id)
-
-
-                
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_giving.id)
-                user_account= dict(user_account)
-                awards_given=json.loads(user_account["awards_given"])
-                if award_name in awards_given:
-                    awards_given[award_name]=awards_given[award_name] + 1
-                else:
-                    awards_given.update({award_name:1})
-                awards_update=json.dumps(awards_given)
-                await connection.execute("UPDATE info SET awards_given = $1 WHERE user_id=$2",awards_update,user_giving.id)
-
-            
-
-   
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):  
+        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
@@ -463,28 +227,44 @@ class Economy(commands.Cog):
 
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
-            await self.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=-1)
 
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(0,2)
-            await self.add_karma(user=message.author,amt=amt)
-                
-    
-    # @commands.cooldown(1, 5, commands.BucketType.user)
-    # @commands.command(name="Beg", help='Beg for cash')
-    # async def beg(self,ctx):
-    #     user=ctx.author
-    #     earnings=random.randint(1,20)
-      
-    #     async with self.bot.pool.acquire() as connection:
-    #     # create a transaction for that connection
-    #         async with connection.transaction():
-    #             await self.create_account(ctx,user)
-    #             user_account = await connection.fetchrow("SELECT * FROM star_wars_table WHERE user_id=$1",user.id)
-    #             await connection.execute("UPDATE star_wars_table SET credits = $1 WHERE user_id=$2",user_account["credits"]+earnings,ctx.author.id)
-    #             await ctx.send(f"Someone gave you {earnings} credits")
-    
+            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
+            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
 
+    async def award_post_to_starboard(self,message,channel,user,award):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                starboard_channel=self.bot.get_channel(config.starboard_channel_id) 
+                star_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
+                if star_message == None:
+                    embed=discord.Embed(color =channel.guild.me.colour,timestamp=message.created_at,description=message.content)
+                    embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
+                    embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+                    if len(message.attachments): #basically if len !=0
+                        embed.set_image(url=message.attachments[0].url)
+                    embed.set_footer(text=f"{message.id} ")
+                    StarMessage = await starboard_channel.send(f"{award.reaction_id} {channel.mention}",embed=embed)
+                    # if user.bot:pass
+                    #     #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
+                    # else:        
+                    award_json=json.dumps({award.name:1})          
+                    await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,stars,awards) VALUES ($1,$2,$3,$4)',message.id,StarMessage.id,0,award_json)
+                else:
+                    star_message=dict(star_message)
+                    awards_of_post=json.loads(star_message["awards"])
+                    if award.name in awards_of_post:
+                        awards_of_post[award.name]=awards_of_post[award.name] + 1
+                    else:
+                        awards_of_post.update({award.name:1})
+                    awards_of_post_j=json.dumps(awards_of_post)
+                    StarMessage= await starboard_channel.fetch_message(star_message["star_message_id"])
+                    await StarMessage.edit(content=f"{awards_of_post} {channel.mention}")
+                    await connection.execute("UPDATE starboard SET awards = $1 WHERE root_message_id=$2",awards_of_post_j,message.id)
+   
 def setup(bot):
     bot.add_cog(Economy(bot))
         
