@@ -11,7 +11,7 @@ class Economy(commands.Cog):
         
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Bal",aliases=["account","stats","karma","acc"], help='Balance of a user')
+    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
     async def bal(self,ctx,user:discord.Member=None):
         DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
         user=user or ctx.author
@@ -160,7 +160,76 @@ class Economy(commands.Cog):
                     else:
                         await DatabaseFunctions.add_credits(user=user,amt=-amt)   
                         await DatabaseFunctions.add_credits(user=user_mentioned,amt=amt)  
-                        await ctx.send(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")        
+                        await ctx.send(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
+
+    @commands.group(name="Leaderboard",aliases=["lb"],case_insensitive=True,invoke_without_command=True)   
+    async def leaderboard(self,ctx):
+        # embed=discord.Embed(title=f"Leaderboard",colour=ctx.guild.me.colour,)
+        # embed.add_field(name="Please enter a valid subcommand.",value=f"You can check the leaderboasrds of the highest Karma or Credits.\n Type \"{config.prefix}leaderboard credits\" or \"{config.prefix}leaderboard karma\" ")
+        # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
+        # await ctx.send(embed=embed)
+        await self.credits_leaderboard(ctx)
+
+
+
+    
+    @leaderboard.command(name="Credits",aliases=["credit","creds","cred"])
+    async def credits_leaderboard(self,ctx):
+        def myFunc(e):
+            return e['credits']
+        
+        formated_list = await self.leaderboard_row_formatter()
+        formated_list.sort(reverse=True,key=myFunc)
+        #Top 5
+        top5=formated_list[:5]
+        top5_string=""
+        num=1
+        for entry in top5:
+            user = self.bot.get_user(entry["user_id"])
+            top5_string = top5_string + f"`{num}.` " + f"{user.mention} • `{entry['credits']} Credits " + "\n"
+            num=num+1
+        
+        embed=discord.Embed(title=f"Credits Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
+        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
+        await ctx.send(embed=embed)
+
+    @leaderboard.command(name="Karma")
+    async def karma_leaderboard(self,ctx):
+        def myFunc(e):
+            return e['karma']
+        formated_list = await self.leaderboard_row_formatter()
+        formated_list.sort(reverse=True,key=myFunc)
+        #Top 5
+        top5=formated_list[:5]
+        top5_string=""
+        num=1
+        for entry in top5:
+            user = self.bot.get_user(entry["user_id"])
+            top5_string = top5_string + f"`{num}.` " + f"{user.mention} • `{entry['karma']}` Karma " + "\n"
+            num=num+1
+        
+        embed=discord.Embed(title=f"Karma Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
+        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
+        await ctx.send(embed=embed)
+
+    
+    async def leaderboard_row_formatter(self):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                all_rows = await connection.fetch("SELECT * FROM info")
+                formated_list=[]
+                elem_dict={}
+                for row in all_rows:
+                    elem_dict["user_id"]=row["user_id"]
+                    elem_dict["credits"]=row["credits"]
+                    elem_dict["karma"]=row["karma"]
+                    formated_list.append(dict(elem_dict))
+                return formated_list
+
+
+                
+
+
 
 #================================================================================
 #                _____                _       
@@ -168,7 +237,8 @@ class Economy(commands.Cog):
 #                | |____   _____ _ __ | |_ ___ 
 #                |  __\ \ / / _ \ '_ \| __/ __|
 #                | |___\ V /  __/ | | | |_\__ \
-#                \____/ \_/ \___|_| |_|\__|___/      
+#                \____/ \_/ \___|_| |_|\__|___/  
+#     
 #================================================================================
     @commands.Cog.listener()
     async def on_message(self,message):

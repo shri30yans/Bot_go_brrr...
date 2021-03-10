@@ -9,8 +9,8 @@ import config
 class Events(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
-        #self.bot.loop.create_task(self.startup())#basically runs this function when bot is online and this cog is loaded
-        #self.Economy = self.bot.get_cog('Economy')
+        #basically runs this function when this cog is loaded (which program is started)
+        self.bot.loop.create_task(self.startup())
 
     async def startup(self):
         await self.bot.wait_until_ready()
@@ -46,7 +46,8 @@ class Events(commands.Cog):
                 "POV: It's 2018 and you are Shri30yans Gaming. Quick say `Welcome to my Youtube Channel`": ['welcome to my youtube channel'],
                 "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
                 "POV: It's 2019 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
-                #"I just  Type `wholesome`":"wholesome",
+                "POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
+                "POV: It's Christmas! Send this emoji in the chat.(🎄)":['🎄'],
             }
             word=random.choice(list(questions))
             # print(word)
@@ -72,6 +73,13 @@ class Events(commands.Cog):
             "In my experience there is no such thing as ____.":"luck",
             "The fear of ____ is a path to the dark side.":"loss",
             "I was in VC with my ___":"bsf",
+            """Roses are red,\n
+            I love to screw,\n
+            My PP is missing,\n
+            Nvm it's inside ___""":"you",
+            "We need to go ____":"deeper",
+            "Don't care, ______ it":"shipped",
+            "We were not allowed to ____ in the airport.":"shoot"
 
             }
             word=random.choice(list(questions))
@@ -93,7 +101,7 @@ class Events(commands.Cog):
 
 
         elif rarity == 'Rare':
-            questions=["panzer IV","jalapenos","send nudes","takes shit off","dead chat"]
+            questions=["panzer IV","who is golf ball","send nudes","takes shit off","dead chat","creme de la penis","creme de la penis",]
             word=random.choice(questions)
             shuffled_words = ""
             word_list=word.split(" ")
@@ -117,9 +125,10 @@ class Events(commands.Cog):
         
         
         elif rarity == 'Epic':
-            questions={"Hottest Star Wars Character?":['obi-wan kenobi','kenobi','obi wan','obi-wan','obi wan kenobi',],
+            questions={"Who always has the high ground?":['obi-wan kenobi','kenobi','obi wan','obi-wan','obi wan kenobi',],
                         "Some one just threw something really far. What are they supposed to say?":["yeet","yeet!"],
-                        "Hottest Harry Potter Character? Go!":['hagrid'],}
+                        "Hottest Harry Potter Character? Go!":['hagrid'],
+                        "What is the name of Tanya's favourite doctor?":['johnny sins'],}
             word=random.choice(list(questions))
 
             sent_msg = await ctx.send(f"""**{rarity} Event!**\n{word} First person to answer wins!""")
