@@ -188,9 +188,8 @@ class Economy(commands.Cog):
             top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             num=num+1
         
-        if top5_string == None:
-            print("no entries")
-            top5_string = "There are no entries in your leaderboard"
+        if len(top5_string) == 0:#is space/blank/None
+            top5_string = "There are no entries in your leaderboard."
         
         embed=discord.Embed(title=f"Credits Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
@@ -337,7 +336,7 @@ class Economy(commands.Cog):
 
                                         embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that the gave it the {award.name} award.",color = 0xFFD700)
                                         embed.set_thumbnail(url=str(emoji.url))
-                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.mention} • {self.bot.user.name} ")
+                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
 
                                         try:await message.author.send(embed=embed)
                                         except:pass
@@ -381,36 +380,6 @@ class Economy(commands.Cog):
             amt = random.randint(0,2)
             await ImportantFunctions.add_karma(user=message.author,amt=amt)
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
-
-    async def award_post_to_starboard(self,message,channel,user,award):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                starboard_channel=self.bot.get_channel(config.starboard_channel_id) 
-                star_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
-                if star_message == None:
-                    embed=discord.Embed(color =channel.guild.me.colour,timestamp=message.created_at,description=message.content)
-                    embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
-                    embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
-                    if len(message.attachments): #basically if len !=0
-                        embed.set_image(url=message.attachments[0].url)
-                    embed.set_footer(text=f"{message.id} ")
-                    StarMessage = await starboard_channel.send(f"{award.reaction_id} {channel.mention}",embed=embed)
-                    # if user.bot:pass
-                    #     #await ctx.send(f"{user.name} is a bot. Bots don't need accounts.")
-                    # else:        
-                    award_json=json.dumps({award.name:1})          
-                    await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,stars,awards) VALUES ($1,$2,$3,$4)',message.id,StarMessage.id,0,award_json)
-                else:
-                    star_message=dict(star_message)
-                    awards_of_post=json.loads(star_message["awards"])
-                    if award.name in awards_of_post:
-                        awards_of_post[award.name]=awards_of_post[award.name] + 1
-                    else:
-                        awards_of_post.update({award.name:1})
-                    awards_of_post_j=json.dumps(awards_of_post)
-                    StarMessage= await starboard_channel.fetch_message(star_message["star_message_id"])
-                    await StarMessage.edit(content=f"{awards_of_post} {channel.mention}")
-                    await connection.execute("UPDATE starboard SET awards = $1 WHERE root_message_id=$2",awards_of_post_j,message.id)
    
 def setup(bot):
     bot.add_cog(Economy(bot))

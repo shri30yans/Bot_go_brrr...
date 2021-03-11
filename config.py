@@ -37,6 +37,8 @@ reddit_award_silver="<:reddit_award_silver:808916666788347926>"
 reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
 reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
 
-stars_required_for_starboard=2
+stars_required_for_starboard=6
+
+run_event=True
 
 

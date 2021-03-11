@@ -82,14 +82,24 @@ class OwnerCog(commands.Cog):
     @commands.group(name="Reset",hidden=True,invoke_without_command=True,case_insensitive=True,help="Reset a table by removing all rows.")
     async def reset(self,ctx):
         await ctx.send("Enter a valid subcommand.")
-    
+
     @commands.is_owner()
-    @reset.command(name="Starboard",aliases=["sb"])
+    @reset.command(name="All",aliases=["both"])
     async def reset_starboard(self,ctx):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 await connection.execute("DELETE FROM starboard")
+                await connection.execute("DELETE FROM info")
+                await ctx.send("Starboard and Info Table has been resetted.")
+    
+    @commands.is_owner()
+    @reset.command(name="Starboard",aliases=["sb"])
+    async def reset_both_tables(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("DELETE FROM starboard")
                 await ctx.send("Starboard has been resetted.")
+
     
     @commands.is_owner()
     @reset.command(name="Info")

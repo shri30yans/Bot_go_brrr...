@@ -10,17 +10,18 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         #basically runs this function when this cog is loaded (which program is started)
-        #self.bot.loop.create_task(self.startup())
+        self.bot.loop.create_task(self.startup())
 
     async def startup(self):
-        await self.bot.wait_until_ready()
-        while True:
-            ctx = await self.bot.fetch_channel(config.events_channel_id)
-            await self.event(ctx)
-            least_delay,max_delay=2,2*60# in hours
-            time_interval=random.randint(least_delay*60,max_delay*60)#converts to seconds
-            #time_interval=60
-            await asyncio.sleep(time_interval)
+        if config.run_event: #Boolean
+            await self.bot.wait_until_ready()
+            while True:
+                ctx = await self.bot.fetch_channel(config.events_channel_id)
+                await self.event(ctx)
+                least_delay,max_delay=2,2*60# in hours
+                time_interval=random.randint(least_delay*60,max_delay*60)#converts to seconds
+                #time_interval=60
+                await asyncio.sleep(time_interval)
     
     @commands.is_owner()
     @commands.command(name="Event",aliases=["events"],hidden=True)
@@ -45,7 +46,7 @@ class Events(commands.Cog):
                 "POV: It's 2018 and you are Shri30yans Gaming. Quick say `Welcome to my Youtube Channel`": ['welcome to my youtube channel'],
                 "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
                 "POV: It's 2019 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
-                "POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
+                #"POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
                 "POV: It's Christmas! Send this emoji in the chat. (🎄)":['🎄'],
             }
             word=random.choice(list(questions))
