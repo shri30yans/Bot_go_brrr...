@@ -1,6 +1,6 @@
-#Server Bot
+# Server Bot
 A bot made for specific server needs.
-###Functions:
+### Functions:
 
 * Upvote/Downvote based Karma system
 * Server Economy 
@@ -9,7 +9,7 @@ A bot made for specific server needs.
 * Starboard
 * Auto-reactions in meme and suggestion channels
 
-###To run the bot:
+### To run the bot:
 1. To deploy this bot create a .env file similiar like to the one in the sample. 
 2. Enter your bot token and Database details.
 3. Make sure that you have all the libraries in requirements.py downloaded.
