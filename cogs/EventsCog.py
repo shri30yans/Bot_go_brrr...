@@ -10,7 +10,7 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         #basically runs this function when this cog is loaded (which program is started)
-        self.bot.loop.create_task(self.startup())
+        #self.bot.loop.create_task(self.startup())
 
     async def startup(self):
         await self.bot.wait_until_ready()
@@ -23,7 +23,6 @@ class Events(commands.Cog):
             await asyncio.sleep(time_interval)
     
     @commands.is_owner()
-    #@commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command(name="Event",aliases=["events"],hidden=True)
     async def event(self,ctx,rarity="Random"):
         #user=ctx.author
@@ -47,7 +46,7 @@ class Events(commands.Cog):
                 "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
                 "POV: It's 2019 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
                 "POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
-                "POV: It's Christmas! Send this emoji in the chat.(🎄)":['🎄'],
+                "POV: It's Christmas! Send this emoji in the chat. (🎄)":['🎄'],
             }
             word=random.choice(list(questions))
             # print(word)
@@ -166,15 +165,15 @@ class Events(commands.Cog):
             else:
                 user=msg.author
                 amt=random.randint(100,150)
-                await ctx.send(f"{user.mention} wins {amt} credits! The answer was {questions[word][0].capitalize()}")
+                await ctx.send(f"{user.mention} wins {amt} credits! The answer was `{questions[word][0].capitalize()}`")
                 await sent_msg.edit(content=f"{sent_msg.content}\n\n This event is expired. No new submissions will be accepted")
         
         else:
             await ctx.send("You should never see this message")
         
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
-        await DatabaseFunctions.create_account(user=user)
-        await DatabaseFunctions.add_credits(user=user,amt=amt)
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        await ImportantFunctions.create_account(user=user)
+        await ImportantFunctions.add_credits(user=user,amt=amt)
 
     
 

@@ -13,7 +13,7 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
     async def bal(self,ctx,user:discord.Member=None):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=user or ctx.author
         if user.bot:
             await ctx.send(f"{user.name} is a bot. Bots don't have accounts.")
@@ -22,7 +22,7 @@ class Economy(commands.Cog):
             async with self.bot.pool.acquire() as connection:
             # create a transaction for that connection
                 async with connection.transaction():
-                    await DatabaseFunctions.create_account(user)
+                    await ImportantFunctions.create_account(user)
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     user_account=dict(user_account)
                     embed=discord.Embed(title=f"{user.name}'s Balance")
@@ -61,12 +61,12 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Awards",aliases=["award,awardlist"], help='A list of all the awards')
     async def award_list(self,ctx):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         async with self.bot.pool.acquire() as connection:
             # create a transaction for that connection
             async with connection.transaction():
-                await DatabaseFunctions.create_account(user)
+                await ImportantFunctions.create_account(user)
                 user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                 user_account=dict(user_account)
                 embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Your balance: **{user_account['credits']} Credits**")
@@ -82,21 +82,21 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 60, commands.BucketType.user)
     @commands.command(name="Beg", help='Beg for cash')
     async def beg(self,ctx):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         amt=random.randint(1,20)
-        await DatabaseFunctions.create_account(user)
-        await DatabaseFunctions.add_credits(user=ctx.message.author,amt=amt)
-        await ctx.send(f"Someone gave you {amt} credits")
+        await ImportantFunctions.create_account(user)
+        await ImportantFunctions.add_credits(user=ctx.message.author,amt=amt)
+        await ctx.send(f"Someone gave you {amt} credits.")
 
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(1,20, commands.BucketType.user)
     @commands.command(name="Gamble", help='Gamble away your money')
     async def gamble(self,ctx,amt:str):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                await DatabaseFunctions.create_account(user)
+                await ImportantFunctions.create_account(user)
                 user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                 if amt.lower() == "all":
                     amt = user_account["credits"]
@@ -115,7 +115,7 @@ class Economy(commands.Cog):
                         return
                     else:
                         choice=random.choice(["lose","win"])
-                        earnings=random.randint(0,100)
+                        earnings=random.randint(0,50)
                         if choice=="lose":
                             total_earned=-(round(amt*(earnings/100)))
                             bal=user_account["credits"]+total_earned
@@ -127,21 +127,22 @@ class Economy(commands.Cog):
                         else:
                             await ctx.send("error")
                         
-                        await DatabaseFunctions.add_credits(user=user,amt=total_earned)
+                        await ImportantFunctions.add_credits(user=user,amt=total_earned)
 
     @commands.cooldown(1,24*60*60, commands.BucketType.user)
     @commands.command(name="Daily", help='Daily bonus')
     async def daily_credits(self,ctx):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
-        await DatabaseFunctions.create_account(user)
+        await ImportantFunctions.create_account(user)
         amt=100
-        await DatabaseFunctions.add_credits(user=user,amt=amt)        
+        await ImportantFunctions.add_credits(user=user,amt=amt) 
+        await ctx.send(f"{amt} credits were added to your account.")       
 
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Give", help='Give your credits to others')
     async def give(self,ctx,user_mentioned:discord.Member,amt:int):
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions')
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         if amt<=0:
             await ctx.send(f"You can't give zero or negative credits, dum-dum")
@@ -150,16 +151,16 @@ class Economy(commands.Cog):
         elif user_mentioned.bot:
             await ctx.send(f"Bots don't have accounts dum dum.")
         else:
-            await DatabaseFunctions.create_account(user)
-            await DatabaseFunctions.create_account(user_mentioned)
+            await ImportantFunctions.create_account(user)
+            await ImportantFunctions.create_account(user_mentioned)
             async with self.bot.pool.acquire() as connection:
                 async with connection.transaction():
                     user_balance = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     if amt > user_balance["credits"]:
                         await ctx.send(f"You can't give what you don't have.")
                     else:
-                        await DatabaseFunctions.add_credits(user=user,amt=-amt)   
-                        await DatabaseFunctions.add_credits(user=user_mentioned,amt=amt)  
+                        await ImportantFunctions.add_credits(user=user,amt=-amt)   
+                        await ImportantFunctions.add_credits(user=user_mentioned,amt=amt)  
                         await ctx.send(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
 
     @commands.group(name="Leaderboard",aliases=["lb"],case_insensitive=True,invoke_without_command=True)   
@@ -169,8 +170,6 @@ class Economy(commands.Cog):
         # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         # await ctx.send(embed=embed)
         await self.credits_leaderboard(ctx)
-
-
 
     
     @leaderboard.command(name="Credits",aliases=["credit","creds","cred"])
@@ -186,8 +185,12 @@ class Economy(commands.Cog):
         num=1
         for entry in top5:
             user = self.bot.get_user(entry["user_id"])
-            top5_string = top5_string + f"`{num}.` " + f"{user.mention} • `{entry['credits']} Credits " + "\n"
+            top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             num=num+1
+        
+        if top5_string == None:
+            print("no entries")
+            top5_string = "There are no entries in your leaderboard"
         
         embed=discord.Embed(title=f"Credits Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
@@ -205,8 +208,12 @@ class Economy(commands.Cog):
         num=1
         for entry in top5:
             user = self.bot.get_user(entry["user_id"])
-            top5_string = top5_string + f"`{num}.` " + f"{user.mention} • `{entry['karma']}` Karma " + "\n"
+            top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
             num=num+1
+        
+        if top5_string == None:
+            print("no entries")
+            top5_string = "There are no entries in your leaderboard"
         
         embed=discord.Embed(title=f"Karma Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
@@ -226,11 +233,7 @@ class Economy(commands.Cog):
                     formated_list.append(dict(elem_dict))
                 return formated_list
 
-
                 
-
-
-
 #================================================================================
 #                _____                _       
 #                |  ___|              | |      
@@ -259,7 +262,7 @@ class Economy(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self,payload): 
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions') 
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
@@ -272,26 +275,26 @@ class Economy(commands.Cog):
         #Upvote add Karma
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(0,2)
-            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
-            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
+            await ImportantFunctions.add_karma(user=message.author,amt=amt)
+            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
         #Downvote remove Karma
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
-            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
-            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
+            await ImportantFunctions.add_karma(user=message.author,amt=amt)
+            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
 
         #if any post has 10 or more upvotes, award that posts author 100 credits
         for reaction in all_reacts:
             if str(emoji) == config.upvote_reaction and reaction.count >= 10:
                 amt=100
-                await DatabaseFunctions.add_credits(user=message.author,amt=amt)
+                await ImportantFunctions.add_credits(user=message.author,amt=amt)
                 return
         #awards
         for award in awards_list:
             if str(emoji) == award.reaction_id:
                 async with self.bot.pool.acquire() as connection:
                     async with connection.transaction():
-                        await DatabaseFunctions.create_account(user)
+                        await ImportantFunctions.create_account(user)
                         user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                         user_account=dict(user_account)
                         if user_account["credits"] < award.cost:
@@ -340,13 +343,14 @@ class Economy(commands.Cog):
                                         except:pass
                                         
                                         if award.starboard_post:#starboard_post is a boolean value
-                                            await self.award_post_to_starboard(message=message,channel=message.channel,user=user,award=award)
+                                            #await ImportantFunctions.post_to_starboard(message=message,channel=message.channel,user=user,award=award)
+                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,type_of_reaction="Award",reaction_name=award.name)
 
-                                        await DatabaseFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
-                                        await DatabaseFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
-                                        await DatabaseFunctions.add_credits(user=user,amt = -award.cost)
-                                        await DatabaseFunctions.add_credits(user=message.author,amt = award.credits_given_to_receiver)
-                                        await DatabaseFunctions.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
+                                        await ImportantFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
+                                        await ImportantFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
+                                        await ImportantFunctions.add_credits(user=user,amt = -award.cost)
+                                        await ImportantFunctions.add_credits(user=message.author,amt = award.credits_given_to_receiver)
+                                        await ImportantFunctions.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
 
                                     
 
@@ -360,7 +364,7 @@ class Economy(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):  
-        DatabaseFunctions = self.bot.get_cog('DatabaseFunctions') 
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
@@ -370,13 +374,13 @@ class Economy(commands.Cog):
 
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
-            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
-            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=-1)
+            await ImportantFunctions.add_karma(user=message.author,amt=amt)
+            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=-1)
 
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(0,2)
-            await DatabaseFunctions.add_karma(user=message.author,amt=amt)
-            await DatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
+            await ImportantFunctions.add_karma(user=message.author,amt=amt)
+            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
 
     async def award_post_to_starboard(self,message,channel,user,award):
         async with self.bot.pool.acquire() as connection:

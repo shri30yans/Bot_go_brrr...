@@ -15,7 +15,7 @@ class DATABASE_FORMAT:
 DATABASE_DETAILS= DATABASE_FORMAT()
 #BLACKLIST = []
 STARTUP_COGS = [
-    "cogs.UtilityCog","jishaku","cogs.EventsCog","cogs.EconomyCog","cogs.FunCog","cogs.DatabaseFunctions","cogs.StarboardCog","cogs.OwnerCog",
+    "cogs.UtilityCog","jishaku","cogs.EventsCog","cogs.EconomyCog","cogs.FunCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog",
     
 ]
 

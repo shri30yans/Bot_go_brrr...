@@ -2,8 +2,10 @@ import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
 from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
-    
-class DatabaseFunctions(commands.Cog): 
+
+awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
+
+class ImportantFunctions(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
 
@@ -20,8 +22,6 @@ class DatabaseFunctions(commands.Cog):
                         reactions=json.dumps({"upvote":0,"downvote":0,"star":0}) 
 
                         await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given,reactions_received,reactions_given) VALUES ($1,0,0,$2,$3,$4,$5)',user.id,empty_json,empty_json,reactions,reactions)
-
-
                 else:
                     return
 
@@ -106,5 +106,84 @@ class DatabaseFunctions(commands.Cog):
                     #print("Giving",user_giving.name,reactions_update)
 
 
+    async def post_to_starboard(self,message,channel,user,type_of_reaction,reaction_name):  
+        starboard_channel=self.bot.get_channel(config.starboard_channel_id)
+        all_reacts=message.reactions  
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                reacted_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
+                if reacted_message == None:#if message is not previously in starboard/ message is not in database
+                    all_award_ids=[]
+                    for award in awards_list:
+                        all_award_ids.append(award.reaction_id)
+                    
+                    for reaction in all_reacts:
+                        if str(reaction.emoji) in all_award_ids or str(reaction.emoji) == "⭐":
+                            embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
+                            embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
+                            embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+                            if len(message.attachments): #basically if len !=0
+                                embed.set_image(url=message.attachments[0].url)
+                            embed.set_footer(text=f"{message.id} ")
+
+                            if type_of_reaction == "Star" and reaction.count >= config.stars_required_for_starboard:
+                                reaction_id = "⭐"
+                            elif type_of_reaction == "Award":
+                                award = await self.fetch_award(award_name=reaction_name)
+                                #print(award.name)
+                                reaction_id = award.reaction_id
+                            else:
+                                #means stars are less that the required number 
+                                return
+
+                            StarMessage = await starboard_channel.send(f"{reaction.count} {reaction_id} {channel.mention}",embed=embed)
+
+                            reaction_json=json.dumps({reaction_name.lower():reaction.count})                            
+                            await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,reactions) VALUES ($1,$2,$3)',message.id,StarMessage.id,reaction_json)
+                            
+                elif reacted_message != None:#message exists in starboard/is present in the databse
+                    reacted_message=dict(reacted_message)
+                    StarMessage= await starboard_channel.fetch_message(reacted_message["star_message_id"])
+                    reactions_of_post=json.loads(reacted_message["reactions"])
+                    if reaction_name.lower() in reactions_of_post:
+                        reactions_of_post[reaction_name.lower()] = reactions_of_post[reaction_name.lower()] + 1
+                    else:
+                        reactions_of_post.update({reaction_name.lower():1})
+
+                    all_award_names=[]
+                    for award in awards_list:
+                        all_award_names.append(award.name.lower())
+                    reaction_id_string=""
+                    for r in reactions_of_post:
+                        if r == "star":
+                            reaction_id = "⭐"
+                        elif r in all_award_names:
+                            award = await self.fetch_award(award_name=r)
+                            if award == "Not Found":
+                                print("Not found award")
+                                #return
+                            reaction_id = award.reaction_id
+                        else:
+                            print("Not an award or an Star")
+                        reaction_id_string = reaction_id_string + f"{reactions_of_post[r]} {reaction_id}   "
+                    reaction_id_string = reaction_id_string + channel.mention
+                    
+                    await StarMessage.edit(content=f"{reaction_id_string}")
+
+                    reactions_of_post_j=json.dumps(reactions_of_post)
+                    await connection.execute("UPDATE starboard SET reactions = $1 WHERE root_message_id=$2",reactions_of_post_j,message.id)
+                
+                else:
+                    print("How is did we get here? This is not possible")
+    
+    async def fetch_award(self,award_name):
+        for award in awards_list:
+            if award_name.lower() == award.name.lower():
+                #print(award.name)
+                return award
+        else:
+            return "Not found"
+    
+
 def setup(bot):
-    bot.add_cog(DatabaseFunctions(bot))
+    bot.add_cog(ImportantFunctions(bot))
