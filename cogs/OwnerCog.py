@@ -78,6 +78,44 @@ class OwnerCog(commands.Cog):
         
         await ctx.send(f"{given_to_users}'s karma have been set to {amt}.")
 
+    @commands.is_owner()
+    @commands.group(name="Reset",hidden=True,invoke_without_command=True,case_insensitive=True,help="Reset a table by removing all rows.")
+    async def reset(self,ctx):
+        await ctx.send("Enter a valid subcommand.")
+    
+    @commands.is_owner()
+    @reset.command(name="Starboard",aliases=["sb"])
+    async def reset_starboard(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("DELETE FROM starboard")
+                await ctx.send("Starboard has been resetted.")
+    
+    @commands.is_owner()
+    @reset.command(name="Info")
+    async def reset_info(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("DELETE FROM info")
+                await ctx.send("Info table has been resetted.")
+    
+    @commands.is_owner()
+    @reset.command(name="Karma")
+    async def reset_karma(self,ctx,amt=0):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("UPDATE info SET karma = $1",amt)
+                await ctx.send(f"Karma for all users has been set to {amt}")
+
+    @commands.is_owner()
+    @reset.command(name="Credits",aliases=["creds","credit","cred"])
+    async def reset_credits(self,ctx,amt=0):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("UPDATE info SET credits = $1",amt)
+                await ctx.send(f"Credits for all users has been set to {amt}")
+            
+
 
     
 
