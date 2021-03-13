@@ -76,9 +76,10 @@ class Economy(commands.Cog):
                 awards_string=""
 
                 for award in awards_list:
-                    awards_string=awards_string + f"{award.reaction_id} **{award.name}** \n {award.cost} credits \n {award.description} \n"
+                    #awards_string=awards_string + f"{award.reaction_id} **{award.name}** \n {award.cost} credits \n {award.description} \n"
+                    embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{award.cost} credits \n {award.description} \n",inline=False)
 
-                embed.add_field(name="Awards:",value=f"{awards_string}",inline=True)
+                #embed.add_field(name="Awards:",value=f"{awards_string}",inline=True)
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                 await ctx.send(embed=embed)
 
