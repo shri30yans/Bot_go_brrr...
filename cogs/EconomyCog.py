@@ -15,7 +15,10 @@ class Economy(commands.Cog):
     async def bal(self,ctx,user:discord.Member=None):
         sent_msg=await ctx.send(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        user=user or ctx.author
+        
+        if user == None:
+            user=ctx.author
+
         if user.bot:
             await ctx.send(f"{user.name} is a bot. Bots don't have accounts.")
         else:
