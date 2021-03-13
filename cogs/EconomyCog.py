@@ -13,11 +13,9 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
     async def bal(self,ctx,user:discord.Member=None):
+        user = ctx.author or user
         sent_msg=await ctx.send(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        
-        if user == None:
-            user=ctx.author
 
         if user.bot:
             await ctx.send(f"{user.name} is a bot. Bots don't have accounts.")
@@ -88,11 +86,12 @@ class Economy(commands.Cog):
     @commands.command(name="Beg", help='Beg for cash')
     async def beg(self,ctx):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        user=ctx.author
+        user=ctx.author 
         amt=random.randint(1,20)
         await ImportantFunctions.create_account(user)
         await ImportantFunctions.add_credits(user=ctx.message.author,amt=amt)
         await ctx.send(f"Someone gave you {amt} credits.")
+            
 
     @commands.cooldown(1,20, commands.BucketType.user)
     @commands.command(name="Gamble", help='Gamble away your money')
@@ -185,7 +184,7 @@ class Economy(commands.Cog):
         formated_list = await self.leaderboard_row_formatter()
         formated_list.sort(reverse=True,key=myFunc)
         #Top 5
-        top5=formated_list[:5]
+        top5=formated_list[:10]
         top5_string=""
         num=1
         for entry in top5:
@@ -207,7 +206,7 @@ class Economy(commands.Cog):
         formated_list = await self.leaderboard_row_formatter()
         formated_list.sort(reverse=True,key=myFunc)
         #Top 5
-        top5=formated_list[:5]
+        top5=formated_list[:10]
         top5_string=""
         num=1
         for entry in top5:
