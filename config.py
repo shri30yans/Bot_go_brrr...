@@ -35,7 +35,9 @@ reddit_award_platinum="<:reddit_award_platinum:809383626085105694>"
 reddit_award_gold="<:reddit_award_gold:808916667127300097>"
 reddit_award_silver="<:reddit_award_silver:808916666788347926>"
 reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
-reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
+#reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
+reddit_award_rocket_like="<:reddit_award_rocket_like:820293533642653717> "
+reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476> "
 
 stars_required_for_starboard=6
 

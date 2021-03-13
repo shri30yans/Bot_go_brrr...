@@ -3,7 +3,7 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
 
-awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
+awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 
 class ImportantFunctions(commands.Cog): 
     def __init__(self, bot):

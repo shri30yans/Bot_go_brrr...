@@ -17,13 +17,29 @@ Wholesome_Award=Award(name="Wholesome",reaction_id=config.reddit_award_wholesome
                     credits_given_to_receiver=0,
                     description="A wholesome award given out for *wholesome* moments",
                     starboard_post=False,
-                    cost=20)
-Helpful_Award=Award(name="Helpful",reaction_id=config.reddit_award_helpful,
-                    karma_given_to_receiver=random.randint(6,10),karma_given_to_giver=2,
+                    cost=15)
+
+# Helpful_Award=Award(name="Helpful",reaction_id=config.reddit_award_helpful,
+#                     karma_given_to_receiver=random.randint(6,10),karma_given_to_giver=2,
+#                     credits_given_to_receiver=0,
+#                     description="An award given to people who you feel were helpful",
+#                     starboard_post=False,
+#                     cost=10)
+
+Rocket_Like=Award(name="Rocket Like",reaction_id=config.reddit_award_rocket_like,
+                    karma_given_to_receiver=random.randint(5,20),karma_given_to_giver=2,
                     credits_given_to_receiver=0,
-                    description="An award given to people who you feel were helpful",
+                    description="Rockets go brrr! For posts that a upvote doesn't do justice",
                     starboard_post=False,
-                    cost=10)
+                    cost=20)
+
+Rocket_Dislike=Award(name="Rocket Disike",reaction_id=config.reddit_award_rocket_dislike,
+                    karma_given_to_receiver=random.randint(-20,-5),karma_given_to_giver=0,
+                    credits_given_to_receiver=0,
+                    description="Rockets go brrr! Reduces karma for the reciever.",
+                    starboard_post=False,
+                    cost=20)
+
 
 Silver_Award=Award(name="Silver",reaction_id=config.reddit_award_silver,
                     karma_given_to_receiver=random.randint(10,30),
@@ -43,17 +59,17 @@ Gold_Award=Award(name="Gold",reaction_id=config.reddit_award_gold,
 Platinum_Award=Award(name="Platinum",reaction_id=config.reddit_award_platinum,
                     karma_given_to_receiver=random.randint(50,100),
                     karma_given_to_giver=random.randint(30,45),
-                    credits_given_to_receiver=0,
-                    description="Award for a good post.\n(Posts to starboard)",
-                    starboard_post=True,
-                    cost=150)
+                    credits_given_to_receiver=50,
+                    description="Award for a good post.\n (awards reciever the coins)",
+                    starboard_post=False,
+                    cost=200)
 
 Argentinum_Award=Award(name="Argentinum",reaction_id=config.reddit_award_argentinum,
                     karma_given_to_receiver=random.randint(200,300),karma_given_to_giver=random.randint(70,100),
                     credits_given_to_receiver=random.randint(200,250),
                     description="Latin for distinguished, it’s for those who deserve outsized recognition.\n(Posts to starboard and awards the reciever coins)",
                     starboard_post=True,
-                    cost=500)
+                    cost=600)
 
 Ternion_Award=Award(name="Ternion",reaction_id=config.reddit_award_ternion,
                 karma_given_to_receiver=random.randint(300,500),

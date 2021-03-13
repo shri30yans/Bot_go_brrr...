@@ -3,7 +3,6 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
 
-awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
     
 class Starboard(commands.Cog): 
     def __init__(self, bot):
@@ -80,8 +79,6 @@ class Starboard(commands.Cog):
                         elif reaction.count >= config.stars_required_for_starboard:
                             await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Star",reaction_name="star")
                     
-                            
-
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self,payload): 
@@ -95,7 +92,8 @@ class Starboard(commands.Cog):
 
     
     @commands.group(name="Star",invoke_without_command=True,aliases=["starboard","sb"])
-    async def star(self,ctx):
+    async def star(self,ctx,user:discord.Member=None):
+        user= user or ctx.author
         total_stars=0
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
@@ -108,6 +106,12 @@ class Starboard(commands.Cog):
                 
                 embed=discord.Embed(title=f"Starboard",description=f"Starboard stuff")
                 embed.add_field(name="Total stars:",value=f"{total_stars}",inline=True)
+                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                reactions_given=json.loads(user_account["reactions_given"])
+                embed.add_field(name="Stars given:",value=f'{reactions_given["star"]}',inline=True)
+                reactions_received=json.loads(user_account["reactions_received"])
+                embed.add_field(name="Stars received:",value=f'{reactions_received["star"]}',inline=True)
+
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                 await ctx.send(embed=embed)
     

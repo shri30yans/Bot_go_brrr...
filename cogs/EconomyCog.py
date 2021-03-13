@@ -3,7 +3,7 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config
 
-awards_list=[awards.Helpful_Award,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
+awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 class Economy(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
@@ -13,7 +13,7 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
     async def bal(self,ctx,user:discord.Member=None):
-        user = ctx.author or user
+        user = user or ctx.author
         sent_msg=await ctx.send(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
 

@@ -18,7 +18,7 @@ class Events(commands.Cog):
             while True:
                 ctx = await self.bot.fetch_channel(config.events_channel_id)
                 await self.event(ctx)
-                least_delay,max_delay=2,2*60# in hours
+                least_delay,max_delay=10,2*60# in miutes
                 time_interval=random.randint(least_delay*60,max_delay*60)#converts to seconds
                 #time_interval=60
                 await asyncio.sleep(time_interval)
