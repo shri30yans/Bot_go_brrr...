@@ -172,9 +172,12 @@ class Events(commands.Cog):
         else:
             await ctx.send("You should never see this message")
         
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        await ImportantFunctions.create_account(user=user)
-        await ImportantFunctions.add_credits(user=user,amt=amt)
+        try:
+            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+            await ImportantFunctions.create_account(user=user)
+            await ImportantFunctions.add_credits(user=user,amt=amt)
+        except:
+            pass
 
     
 

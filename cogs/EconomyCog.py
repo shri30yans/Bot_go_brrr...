@@ -13,6 +13,7 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
     async def bal(self,ctx,user:discord.Member=None):
+        sent_msg=await ctx.send(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=user or ctx.author
         if user.bot:
@@ -56,7 +57,8 @@ class Economy(commands.Cog):
 
 
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-                    await ctx.send(embed=embed)
+                    #await ctx.send(embed=embed)
+                    await sent_msg.edit(embed=embed)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Awards",aliases=["award,awardlist"], help='A list of all the awards')
@@ -169,7 +171,7 @@ class Economy(commands.Cog):
         # embed.add_field(name="Please enter a valid subcommand.",value=f"You can check the leaderboasrds of the highest Karma or Credits.\n Type \"{config.prefix}leaderboard credits\" or \"{config.prefix}leaderboard karma\" ")
         # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         # await ctx.send(embed=embed)
-        await self.credits_leaderboard(ctx)
+        await self.karma_leaderboard(ctx)
 
     
     @leaderboard.command(name="Credits",aliases=["credit","creds","cred"])
@@ -268,6 +270,11 @@ class Economy(commands.Cog):
         emoji=payload.emoji  
         all_reacts=message.reactions
 
+        for x in message.reactions:
+            if str(x.emoji) == str(emoji):
+                reaction = x
+
+
                   
         if user.bot:#if reaction is by a bot
             return
@@ -283,8 +290,8 @@ class Economy(commands.Cog):
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
 
         #if any post has 10 or more upvotes, award that posts author 100 credits
-        for reaction in all_reacts:
-            if str(emoji) == config.upvote_reaction and reaction.count >= 10:
+        for r in all_reacts:
+            if str(emoji) == config.upvote_reaction and r.count >= 10:
                 amt=100
                 await ImportantFunctions.add_credits(user=message.author,amt=amt)
                 return
@@ -332,9 +339,13 @@ class Economy(commands.Cog):
                                 else:
                                     if str(confirm_reaction.emoji) == '✅':
                                         await check_message.delete()
-                                        await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
-
-                                        embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that the gave it the {award.name} award.",color = 0xFFD700)
+                                        #await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
+                                        embed = discord.Embed(title=f"{message.author.name} received an {award.name} Award!",description=f"{user.mention} liked {message.author.mention}'s [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
+                                        embed.set_thumbnail(url=str(emoji.url))
+                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
+                                        await channel.send(embed=embed)
+                                        
+                                        embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
                                         embed.set_thumbnail(url=str(emoji.url))
                                         embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
 
@@ -343,7 +354,7 @@ class Economy(commands.Cog):
                                         
                                         if award.starboard_post:#starboard_post is a boolean value
                                             #await ImportantFunctions.post_to_starboard(message=message,channel=message.channel,user=user,award=award)
-                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,type_of_reaction="Award",reaction_name=award.name)
+                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Award",reaction_name=award.name)
 
                                         await ImportantFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
                                         await ImportantFunctions.add_karma(user=user,amt=award.karma_given_to_giver)

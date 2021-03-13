@@ -19,6 +19,12 @@ class Starboard(commands.Cog):
         if user.bot:
             return 
 
+        for x in message.reactions:
+            if str(x.emoji) == str(emoji):
+                reaction = x
+        
+        
+
         #starboard
         if str(emoji) == "⭐":
             # if message.author == user:
@@ -26,7 +32,7 @@ class Starboard(commands.Cog):
             # else:
             # update the reactions sent in database
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=1)
-            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,type_of_reaction="Star",reaction_name="star")
+            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Star",reaction_name="star")
 
 
                 
@@ -37,38 +43,44 @@ class Starboard(commands.Cog):
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
         emoji=payload.emoji  
-        all_reacts = message.reactions
         if user.bot:
             return
-
-
+        
         if str(emoji) == "⭐":
             #update the reactions sent in database
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=-1)
             async with self.bot.pool.acquire() as connection:
                 async with connection.transaction():
                     starboard_channel=self.bot.get_channel(config.starboard_channel_id) 
-                    star_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)                 
+                    reacted_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)                 
                     #if this message is not in the database/ it has not been starred earlier
-                    if star_message == None:
+                    if reacted_message == None:
                         return
-                        
-                    star_message=dict(star_message)
-                    StarMessage= await starboard_channel.fetch_message(star_message["star_message_id"])
+                    else:    
+                        for x in message.reactions:
+                            if str(x.emoji) == str(emoji):
+                                reaction = x
 
-                    if len(all_reacts) == 0 :
-                        await StarMessage.delete()
-                        await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
-            
-                    for reaction in all_reacts:
-                        if reaction.count < config.stars_required_for_starboard:
+
+                        reacted_message=dict(reacted_message)
+                        StarMessage = await starboard_channel.fetch_message(reacted_message["star_message_id"])
+                        reactions_of_post = json.loads(reacted_message["reactions"])
+                        
+                        #if no reactions on message, and no awards in database
+                        if len(message.reactions) == 0 and len(reactions_of_post) <= 1 :
                             await StarMessage.delete()
                             await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
                         
+                        #if stars have become lesser than required number, and no awards in database
+                        elif reaction.count < config.stars_required_for_starboard and len(reactions_of_post) <= 1:
+                            await StarMessage.delete()
+                            await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
+                        
+                        #if stars are enough
                         elif reaction.count >= config.stars_required_for_starboard:
-                            await StarMessage.edit(content=f"{reaction.count} ⭐ {channel.mention}")
-                            await connection.execute("UPDATE starboard SET stars = $1 WHERE root_message_id=$2",reaction.count,message.id)
-    
+                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Star",reaction_name="star")
+                    
+                            
 
 
     @commands.Cog.listener()

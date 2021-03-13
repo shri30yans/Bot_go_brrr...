@@ -1,3 +1,7 @@
-pp=20
-p_=-pp
-print(p_)
+x=[1,2,3,4,5]
+for r in x:
+    if r == 8:
+        print(True)
+        break
+else:
+    print(False)
