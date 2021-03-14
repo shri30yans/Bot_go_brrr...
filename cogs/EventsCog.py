@@ -45,7 +45,7 @@ class Events(commands.Cog):
                 "Someone just chopped their pp off! Quick! Give them a Wholesome Award. Send the Wholesome Award Emoji.": [config.reddit_award_wholesome],
                 "POV: It's 2018 and you are Shri30yans Gaming. Quick say `Welcome to my Youtube Channel`": ['welcome to my youtube channel'],
                 "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
-                "POV: It's 2019 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
+                "POV: It's 2017 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
                 #"POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
                 "POV: It's Christmas! Send this emoji in the chat. (🎄)":['🎄'],
             }

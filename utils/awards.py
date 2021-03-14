@@ -13,7 +13,7 @@ class Award:
 
 
 Wholesome_Award=Award(name="Wholesome",reaction_id=config.reddit_award_wholesome,
-                    karma_given_to_receiver=random.randint(6,10),karma_given_to_giver=random.randint(2,10),
+                    karma_given_to_receiver=5,karma_given_to_giver=random.randint(2,10),
                     credits_given_to_receiver=0,
                     description="A wholesome award given out for *wholesome* moments",
                     starboard_post=False,
@@ -27,14 +27,14 @@ Wholesome_Award=Award(name="Wholesome",reaction_id=config.reddit_award_wholesome
 #                     cost=10)
 
 Rocket_Like=Award(name="Rocket Like",reaction_id=config.reddit_award_rocket_like,
-                    karma_given_to_receiver=random.randint(5,20),karma_given_to_giver=2,
+                    karma_given_to_receiver=random.randint(5,10),karma_given_to_giver=2,
                     credits_given_to_receiver=0,
                     description="Rockets go brrr! For posts that a upvote doesn't do justice",
                     starboard_post=False,
                     cost=20)
 
 Rocket_Dislike=Award(name="Rocket Disike",reaction_id=config.reddit_award_rocket_dislike,
-                    karma_given_to_receiver=random.randint(-20,-5),karma_given_to_giver=0,
+                    karma_given_to_receiver=random.randint(-10,-5),karma_given_to_giver=0,
                     credits_given_to_receiver=0,
                     description="Rockets go brrr! Reduces karma for the reciever.",
                     starboard_post=False,
