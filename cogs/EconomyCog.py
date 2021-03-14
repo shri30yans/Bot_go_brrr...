@@ -89,9 +89,11 @@ class Economy(commands.Cog):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author 
         amt=random.randint(1,20)
+        beg_options=[f"Someone gave you {amt} credits",f"A comrade gave you half his money. You got {amt} credits.",f"You begged and got {amt} credits.",]
+        await ctx.send(random.choice(beg_options))
         await ImportantFunctions.create_account(user)
         await ImportantFunctions.add_credits(user=ctx.message.author,amt=amt)
-        await ctx.send(f"Someone gave you {amt} credits.")
+
             
 
     @commands.cooldown(1,20, commands.BucketType.user)
@@ -139,10 +141,11 @@ class Economy(commands.Cog):
     async def daily_credits(self,ctx):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
+        amt = 100
+        await ctx.send(f"{amt} credits were added to your account.")   
         await ImportantFunctions.create_account(user)
-        amt=100
         await ImportantFunctions.add_credits(user=user,amt=amt) 
-        await ctx.send(f"{amt} credits were added to your account.")       
+    
 
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Give", help='Give your credits to others')
