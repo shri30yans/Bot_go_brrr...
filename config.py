@@ -41,6 +41,5 @@ reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
 
 stars_required_for_starboard=6
 
-run_event=False
-
+run_event=True
 
