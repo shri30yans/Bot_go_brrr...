@@ -26,11 +26,11 @@ async def status_update():
                         discord.Activity(type = discord.ActivityType.watching, name = f'Shri30yans Gaming'),
                         #discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
                         #discord.Activity(type = discord.ActivityType.watching, name = f"shriyans fail his exams"),
-                        discord.Activity(type = discord.ActivityType.playing, name = f"minesweeper"),
-                        discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\", 10 Hour Version"),
+                        #discord.Activity(type = discord.ActivityType.playing, name = f"minesweeper"),
+                        #discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\", 10 Hour Version"),
                         discord.Activity(type = discord.ActivityType.playing, name = f"Send help"),
                         discord.Activity(type = discord.ActivityType.watching, name = f"Bots go Brrrr..."),
-                        discord.Activity(type = discord.ActivityType.watching, name = f"hentai with the family"),
+                        #discord.Activity(type = discord.ActivityType.watching, name = f"hentai with the family"),
 
                         ]
 

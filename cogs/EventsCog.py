@@ -180,6 +180,48 @@ class Events(commands.Cog):
             pass
 
     
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        user=message.author
+        if user.bot:
+            return
+        if message.channel.id != 748786284599705688:
+            return
+        messages = await message.channel.history(limit=5).flatten() 
+        #if previous message is also written by same person
+        count=0
+        for msg in messages:
+            if msg.author == message.author:
+                count += 1
+        if count >= 3:
+            return
+
+        else:    
+            with open("messagecount.json","r") as messagecount_j:
+                users = json.load(messagecount_j)
+
+            if str(user.id) in users:
+                if users[str(user.id)] >= 5:
+                    users[str(user.id)] = 0 #reset messages
+                    print("added cash")
+                    
+                    ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                    amt=5
+                    await ImportantFunctions.create_account(user)
+                    await ImportantFunctions.add_credits(user=user,amt=amt)
+                
+                else:
+                    users[str(user.id)] += 1
+                
+            else:
+                users[str(user.id)] = 1
+            
+            with open("messagecount.json","w") as messagecount_j:
+                json.dump(users,messagecount_j)
+        
+
+
+
 
 def setup(bot):
     bot.add_cog(Events(bot))
