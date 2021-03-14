@@ -203,7 +203,7 @@ class Events(commands.Cog):
             if str(user.id) in users:
                 if users[str(user.id)] >= 5:
                     users[str(user.id)] = 0 #reset messages
-                    print("added cash")
+                    #print("added cash")
                     
                     ImportantFunctions = self.bot.get_cog('ImportantFunctions')
                     amt=5
