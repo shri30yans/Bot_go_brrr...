@@ -20,7 +20,7 @@ class Events(commands.Cog):
 
         datetime_ist = datetime.now(IST) 
         hour = datetime_ist.hour
-        if hour > 23 and hour < 10:#if time between 12 AM and 10 AM
+        if hour > 23 or hour < 10:#if time between 12 AM and 10 AM
             return False
         else:
             return True
