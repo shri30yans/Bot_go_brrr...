@@ -30,7 +30,7 @@ class Events(commands.Cog):
         if config.run_event: #Boolean
             await self.bot.wait_until_ready()
             while True:
-                time_check = self.check_if_time_is_ok()
+                time_check = await self.check_if_time_is_ok()
                 if time_check == False :
                     return
                 ctx = await self.bot.fetch_channel(config.events_channel_id)
