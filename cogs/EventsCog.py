@@ -3,6 +3,8 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
 #from cogs.EconomyCog import Economy
+from datetime import datetime 
+import pytz 
 
 
     
@@ -12,10 +14,25 @@ class Events(commands.Cog):
         #basically runs this function when this cog is loaded (which program is started)
         self.bot.loop.create_task(self.startup())
 
+    async def check_if_time_is_ok(self):
+        # it will get the time zone of the specified location 
+        IST = pytz.timezone('Asia/Kolkata') 
+
+        datetime_ist = datetime.now(IST) 
+        hour = datetime_ist.hour
+        if hour > 23 and hour < 10:#if time between 12 AM and 10 AM
+            return False
+        else:
+            return True
+
+
     async def startup(self):
         if config.run_event: #Boolean
             await self.bot.wait_until_ready()
             while True:
+                time_check = self.check_if_time_is_ok()
+                if time_check == False :
+                    return
                 ctx = await self.bot.fetch_channel(config.events_channel_id)
                 await self.event(ctx)
                 least_delay,max_delay=10,2*60# in miutes
@@ -73,7 +90,7 @@ class Events(commands.Cog):
             "In my experience there is no such thing as ____.":"luck",
             "The fear of ____ is a path to the dark side.":"loss",
             "I was in VC with my ___":"bsf",
-            """Roses are red,\n
+            """\nRoses are red,\n
             I love to screw,\n
             My PP is missing,\n
             Nvm it's inside ___""":"you",

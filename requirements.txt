@@ -3,6 +3,7 @@ aiohttp
 praw
 asyncpg
 colour
+pytz
 #urbandict
 Pillow
 #googletrans
