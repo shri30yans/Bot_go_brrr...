@@ -40,6 +40,8 @@ reddit_award_rocket_like="<:reddit_award_rocket_like:820293533642653717>"
 reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
 
 stars_required_for_starboard=6
+upvotes_needed_to_pin = 6
 
+#to run the events
 run_event=True
 

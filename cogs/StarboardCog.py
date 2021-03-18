@@ -18,9 +18,13 @@ class Starboard(commands.Cog):
         if user.bot:
             return 
 
-        for x in message.reactions:
-            if str(x.emoji) == str(emoji):
-                reaction = x
+        if message.reactions == None:
+            reaction_count=0
+        else:
+            for x in message.reactions:
+                if str(x.emoji) == str(emoji):
+                    reaction = x
+                    reaction.count=reaction.count
         
         
 

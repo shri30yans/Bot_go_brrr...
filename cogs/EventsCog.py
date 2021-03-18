@@ -11,6 +11,7 @@ import pytz
 class Events(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
+        self.messages_count_dict={}
         #basically runs this function when this cog is loaded (which program is started)
         self.bot.loop.create_task(self.startup())
 
@@ -31,10 +32,9 @@ class Events(commands.Cog):
             await self.bot.wait_until_ready()
             while True:
                 time_check = await self.check_if_time_is_ok()
-                if time_check == False :
-                    return
-                ctx = await self.bot.fetch_channel(config.events_channel_id)
-                await self.event(ctx)
+                if time_check:    
+                    ctx = await self.bot.fetch_channel(config.events_channel_id)
+                    await self.event(ctx)
                 least_delay,max_delay=10,2*60# in miutes
                 time_interval=random.randint(least_delay*60,max_delay*60)#converts to seconds
                 #time_interval=60
@@ -214,12 +214,9 @@ class Events(commands.Cog):
             return
 
         else:    
-            with open("messagecount.json","r") as messagecount_j:
-                users = json.load(messagecount_j)
-
-            if str(user.id) in users:
-                if users[str(user.id)] >= 5:
-                    users[str(user.id)] = 0 #reset messages
+            if str(user.id) in self.messages_count_dict:
+                if self.messages_count_dict[str(user.id)] >= 5:
+                    self.messages_count_dict[str(user.id)] = 0 #reset messages
                     #print("added cash")
                     
                     ImportantFunctions = self.bot.get_cog('ImportantFunctions')
@@ -228,13 +225,32 @@ class Events(commands.Cog):
                     await ImportantFunctions.add_credits(user=user,amt=amt)
                 
                 else:
-                    users[str(user.id)] += 1
+                    self.messages_count_dict[str(user.id)] += 1
                 
             else:
-                users[str(user.id)] = 1
+                self.messages_count_dict[str(user.id)] = 1
+        
+            # with open("messagecount.json","r") as messagecount_j:
+            #     users = json.load(messagecount_j)
+
+            # if str(user.id) in users:
+            #     if users[str(user.id)] >= 5:
+            #         users[str(user.id)] = 0 #reset messages
+            #         #print("added cash")
+                    
+            #         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+            #         amt=5
+            #         await ImportantFunctions.create_account(user)
+            #         await ImportantFunctions.add_credits(user=user,amt=amt)
+                
+            #     else:
+            #         users[str(user.id)] += 1
+                
+            # else:
+            #     users[str(user.id)] = 1
             
-            with open("messagecount.json","w") as messagecount_j:
-                json.dump(users,messagecount_j)
+            # with open("messagecount.json","w") as messagecount_j:
+            #     json.dump(users,messagecount_j)
         
 
 

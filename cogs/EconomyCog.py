@@ -275,15 +275,25 @@ class Economy(commands.Cog):
         message= await channel.fetch_message(payload.message_id)
         emoji=payload.emoji  
         all_reacts=message.reactions
-
-        for x in message.reactions:
-            if str(x.emoji) == str(emoji):
-                reaction = x
-
-
-                  
         if user.bot:#if reaction is by a bot
             return
+
+        if message.reactions == None:
+            reaction_count=0
+        else:
+            for x in message.reactions:
+                if str(x.emoji) == str(emoji):
+                    reaction = x
+                    reaction_count=reaction.count
+
+        #if any post has 10 or more upvotes, award that posts author 100 credits
+        if str(emoji) == config.upvote_reaction and reaction_count >= config.upvotes_needed_to_pin and message.channel.id == config.meme_channel_id :
+            await message.pin(reason="Got upvoted.")
+            amt=100
+            await ImportantFunctions.add_credits(user=message.author,amt=amt)
+            
+
+
         #Upvote add Karma
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(0,2)
@@ -295,12 +305,7 @@ class Economy(commands.Cog):
             await ImportantFunctions.add_karma(user=message.author,amt=amt)
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
 
-        #if any post has 10 or more upvotes, award that posts author 100 credits
-        for r in all_reacts:
-            if str(emoji) == config.upvote_reaction and r.count >= 10:
-                amt=100
-                await ImportantFunctions.add_credits(user=message.author,amt=amt)
-                return
+
         #awards
         for award in awards_list:
             if str(emoji) == award.reaction_id:
@@ -385,8 +390,27 @@ class Economy(commands.Cog):
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
         emoji=payload.emoji  
+        all_reacts =message.reactions
+        
         if user.bot:#if reaction is by a bot
             return
+
+        if len(message.reactions) == 0:
+            reaction_count=0
+        else:
+            for x in message.reactions:
+                if str(x.emoji) == str(emoji):
+                    reaction = x
+                    reaction_count=reaction.count
+
+                #if any post has 10 or more upvotes, award that posts author 100 credits
+        
+        if str(emoji) == config.upvote_reaction and reaction_count <= config.upvotes_needed_to_pin :
+            await message.unpin(reason="Upvotes reduced.")
+            amt=-100
+            await ImportantFunctions.add_credits(user=message.author,amt=amt)
+            
+        
 
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
@@ -397,6 +421,8 @@ class Economy(commands.Cog):
             amt = random.randint(0,2)
             await ImportantFunctions.add_karma(user=message.author,amt=amt)
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
+
+
    
 def setup(bot):
     bot.add_cog(Economy(bot))
