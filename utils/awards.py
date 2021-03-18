@@ -69,7 +69,7 @@ Argentinum_Award=Award(name="Argentinum",reaction_id=config.reddit_award_argenti
                     credits_given_to_receiver=random.randint(200,250),
                     description="Latin for distinguished, it’s for those who deserve outsized recognition.\n(Posts to starboard and awards the reciever coins)",
                     starboard_post=True,
-                    cost=600)
+                    cost=1000)
 
 Ternion_Award=Award(name="Ternion",reaction_id=config.reddit_award_ternion,
                 karma_given_to_receiver=random.randint(300,500),
@@ -77,4 +77,4 @@ Ternion_Award=Award(name="Ternion",reaction_id=config.reddit_award_ternion,
                 credits_given_to_receiver=random.randint(400,500),
                 description="An award reserved for the very best posts.\n(Posts to starboard and awards reciever the coins)",
                 starboard_post=True,
-                cost=1000)
+                cost=2000)
