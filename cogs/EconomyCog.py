@@ -296,7 +296,6 @@ class Economy(commands.Cog):
         reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
             
 
-
         #Upvote add Karma
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(0,2)
