@@ -33,21 +33,9 @@ class Economy(commands.Cog):
 
                     awards_given_j=json.loads(user_account["awards_given"])
                     awards_received_j=json.loads(user_account["awards_received"])
-                    awards_given_str,awards_received_str="",""
+                    awards_given_str= await self.format_awards_in_order(awards_given_or_recieved_dict=awards_given_j)
+                    awards_received_str= await self.format_awards_in_order(awards_given_or_recieved_dict=awards_received_j)
 
-                    for award_name in awards_given_j:
-                        for award_found in awards_list:
-                            if award_name == award_found.name:
-                                award=award_found
-                                awards_given_str= awards_given_str + award.reaction_id + ": " + str(awards_given_j[award_name]) + ", "
-
-                    for award_name in awards_received_j:
-                        for award_found in awards_list:
-                            if award_name == award_found.name:
-                                award=award_found
-                                awards_received_str= awards_received_str + award.reaction_id + ": " + str(awards_received_j[award_name])+ ", "
-                    
-                    #if its None, the embed will go empty, so to convert None to a string we do this
                     awards_given_str=awards_given_str or "None"
                     awards_received_str= awards_received_str or "None"
 
@@ -60,6 +48,33 @@ class Economy(commands.Cog):
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                     #await ctx.send(embed=embed)
                     await sent_msg.edit(embed=embed)
+
+    async def format_awards_in_order(self,awards_given_or_recieved_dict):
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        ordered_reactions_of_post={}
+        for x in awards_list[::-1]:
+            try:
+                ordered_reactions_of_post[x.name.lower()] = awards_given_or_recieved_dict[x.name]
+            except:
+                pass
+            
+        all_award_names=[]
+        for award in awards_list:
+            all_award_names.append(award.name.lower())
+        reaction_id_string=""
+        for r in ordered_reactions_of_post:
+            if r in all_award_names:
+                award = await ImportantFunctions.fetch_award(award_name=r)
+                if award == "Not Found":
+                    print("Not found award")
+                    #return
+                reaction_id = award.reaction_id
+            else:
+                print("Not an award or an Star")
+            reaction_id_string = reaction_id_string + f"{ordered_reactions_of_post[r]} {reaction_id} ,   "
+
+        return reaction_id_string
+
 
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Awards",aliases=["award,awardlist"], help='A list of all the awards')
@@ -278,19 +293,7 @@ class Economy(commands.Cog):
         if user.bot:#if reaction is by a bot
             return
 
-        if message.reactions == None:
-            reaction_count=0
-        else:
-            for x in message.reactions:
-                if str(x.emoji) == str(emoji):
-                    reaction = x
-                    reaction_count=reaction.count
-
-        #if any post has 10 or more upvotes, award that posts author 100 credits
-        if str(emoji) == config.upvote_reaction and reaction_count >= config.upvotes_needed_to_pin and message.channel.id == config.meme_channel_id :
-            await message.pin(reason="Got upvoted.")
-            amt=100
-            await ImportantFunctions.add_credits(user=message.author,amt=amt)
+        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
             
 
 
@@ -300,6 +303,7 @@ class Economy(commands.Cog):
             await ImportantFunctions.add_karma(user=message.author,amt=amt)
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
         #Downvote remove Karma
+        
         elif str(emoji) == config.downvote_reaction and message.author != user:
             amt = random.randint(-3,-1)
             await ImportantFunctions.add_karma(user=message.author,amt=amt)
@@ -364,8 +368,8 @@ class Economy(commands.Cog):
                                         except:pass
                                         
                                         if award.starboard_post:#starboard_post is a boolean value
-                                            #await ImportantFunctions.post_to_starboard(message=message,channel=message.channel,user=user,award=award)
-                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Award",reaction_name=award.name)
+                                            
+                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Award",reaction_name=award.name)
 
                                         await ImportantFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
                                         await ImportantFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
@@ -395,22 +399,8 @@ class Economy(commands.Cog):
         if user.bot:#if reaction is by a bot
             return
 
-        if len(message.reactions) == 0:
-            reaction_count=0
-        else:
-            for x in message.reactions:
-                if str(x.emoji) == str(emoji):
-                    reaction = x
-                    reaction_count=reaction.count
+        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
 
-                #if any post has 10 or more upvotes, award that posts author 100 credits
-        
-        if str(emoji) == config.upvote_reaction and reaction_count <= config.upvotes_needed_to_pin :
-            await message.unpin(reason="Upvotes reduced.")
-            amt=-100
-            await ImportantFunctions.add_credits(user=message.author,amt=amt)
-            
-        
 
         if str(emoji) == config.upvote_reaction and message.author != user:
             amt = random.randint(-3,-1)

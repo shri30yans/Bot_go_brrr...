@@ -57,9 +57,9 @@ Gold_Award=Award(name="Gold",reaction_id=config.reddit_award_gold,
                 cost=100)
 
 Platinum_Award=Award(name="Platinum",reaction_id=config.reddit_award_platinum,
-                    karma_given_to_receiver=random.randint(50,100),
+                    karma_given_to_receiver=random.randint(50,80),
                     karma_given_to_giver=random.randint(30,45),
-                    credits_given_to_receiver=50,
+                    credits_given_to_receiver=20,
                     description="Award for a good post.\n (awards reciever the coins)",
                     starboard_post=False,
                     cost=200)

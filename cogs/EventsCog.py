@@ -90,9 +90,9 @@ class Events(commands.Cog):
             "In my experience there is no such thing as ____.":"luck",
             "The fear of ____ is a path to the dark side.":"loss",
             "I was in VC with my ___":"bsf",
-            """\nRoses are red,\n
-            I love to screw,\n
-            My PP is missing,\n
+            """Roses are red,
+            I love to screw,
+            My PP is missing,
             Nvm it's inside ___""":"you",
             "We need to go ____":"deeper",
             "Don't care, ______ it":"shipped",

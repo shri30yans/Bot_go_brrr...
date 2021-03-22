@@ -18,13 +18,16 @@ class Starboard(commands.Cog):
         if user.bot:
             return 
 
-        if message.reactions == None:
-            reaction_count=0
-        else:
-            for x in message.reactions:
-                if str(x.emoji) == str(emoji):
-                    reaction = x
-                    reaction.count=reaction.count
+        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
+        score = await ImportantFunctions.score_calculator(message=message)
+
+
+
+        #if any post has 10 or more upvotes, award that posts author 100 credits
+        if str(emoji) == config.upvote_reaction and score >= config.score_needed_to_pin and message.channel.id == config.meme_channel_id :
+            await message.pin(reason="Got upvoted.")
+            amt=100
+            await ImportantFunctions.add_credits(user=message.author,amt=amt)
         
         
 
@@ -35,7 +38,9 @@ class Starboard(commands.Cog):
             # else:
             # update the reactions sent in database
             await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=1)
-            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Star",reaction_name="star")
+            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Star",reaction_name="star")
+
+
 
 
                 
@@ -48,6 +53,18 @@ class Starboard(commands.Cog):
         emoji=payload.emoji  
         if user.bot:
             return
+
+  
+        reaction_count =await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
+        score = await ImportantFunctions.score_calculator(message=message)
+        
+        #if any post has 10 or more upvotes, award that posts author 100 credits    
+        if str(emoji) == config.upvote_reaction and score <= config.score_needed_to_pin  and message.channel.id == config.meme_channel_id :
+            await message.unpin(reason="Upvotes reduced.")
+            amt=-100
+            await ImportantFunctions.add_credits(user=message.author,amt=amt)
+
+
         
         if str(emoji) == "⭐":
             #update the reactions sent in database
@@ -59,12 +76,8 @@ class Starboard(commands.Cog):
                     #if this message is not in the database/ it has not been starred earlier
                     if reacted_message == None:
                         return
-                    else:    
-                        for x in message.reactions:
-                            if str(x.emoji) == str(emoji):
-                                reaction = x
-
-
+                    else:  
+                   
                         reacted_message=dict(reacted_message)
                         StarMessage = await starboard_channel.fetch_message(reacted_message["star_message_id"])
                         reactions_of_post = json.loads(reacted_message["reactions"])
@@ -75,13 +88,16 @@ class Starboard(commands.Cog):
                             await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
                         
                         #if stars have become lesser than required number, and no awards in database
-                        elif reaction.count < config.stars_required_for_starboard and len(reactions_of_post) <= 1:
+                        elif reaction_count < config.stars_required_for_starboard and len(reactions_of_post) <= 1:
                             await StarMessage.delete()
                             await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
                         
                         #if stars are enough
-                        elif reaction.count >= config.stars_required_for_starboard:
-                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,reaction=reaction,type_of_reaction="Star",reaction_name="star")
+                        elif reaction_count >= config.stars_required_for_starboard:
+                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Star",reaction_name="star")
+                    
+
+            
                     
 
     @commands.Cog.listener()

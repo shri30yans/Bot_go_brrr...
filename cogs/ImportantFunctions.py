@@ -106,11 +106,13 @@ class ImportantFunctions(commands.Cog):
                     #print("Giving",user_giving.name,reactions_update)
 
 
-    async def post_to_starboard(self,message,channel,user,reaction,type_of_reaction,reaction_name):  
+    async def post_to_starboard(self,message,channel,user,emoji,type_of_reaction,reaction_name):  
         starboard_channel=self.bot.get_channel(config.starboard_channel_id)
         # for x in message.reactions:
         #     if x.emoji == emoji:
         #         reaction = x
+        
+        reaction_count = await self.get_reaction_count(message=message,emoji=emoji)
 
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
@@ -129,7 +131,7 @@ class ImportantFunctions(commands.Cog):
                                 embed.set_image(url=message.attachments[0].url)
                             embed.set_footer(text=f"{message.id} ")
 
-                            if type_of_reaction == "Star" and reaction.count >= config.stars_required_for_starboard:
+                            if type_of_reaction == "Star" and reaction_count >= config.stars_required_for_starboard:
                                 reaction_id = "⭐" 
                             elif type_of_reaction == "Award":
                                 award = await self.fetch_award(award_name=reaction_name)
@@ -139,9 +141,9 @@ class ImportantFunctions(commands.Cog):
                                 #means stars are less that the required number 
                                 return
 
-                            StarMessage = await starboard_channel.send(f"{reaction.count} {reaction_id} {channel.mention}",embed=embed)
+                            StarMessage = await starboard_channel.send(f"{reaction_count} {reaction_id} {channel.mention}",embed=embed)
 
-                            reaction_json=json.dumps({reaction_name.lower():reaction.count})                            
+                            reaction_json=json.dumps({reaction_name.lower():reaction_count})                            
                             await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,reactions) VALUES ($1,$2,$3)',message.id,StarMessage.id,reaction_json)
                             
                 elif reacted_message != None:#message exists in starboard/is present in the databse
@@ -150,11 +152,12 @@ class ImportantFunctions(commands.Cog):
                     reactions_of_post=json.loads(reacted_message["reactions"])
                     if reaction_name.lower() in reactions_of_post:
                         #reactions_of_post[reaction_name.lower()] = reactions_of_post[reaction_name.lower()] + 1
-                        reactions_of_post[reaction_name.lower()] = reaction.count
+                        reactions_of_post[reaction_name.lower()] = reaction_count
                     else:
                         reactions_of_post.update({reaction_name.lower():1})
                     
                     reaction_id_string= await self.format_awards_in_order(message=message,channel=channel,user=user,reactions_of_post=reactions_of_post)
+                    reaction_id_string = reaction_id_string + channel.mention
                     
                     await StarMessage.edit(content=f"{reaction_id_string}")
 
@@ -196,7 +199,7 @@ class ImportantFunctions(commands.Cog):
             else:
                 print("Not an award or an Star")
             reaction_id_string = reaction_id_string + f"{reactions_of_post[r]} {reaction_id}   "
-        reaction_id_string = reaction_id_string + channel.mention
+
         return reaction_id_string
     
     
@@ -207,6 +210,30 @@ class ImportantFunctions(commands.Cog):
                 return award
         else:
             return "Not found"
+
+    async def get_reaction_count(self,message,emoji):
+        if len(message.reactions) == 0:
+            reaction_count=0
+            return reaction_count
+            
+        else:
+            for x in message.reactions:
+                if str(x.emoji) == str(emoji):
+                    reaction = x
+                    reaction_count=reaction.count
+                    return reaction_count
+                else: 
+                    reaction_count = 0
+                    return reaction_count
+
+
+    async def score_calculator(self,message):
+        upvote_count= await self.get_reaction_count(message=message,emoji=config.upvote_reaction)
+        downvote_count= await self.get_reaction_count(message=message,emoji=config.downvote_reaction)
+        score = upvote_count - downvote_count
+        print(upvote_count,downvote_count,score)
+        return score
+
     
 
 def setup(bot):
