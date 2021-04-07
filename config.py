@@ -43,7 +43,7 @@ stars_required_for_starboard=6
 score_needed_to_pin = 8
 
 #to run the events
-run_event=False
+run_event=True
 
 
 embed_colours=[0xFFFF00,#yellow
