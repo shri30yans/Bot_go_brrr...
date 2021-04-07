@@ -2,8 +2,7 @@ import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
 from discord.ext import commands,tasks
 import config
 
-colourlist=[0xCCFF00,0x00C2C7,0x006163,0xE67E22,0xC14DF0,0xEC4451,0xFAED2E,0x2E75FA,0xFA782E,
-            0x2EFAD2,0xFF729D,0xA172FF,0x72A3FF,0xFF0000,0x0DAA00,0x171EFF,0x8BD6F9,0x8E44AD,0x9B59B6,]
+colourlist=config.embed_colours
 
 class Utility(commands.Cog): 
     def __init__(self, bot):
@@ -129,47 +128,6 @@ class Utility(commands.Cog):
             embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} •{self.bot.user.name} ")   
             await ctx.send(embed=embed,delete_after=4)
     
-    '''@commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Translate", help="Performs a wikipedia search \n Yeet translate Yeet ")
-    async def translate(self,ctx,*arguments:str):
-        
-        translator = Translator()
-        response=translator.translate(arguments)
-
-            
-        embed = discord.Embed(title = "Translate", color = random.choice(colourlist),timestamp=ctx.message.created_at)
-        embed.add_field(name="Translate",value=response)
-        author_avatar=ctx.author.avatar_url
-        embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name}t ")
-        await ctx.send(embed=embed)'''
-
-
-            
-            
-
-            #print(response.text)
-
-    # @commands.cooldown(1, 3, commands.BucketType.user)
-    # @commands.command(name="Vote", help='Where to vote for me. \n Yeet Vote')
-    # async def vote(self,ctx):
-    #     # vote_gifs=["https://media.tenor.com/images/a5721ade2ad3e7a1a3b45e73b1cd7ed1/tenor.gif",
-    #     #             "https://media1.tenor.com/images/5c9138f8641b2fcfec578c435f05eb7c/tenor.gif?itemid=8850374",
-    #     #             "https://media1.tenor.com/images/6531e425d01ecb64f5f98671b3b0748e/tenor.gif?itemid=8098999",
-    #     #             "https://media1.tenor.com/images/298bfa6dfd5d4539b0d7cff77b030918/tenor.gif?itemid=13876326",
-    #     #             "https://media1.tenor.com/images/887f922eed1f9739842d10102ecd650e/tenor.gif?itemid=17361623",
-    #     #             "https://media1.tenor.com/images/b2d694309cd638f5b96efa7d9c3cde2a/tenor.gif?itemid=13202036",
-    #     #             "https://media.tenor.com/images/be8559bc58ab754e11333ee79a013e1f/tenor.gif",
-    #     #             "https://media.tenor.com/images/dc3308583e3dca9ca0e494c0a58c493d/tenor.gif",
-
-    #     #             ]
-    #     embed=discord.Embed(title="Vote",description=f"[If you like {self.bot.user.name}, vote for me on Top.gg to support me.](https://top.gg/bot/750236220595896370/vote)",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-    #     author_avatar=ctx.author.avatar_url
-    #     #embed.set_image(url=str(random.choice(vote_gifs))) 
-    #     embed.set_thumbnail(url="https://qph.fs.quoracdn.net/main-qimg-156cdd2c7c801fff00c4d2a2f6f9b843")
-    #     embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
-    #     await ctx.send(embed=embed)
-
-
 
     @commands.cooldown(1, 5, commands.BucketType.user)
     @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user \n{config.prefix}whois @User')
@@ -335,7 +293,7 @@ class Utility(commands.Cog):
     
     @commands.has_permissions(manage_messages=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Giveaway", help=f'Creates a giveaway \n \"{config.prefix}giveaway\"')
+    @commands.group(name="Giveaway", help=f'Creates a giveaway \n \"{config.prefix}giveaway\"',invoke_without_command=True)
     async def giveaway(self,ctx):
         channel = await self.text_input_function(ctx,title="Which channel do you want your giveaway to be in?",text="Mention the channel in which the giveaway would be created.")
         channel=await commands.TextChannelConverter().convert(ctx,channel)
@@ -388,6 +346,25 @@ class Utility(commands.Cog):
         embed.set_footer(text=f"Ended • {self.bot.user.name} ")    
         await giveaway_msg.edit(embed=embed)
         await channel.send(f"Congratulations! {winner_list} won {prize}!")
+
+    # @commands.has_permissions(manage_messages=True)
+    # #@commands.cooldown(1, 10, commands.BucketType.user)
+    # @commands.group(name="Giveaway", help=f'Reroll a giveaway. \n \"{config.prefix}giveaway giveaway_message_id\"')
+    # async def reroll_giveaway(self,ctx,giveaway_msg_id):
+    #     giveaway_msg = await channel.get_message(giveaway_msg_id)
+    #     users = await giveaway_msg.reactions[0].users().flatten()
+    #     users.pop(users.index(self.bot.user))
+    #     if no_of_winners > len(users):
+    #         no_of_winners = len(users)
+    #     winner = random.sample(users,k=no_of_winners)
+    #     winner_list=""
+    #     for user in winner:
+    #         winner_list= winner_list + user.mention
+    #     embed=discord.Embed(title=f":tada: |  Giveaway ended.",description=f"{prize}",color = 0xFF0000)
+    #     embed.add_field(name=f":trophy: Winner: ",value=f"{winner_list} won {prize}!")
+    #     embed.set_footer(text=f"Ended • {self.bot.user.name} ")    
+    #     await giveaway_msg.edit(embed=embed)
+    #     await channel.send(f"Congratulations! {winner_list} won {prize}!")
     
     # @commands.has_permissions(manage_messages=True)
     # @commands.cooldown(1, 10, commands.BucketType.user)

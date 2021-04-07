@@ -3,6 +3,8 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config
 
+colourlist=config.embed_colours
+
 awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 class Economy(commands.Cog): 
     def __init__(self, bot):
@@ -208,13 +210,15 @@ class Economy(commands.Cog):
         num=1
         for entry in top5:
             user = self.bot.get_user(entry["user_id"])
+            # if user == None:
+            #     print(entry["user_id"])
             top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             num=num+1
         
         if len(top5_string) == 0:#is space/blank/None
             top5_string = "There are no entries in your leaderboard."
         
-        embed=discord.Embed(title=f"Credits Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
+        embed=discord.Embed(title=f"Credits Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await ctx.send(embed=embed)
 
@@ -237,7 +241,7 @@ class Economy(commands.Cog):
             print("no entries")
             top5_string = "There are no entries in your leaderboard"
         
-        embed=discord.Embed(title=f"Karma Leaderboard",colour=ctx.guild.me.colour,description=f"{top5_string}")
+        embed=discord.Embed(title=f"Karma Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await ctx.send(embed=embed)
 

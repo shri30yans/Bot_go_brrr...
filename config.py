@@ -45,3 +45,12 @@ score_needed_to_pin = 8
 #to run the events
 run_event=False
 
+
+embed_colours=[0xFFFF00,#yellow
+            0xFF0000,#red
+            0xFF0000,#green
+            0x00FFFF,#blue
+            0xFF00FF,#pink
+
+]
+

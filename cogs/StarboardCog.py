@@ -3,6 +3,7 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
 
+colourlist=config.embed_colours
     
 class Starboard(commands.Cog): 
     def __init__(self, bot):
