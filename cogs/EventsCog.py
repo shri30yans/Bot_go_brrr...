@@ -6,6 +6,7 @@ import config
 from datetime import datetime 
 import pytz 
 
+colourlist=config.embed_colours
 
     
 class Events(commands.Cog): 
@@ -91,7 +92,7 @@ class Events(commands.Cog):
             "Difficult to see; always in motion is the ___.":"future",
             "Only a Sith deals in  ___":"absolutes",
             "There’s always a bigger ___.":"fish",
-            "So this is how liberty dies … with thunderous ___.":"qpplause",
+            "So this is how liberty dies … with thunderous ___.":"applause",
 
             }
             word=random.choice(list(questions))
@@ -137,7 +138,7 @@ class Events(commands.Cog):
         
         
         elif rarity == 'Epic':
-            questions={"What is the name of the Internet meme consisting of a green anthropomorphic frog with a humanoid body originated in a 2005 comic?":['pepe''pepe the frog',],
+            questions={"What is the name of the Internet meme consisting of a green anthropomorphic frog with a humanoid body originated in a 2005 comic?":['pepe','pepe the frog',],
                         "What is the name of the Internet meme of a picture of a Shiba Inu dog that became popular in 2013? ":["doge"],
                         "Who is the famous Pixar character featured in the two-eyed green spherical monster meme staring awkwardly? ":['mike wazowski'],}
             word=random.choice(list(questions))
@@ -246,10 +247,22 @@ class Events(commands.Cog):
             
             # with open("messagecount.json","w") as messagecount_j:
             #     json.dump(users,messagecount_j)
-        
 
+    
+          
+    @commands.command(name="Eventlist",aliases=["eventslist"],hidden=True)
+    async def eventslist(self,ctx):
+        embed=discord.Embed(title="Events List",color = random.choice(colourlist))
+        embed.add_field(name="Event rarities:",value=f"""
+                        **Common Event** (40% Chance of occuring) \nTyping \n10-20 Coins\n
+                        **Uncommon Event** (30% Chance of occuring)  \nFill in the blanks \n20-40 Coins\n
+                        **Rare Event** (15% Chance of occuring) \nUnscramble \n40-70 Coins\n
+                        **Epic Event** (10% Chance of occuring) \nMeme question \n80-100 Coins\n
+                        **Legendary Event** (5% Chance of occuring) \nMeme caption \n100-150 Coins\n""" ,
+                        inline=False)
+        await ctx.send(embed=embed)
 
-
+(40,30,15,10,5)
 
 def setup(bot):
     bot.add_cog(Events(bot))
