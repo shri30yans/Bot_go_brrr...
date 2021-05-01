@@ -53,25 +53,24 @@ class Events(commands.Cog):
             rarity=rarity.lower().capitalize()
         
         else:
-            await ctx.send("Enter a proper rarity. (Common,Uncommon,Rare,Epic,Legendary).")
+            await ctx.send("Enter a proper rarity. (Common, Uncommon, Rare, Epic, Legendary).")
           
         if rarity == 'Common':
             questions={
                 "You are in an argument. Quick! Type `No You`.":["no you"],
-                "Some one just said \"Hello there\". Quick! Type `General Kenobi`":["general kenobi"],
-                "Someone just chopped their pp off! Quick! Give them a Wholesome Award. Send the Wholesome Award Emoji.": [config.reddit_award_wholesome],
-                "POV: It's 2018 and you are Shri30yans Gaming. Quick say `Welcome to my Youtube Channel`": ['welcome to my youtube channel'],
-                "Reddit just crashed the whole stock market. Quick say `Stonks`": ['stonks'],
-                "POV: It's 2017 and Figet Spinners are Trending. Quick say `Fidget`": ['fidget'],
-                #"POV: It's Valentine's day. Send this emoji in the chat. (💖) ": ['💖'],
-                "POV: It's Christmas! Send this emoji in the chat. (🎄)":['🎄'],
+                "POV: Someone just replied \"General Kenobi\" to a \"Hello there\". Quick! Type `This is the Way`":["this is the way"],
+                "Someone just sent a rad meme in the chat. Quick! Type `kek` ": ['kek',],
+                "PS5 just came in stock. Quick say `Add to cart`": ['add to cart'],
+                "I just died playing Minecraft. Type `F` in the chat": ['fidget'],
+                "People are lurking in chat. Send this emoji (🕵️) ": ['🕵️'],
+                "POV: You are Tahir. Quick send this emoji in the chat (😹)":['😹'],
             }
             word=random.choice(list(questions))
             # print(word)
             # print(questions[word])
             sent_msg =await ctx.send(f"""**{rarity} Event Time!** \n{word}""")
             try:
-                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
+                msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=300)#timeout after 5 mins
 
             except asyncio.TimeoutError:
                 await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
@@ -85,18 +84,14 @@ class Events(commands.Cog):
         
         
         elif rarity == 'Uncommon':
-            questions={"Don't underestimate my _____":"power",
-            "I find your lack of _____ disturbing.":"faith",
+            questions={
+            "Weaklings die _____  ____":"big deal",
+            "The ability to ___ does not make you intelligent.":"speak",
             "In my experience there is no such thing as ____.":"luck",
-            "The fear of ____ is a path to the dark side.":"loss",
-            "I was in VC with my ___":"bsf",
-            """Roses are red,
-            I love to screw,
-            My PP is missing,
-            Nvm it's inside ___""":"you",
-            "We need to go ____":"deeper",
-            "Don't care, ______ it":"shipped",
-            "We were not allowed to ____ in the airport.":"shoot"
+            "Difficult to see; always in motion is the ___.":"future",
+            "Only a Sith deals in  ___":"absolutes",
+            "There’s always a bigger ___.":"fish",
+            "So this is how liberty dies … with thunderous ___.":"qpplause",
 
             }
             word=random.choice(list(questions))
@@ -118,7 +113,7 @@ class Events(commands.Cog):
 
 
         elif rarity == 'Rare':
-            questions=["panzer IV","who is golf ball","send nudes","takes shit off","dead chat","creme de la penis","creme de la penis",]
+            questions=["stonks","minecraft","talented mf","ender dragon","diamond armour","ding ding",]
             word=random.choice(questions)
             shuffled_words = ""
             word_list=word.split(" ")
@@ -142,10 +137,9 @@ class Events(commands.Cog):
         
         
         elif rarity == 'Epic':
-            questions={"Who always has the high ground?":['obi-wan kenobi','kenobi','obi wan','obi-wan','obi wan kenobi',],
-                        "Some one just threw something really far. What are they supposed to say?":["yeet","yeet!"],
-                        "Hottest Harry Potter Character? Go!":['hagrid'],
-                        "What is the name of Tanya's favourite doctor?":['johnny sins'],}
+            questions={"What is the name of the Internet meme consisting of a green anthropomorphic frog with a humanoid body originated in a 2005 comic?":['pepe''pepe the frog',],
+                        "What is the name of the Internet meme of a picture of a Shiba Inu dog that became popular in 2013? ":["doge"],
+                        "Who is the famous Pixar character featured in the two-eyed green spherical monster meme staring awkwardly? ":['mike wazowski'],}
             word=random.choice(list(questions))
 
             sent_msg = await ctx.send(f"""**{rarity} Event!**\n{word} First person to answer wins!""")
@@ -168,7 +162,8 @@ class Events(commands.Cog):
                         "https://i.imgur.com/IyX19td.png":["stonks"],
                         "https://i.imgur.com/2B85WEe.png":['aight imma head out','ight imma head out','alright imma head out'],
                         "https://i.imgur.com/awn4TlW.png":['where banana'],
-                        "https://i.imgur.com/4OIx1l4.jpg?1":["same","y same"]}
+                        "https://i.imgur.com/4OIx1l4.jpg?1":["same","y same"],
+                        "https://i.imgur.com/RG2zL0G.jpg":["is this a pigeon?","is this a pigeon"]}
             word=random.choice(list(questions))
 
             sent_msg =await ctx.send(f"""**{rarity} Event!** \nEnter the words associated with this meme template.""")
