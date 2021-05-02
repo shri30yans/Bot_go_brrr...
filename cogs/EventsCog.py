@@ -62,7 +62,7 @@ class Events(commands.Cog):
                 "POV: Someone just replied \"General Kenobi\" to a \"Hello there\". Quick! Type `This is the Way`":["this is the way"],
                 "Someone just sent a rad meme in the chat. Quick! Type `kek` ": ['kek',],
                 "PS5 just came in stock. Quick say `Add to cart`": ['add to cart'],
-                "I just died playing Minecraft. Type `F` in the chat": ['fidget'],
+                "I just died playing Minecraft. Type `F` in the chat": ['f'],
                 "People are lurking in chat. Send this emoji (🕵️) ": ['🕵️'],
                 "POV: You are Tahir. Quick send this emoji in the chat (😹)":['😹'],
             }
