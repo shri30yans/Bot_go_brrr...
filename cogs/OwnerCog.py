@@ -8,9 +8,9 @@ class OwnerCog(commands.Cog):
         self.bot = bot
     
     @commands.is_owner()
-    @commands.group(name="Add",hidden=True,invoke_without_command=True,case_insensitive=True)
+    @commands.group(name="Add",invoke_without_command=True,case_insensitive=True)
     async def add(self,ctx):
-        await ctx.send("Add what? Apples? Oranges? Enter a valid subcommand.")
+        await ctx.send("Add what? Apples? Oranges? Enter a valid subcommand. Current Options: Credits, Karma.")
     
     @commands.is_owner()
     @add.command(name="Credits",aliases=["credit","creds","cred"])
@@ -38,9 +38,9 @@ class OwnerCog(commands.Cog):
 
     
     @commands.is_owner()
-    @commands.group(name="Set",hidden=True,invoke_without_command=True,case_insensitive=True)
+    @commands.group(name="Set",invoke_without_command=True,case_insensitive=True)
     async def set_to(self,ctx):
-        await ctx.send("Set to what? Apples? Oranges? Enter a valid subcommand.")
+        await ctx.send("Set to what? Apples? Oranges? Enter a valid subcommand. Current Options: Credits, Karma")
     
     @commands.is_owner()
     @set_to.command(name="Credits",aliases=["credit","creds","cred"])
@@ -78,8 +78,10 @@ class OwnerCog(commands.Cog):
         
         await ctx.send(f"{given_to_users}'s karma have been set to {amt}.")
 
+
+
     @commands.is_owner()
-    @commands.group(name="Reset",hidden=True,invoke_without_command=True,case_insensitive=True,help="Reset a table by removing all rows.")
+    @commands.group(name="Reset",invoke_without_command=True,case_insensitive=True,help="Reset a table by removing all rows.")
     async def reset(self,ctx):
         await ctx.send("Enter a valid subcommand.")
 
@@ -118,12 +120,51 @@ class OwnerCog(commands.Cog):
                 await ctx.send(f"Karma for all users has been set to {amt}")
 
     @commands.is_owner()
-    @reset.command(name="Credits",aliases=["creds","credit","cred"])
+    @reset.command(name="Credits",aliases=["creds","credit","cred","bal","balance"])
     async def reset_credits(self,ctx,amt=0):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 await connection.execute("UPDATE info SET credits = $1",amt)
                 await ctx.send(f"Credits for all users has been set to {amt}")
+    
+    
+    @commands.is_owner()
+    @commands.group(name="Settings",invoke_without_command=True,case_insensitive=True,help="Change server settings. Current Options: Star_limit, Meme_score_to_pin")
+    async def settings(self,ctx):
+        await ctx.send("Enter a valid subcommand. Current Options: Star_limit, Meme_score_to_pin")
+    
+    
+    @commands.is_owner()
+    @settings.command(name="star_limit",aliases=["stars_required","stars"])
+    async def settings_change_star_limit(self,ctx,amt:int):
+        server=ctx.guild
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("UPDATE server_settings SET starboard_stars_required = $1 WHERE id = $2",amt,server.id)
+                await ctx.send(f"Starboard star limit to pin has been updated to {amt}.")
+
+    @commands.is_owner()
+    @settings.command(name="Meme_score_to_pin",aliases=["score","score_to_pin"])
+    async def settings_change_meme_score_to_pin(self,ctx,amt:int):
+        server=ctx.guild
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute("UPDATE server_settings SET meme_score_required_to_pin = $1 WHERE id = $2",amt,server.id)
+                await ctx.send(f"Meme score required to pin has been updated to {amt}.")
+
+
+
+
+
+    async def fetch_server_settings(self,server_id):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                settings = await connection.fetchrow("SELECT * FROM server_settings WHERE id=$1",server_id)
+                return dict(settings)
+                
+
+
+
             
 
 

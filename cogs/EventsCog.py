@@ -86,9 +86,9 @@ class Events(commands.Cog):
         
         elif rarity == 'Uncommon':
             questions={
-            "Weaklings die _____  ____":"big deal",
+            "Weaklings die ___  ___":"big deal",
             "The ability to ___ does not make you intelligent.":"speak",
-            "In my experience there is no such thing as ____.":"luck",
+            "In my experience there is no such thing as ___.":"luck",
             "Difficult to see; always in motion is the ___.":"future",
             "Only a Sith deals in  ___":"absolutes",
             "There’s always a bigger ___.":"fish",

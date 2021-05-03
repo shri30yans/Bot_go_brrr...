@@ -123,22 +123,29 @@ class ImportantFunctions(commands.Cog):
                         all_award_ids.append(award.reaction_id)
                     
                     for r in message.reactions:
-                        if str(r.emoji) in all_award_ids or str(r.emoji) == "⭐":
+                        if str(r.emoji) in all_award_ids or str(r.emoji) == "⭐": #if an award or star
                             embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
                             embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
                             embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+                            
                             if len(message.attachments): #basically if len !=0
                                 embed.set_image(url=message.attachments[0].url)
                             embed.set_footer(text=f"{message.id} ")
-
-                            if type_of_reaction == "Star" and reaction_count >= config.stars_required_for_starboard:
+                            
+                            
+                            OwnerCog = self.bot.get_cog('OwnerCog') 
+                            stars_required_for_starboard  = (await OwnerCog.fetch_server_settings(channel.guild.id))["starboard_stars_required"]
+                            if type_of_reaction == "Star" and reaction_count >= stars_required_for_starboard:
                                 reaction_id = "⭐" 
+                            
                             elif type_of_reaction == "Award":
                                 award = await self.fetch_award(award_name=reaction_name)
                                 #print(award.name)
                                 reaction_id = award.reaction_id
+                            
                             else:
-                                #means stars are less that the required number 
+                                #means stars are less that the required number and there are no awards that posts to Starboard
+                                #Exits function
                                 return
 
                             StarMessage = await starboard_channel.send(f"{reaction_count} {reaction_id} {channel.mention}",embed=embed)
@@ -231,7 +238,7 @@ class ImportantFunctions(commands.Cog):
         upvote_count= await self.get_reaction_count(message=message,emoji=config.upvote_reaction)
         downvote_count= await self.get_reaction_count(message=message,emoji=config.downvote_reaction)
         score = upvote_count - downvote_count
-        print(upvote_count,downvote_count,score)
+        #print(upvote_count,downvote_count,score)
         return score
 
     

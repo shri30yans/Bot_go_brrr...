@@ -12,6 +12,7 @@ class Starboard(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self,payload):  
         ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
+        OwnerCog = self.bot.get_cog('OwnerCog') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
@@ -22,13 +23,14 @@ class Starboard(commands.Cog):
         reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
         score = await ImportantFunctions.score_calculator(message=message)
 
-
-
+        
         #if any post has 10 or more upvotes, award that posts author 100 credits
-        if str(emoji) == config.upvote_reaction and score >= config.score_needed_to_pin and message.channel.id == config.meme_channel_id :
-            await message.pin(reason="Got upvoted.")
-            amt=100
-            await ImportantFunctions.add_credits(user=message.author,amt=amt)
+        if str(emoji) == config.upvote_reaction and message.channel.id == config.meme_channel_id :
+            score_needed_to_pin = (await OwnerCog.fetch_server_settings(channel.guild.id))["meme_score_required_to_pin"]
+            if score >= score_needed_to_pin:
+                await message.pin(reason="Got upvoted.")
+                amt=100
+                await ImportantFunctions.add_credits(user=message.author,amt=amt)
         
         
 
@@ -48,6 +50,7 @@ class Starboard(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):  
         ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
+        OwnerCog = self.bot.get_cog('OwnerCog') 
         channel=self.bot.get_channel(payload.channel_id) 
         user=self.bot.get_user(payload.user_id)
         message= await channel.fetch_message(payload.message_id)
@@ -55,12 +58,13 @@ class Starboard(commands.Cog):
         if user.bot:
             return
 
-  
         reaction_count =await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
         score = await ImportantFunctions.score_calculator(message=message)
-        
+
+        score_needed_to_pin = await OwnerCog.fetch_server_settings(channel.guild.id)
+        score_needed_to_pin =score_needed_to_pin["meme_score_required_to_pin"]
         #if any post has 10 or more upvotes, award that posts author 100 credits    
-        if str(emoji) == config.upvote_reaction and score <= config.score_needed_to_pin  and message.channel.id == config.meme_channel_id :
+        if str(emoji) == config.upvote_reaction and score <= score_needed_to_pin  and message.channel.id == config.meme_channel_id :
             await message.unpin(reason="Upvotes reduced.")
             amt=-100
             await ImportantFunctions.add_credits(user=message.author,amt=amt)
@@ -78,23 +82,25 @@ class Starboard(commands.Cog):
                     if reacted_message == None:
                         return
                     else:  
-                   
+                        stars_required_for_starboard  = (await OwnerCog.fetch_server_settings(channel.guild.id))["starboard_stars_required"]
+
                         reacted_message=dict(reacted_message)
                         StarMessage = await starboard_channel.fetch_message(reacted_message["star_message_id"])
                         reactions_of_post = json.loads(reacted_message["reactions"])
                         
                         #if no reactions on message, and no awards in database
+                        #only for case where no of stars required is set to 1
                         if len(message.reactions) == 0 and len(reactions_of_post) <= 1 :
                             await StarMessage.delete()
                             await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
                         
                         #if stars have become lesser than required number, and no awards in database
-                        elif reaction_count < config.stars_required_for_starboard and len(reactions_of_post) <= 1:
+                        elif reaction_count < stars_required_for_starboard and len(reactions_of_post) <= 1:
                             await StarMessage.delete()
                             await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
                         
                         #if stars are enough
-                        elif reaction_count >= config.stars_required_for_starboard:
+                        elif reaction_count >= stars_required_for_starboard:
                             await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Star",reaction_name="star")
                     
 
