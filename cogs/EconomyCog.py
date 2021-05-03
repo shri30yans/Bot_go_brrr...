@@ -339,7 +339,7 @@ class Economy(commands.Cog):
                                 embed = discord.Embed(title=f"{user.name}, Give {award.name} award to {message.author.name}?",description="React with ✅ to give the award and ❌ to not give it.",color = 0xFFD700)
                                 embed.add_field(name="Note:",value="An award cannot be revoked, once given. The reaction can be removed, but that would not remove the award. \n This action is irreversible. \n Credits cannot be refunded.")
                                 embed.set_thumbnail(url=str(emoji.url))
-                                embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {message.author} • {self.bot.user.name} ")
+                                embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {user.name} • {self.bot.user.name} ")
                                 check_message=await message.channel.send(embed=embed)
                                 await check_message.add_reaction('✅')
                                 await check_message.add_reaction('❌')
