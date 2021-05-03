@@ -358,7 +358,7 @@ class Economy(commands.Cog):
                                     if str(confirm_reaction.emoji) == '✅':
                                         await check_message.delete()
                                         #await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
-                                        embed = discord.Embed(title=f"{message.author.name} received an {award.name} Award!",description=f"{user.mention} liked {message.author.mention}'s [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
+                                        embed = discord.Embed(title=f"{message.author.name} received a {award.name} Award!",description=f"{user.mention} liked {message.author.mention}'s [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
                                         embed.set_thumbnail(url=str(emoji.url))
                                         embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
                                         await channel.send(embed=embed)
