@@ -352,7 +352,8 @@ class Economy(commands.Cog):
                                     #disables the confirm_user unusesd argument error
 
                                 except asyncio.TimeoutError:
-                                    await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is cancelled.",color = 0xFFD700))
+                                    await check_message.delete()
+                                    #await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is cancelled.",color = 0xFFD700))
 
                                 else:
                                     if str(confirm_reaction.emoji) == '✅':
