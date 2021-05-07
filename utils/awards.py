@@ -60,7 +60,7 @@ Platinum_Award=Award(name="Platinum",reaction_id=config.reddit_award_platinum,
                     karma_given_to_receiver=random.randint(50,80),
                     karma_given_to_giver=random.randint(30,45),
                     credits_given_to_receiver=20,
-                    description="Award for a good post.\n (awards reciever the coins)",
+                    description="An Award for a good post.\n (awards the reciever coins)",
                     starboard_post=False,
                     cost=200)
 
@@ -75,6 +75,6 @@ Ternion_Award=Award(name="Ternion",reaction_id=config.reddit_award_ternion,
                 karma_given_to_receiver=random.randint(300,500),
                 karma_given_to_giver=random.randint(100,150),
                 credits_given_to_receiver=random.randint(400,500),
-                description="An award reserved for the very best posts.\n(Posts to starboard and awards reciever the coins)",
+                description="An award reserved for the very best posts.\n(Posts to starboard and awards the reciever coins)",
                 starboard_post=True,
                 cost=2000)

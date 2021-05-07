@@ -1,14 +1,10 @@
-discord.py
-aiohttp
-praw
-asyncpg
-colour
-pytz
-#urbandict
-Pillow
-#googletrans
-jishaku
-#numpy
-python-dotenv
-#git+https://github.com/Gelbpunkt/aiowiki #wikipedia
+discord.py #Main Library
+aiohttp #Async version of requests
+#praw #Reddit API Wrapper
+asyncpg #Database Library
+#colour #For Colours
+pytz #TimeZones
+#Pillow #Image Editing
+jishaku # To run cogs from console
+python-dotenv #Tp get .env file
 git+https://github.com/Rapptz/discord-ext-menus #menus

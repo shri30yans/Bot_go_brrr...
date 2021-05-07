@@ -34,9 +34,8 @@ class ImportantFunctions(commands.Cog):
                     return
                 else: 
                     await self.create_account(user)
-
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
+                    user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                    await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
 
     async def add_credits(self,user,amt):
         #user=ctx.author
@@ -46,11 +45,11 @@ class ImportantFunctions(commands.Cog):
                 if user.bot:
                     return
                 else: 
-                    await self.create_account(user)
-
-                user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
-                #await ctx.send(f"Someone gave you {earnings} credits")
+                    await self.create_account(user)             
+                    user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                    #Boost
+                    amt=amt+50/100*amt #50% Boost
+                    await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
         async with self.bot.pool.acquire() as connection:
@@ -240,6 +239,13 @@ class ImportantFunctions(commands.Cog):
         score = upvote_count - downvote_count
         #print(upvote_count,downvote_count,score)
         return score
+
+    async def fetch_server_settings(self,server_id):
+        if server_id in config.APPROVED_SERVERS:
+            async with self.bot.pool.acquire() as connection:
+                async with connection.transaction():
+                    settings = await connection.fetchrow("SELECT * FROM server_settings WHERE id=$1",server_id)
+                    return dict(settings)
 
     
 

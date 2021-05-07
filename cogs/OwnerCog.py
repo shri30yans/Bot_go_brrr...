@@ -156,11 +156,7 @@ class OwnerCog(commands.Cog):
 
 
 
-    async def fetch_server_settings(self,server_id):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                settings = await connection.fetchrow("SELECT * FROM server_settings WHERE id=$1",server_id)
-                return dict(settings)
+
                 
 
 

@@ -1,4 +1,4 @@
-import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
+import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap,re
 from discord.ext import commands,tasks
 import config
 
@@ -368,31 +368,50 @@ class Utility(commands.Cog):
     
     # @commands.has_permissions(manage_messages=True)
     # @commands.cooldown(1, 10, commands.BucketType.user)
-    # @commands.command(name="Poll", help='Creates a giveaway \n \"Yeet giveaway\"')
-    # async def poll(self,ctx):
-    #     channel = await self.text_input_function(ctx,title="Which channel do you want your giveaway to be in?",text="Mention the channel in which the giveaway would be created.")
-    #     channel =await commands.TextChannelConverter().convert(ctx,channel)
-    #     embed=discord.Embed(title="Poll",description=f"React to this message to participate in this poll.",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-    #     option_count=1
-    #     while True:
-    #         question = poll_text_input_function(option_count){self.bot.user.name} "))
-    #         embed.add_field(name=f"Option {option_count}:",value=question)
+    # @commands.command(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"')
+    # async def poll(self,ctx,*arguments):
+        
+    #     number_emojis=[
+    #                 "1\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "2\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "3\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "4\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "5\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "6\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "7\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "8\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "9\N{variation selector-16}\N{combining enclosing keycap}",
+    #                 "\N{keycap ten}",]
 
-    #     async def poll_text_input_function(option_count):
-    #         question_embed=await ctx.send(embed=discord.Embed(title ="Poll",description=f"What's option {option_count}?",color = random.choice(colourlist),timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} "))
-    #         try:
-    #             text= await self.bot.wait_for('message', timeout=30.0, check=lambda m:(ctx.author == m.author and ctx.channel == m.channel))
-    #         except asyncio.TimeoutError:
-    #             await question_embed.edit(embed=discord.Embed(title ="Timeout Error",description="You took too much time, ya retarded monkey",color = random.choice(colourlist),timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} "))
-    #         else: 
-    #             if len(text.content)> 50:
-    #                 embed=discord.Embed(title="<:warn:789487083802460200> | Too many Characters ",description="How many letters will you type, you retard?",color = random.choice(colourlist))
-    #                 embed.add_field(name="Type only 50 characters in your sentence.",value=f"You typed {len(text.content)} letters, dumbshit! Type the text again.", inline=False)
-    #                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name} ")
-    #                 await ctx.send(embed=embed)
-    #                 return await poll_text_input_function(option_count)
-    #             else:
-    #                 return str(text.content)
+    #     response =  ' '.join(arguments)
+    #     result = re.search('\[(.*)\]', response) #regex to find string between [ ]
+    #     if result == None:
+    #         raise commands.MissingRequiredArgument
+    #     question = result.group(1)
+    #     options = response.replace(f"[{question}]","").replace(" ","").split(",")
+    #     if len(options) > 10:
+    #         await ctx.send("You inputted too many options. Maximum options is 10.")
+        
+    #     elif len(options) <= 1:
+    #         await ctx.send("You inputted too les options. Minimum options is 2.")
+
+
+    #     #Proper outcome. There is a question and 1-10 Options
+    #     elif question !=None:
+    #         embed=discord.Embed(title=f"{question}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+    #         for option in options:
+    #             embed.add_field(name=f"{option}",value=f"lol",inline=False)
+    #         embed.set_footer(text=f"You may choose only one option. • {self.bot.user.name} ") 
+    #         message=await ctx.send(embed=embed)
+            
+    #         for num in range(0,len(options)):
+    #             reaction=number_emojis[num]
+    #             await message.add_reaction(reaction)
+
+    #     else:
+    #         await ctx.send("Invalid syntax")
+                
+
                 
                 
 
