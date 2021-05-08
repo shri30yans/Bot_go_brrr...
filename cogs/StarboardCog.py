@@ -4,119 +4,15 @@ import utils.awards as awards
 import config   
 
 colourlist=config.embed_colours
+
+#All reaction listeners take place in Reactions.py
     
 class Starboard(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self,payload):  
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
-        channel=self.bot.get_channel(payload.channel_id) 
-        user=self.bot.get_user(payload.user_id)
-        message= await channel.fetch_message(payload.message_id)
-        emoji=payload.emoji 
-        if user.bot:
-            return 
 
-        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
-        score = await ImportantFunctions.score_calculator(message=message)
-
-        
-        #if any post has 10 or more upvotes, award that posts author 100 credits
-        if str(emoji) == config.upvote_reaction and message.channel.id == config.meme_channel_id :
-            
-            score_needed_to_pin = (await ImportantFunctions.fetch_server_settings(channel.guild.id))["meme_score_required_to_pin"]
-            
-            if score >= score_needed_to_pin:
-                await message.pin(reason="Got upvoted.")
-                amt=100
-                await ImportantFunctions.add_credits(user=message.author,amt=amt)
-        
-        
-
-        #starboard
-        if str(emoji) == "⭐":
-            # if message.author == user:
-            #     return
-            # else:
-            # update the reactions sent in database
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=1)
-            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Star",reaction_name="star")
-
-
-
-
-                
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self,payload):  
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
-        channel=self.bot.get_channel(payload.channel_id) 
-        user=self.bot.get_user(payload.user_id)
-        message= await channel.fetch_message(payload.message_id)
-        emoji=payload.emoji  
-        if user.bot:
-            return
-
-        reaction_count =await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
-        score = await ImportantFunctions.score_calculator(message=message)
-
-        score_needed_to_pin = await ImportantFunctions.fetch_server_settings(channel.guild.id)
-        score_needed_to_pin =score_needed_to_pin["meme_score_required_to_pin"]
-        #if any post has 10 or more upvotes, award that posts author 100 credits    
-        if str(emoji) == config.upvote_reaction and score <= score_needed_to_pin  and message.channel.id == config.meme_channel_id :
-            await message.unpin(reason="Upvotes reduced.")
-            amt=-100
-            await ImportantFunctions.add_credits(user=message.author,amt=amt)
-
-
-        
-        if str(emoji) == "⭐":
-            #update the reactions sent in database
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=-1)
-            async with self.bot.pool.acquire() as connection:
-                async with connection.transaction():
-                    starboard_channel=self.bot.get_channel(config.starboard_channel_id) 
-                    reacted_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)                 
-                    #if this message is not in the database/ it has not been starred earlier
-                    if reacted_message == None:
-                        return
-                    else:  
-                        stars_required_for_starboard  = (await ImportantFunctions.fetch_server_settings(channel.guild.id))["starboard_stars_required"]
-
-                        reacted_message=dict(reacted_message)
-                        StarMessage = await starboard_channel.fetch_message(reacted_message["star_message_id"])
-                        reactions_of_post = json.loads(reacted_message["reactions"])
-                        
-                        #if no reactions on message, and no awards in database
-                        #only for case where no of stars required is set to 1
-                        if len(message.reactions) == 0 and len(reactions_of_post) <= 1 :
-                            await StarMessage.delete()
-                            await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
-                        
-                        #if stars have become lesser than required number, and no awards in database
-                        elif reaction_count < stars_required_for_starboard and len(reactions_of_post) <= 1:
-                            await StarMessage.delete()
-                            await connection.execute("DELETE FROM starboard WHERE root_message_id=$1",message.id)
-                        
-                        #if stars are enough
-                        elif reaction_count >= stars_required_for_starboard:
-                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Star",reaction_name="star")
-                    
-
-            
-                    
-
-    @commands.Cog.listener()
-    async def on_raw_message_delete(self,payload): 
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction(): 
-                all_rows = await connection.fetch("SELECT * FROM starboard")
-                for row in all_rows:
-                    row=dict(row)
-                    if payload.message_id == row["star_message_id"]:
-                        await connection.execute("DELETE FROM starboard WHERE star_message_id=$1",payload.message_id)
-
+    
     
     @commands.group(name="Star",invoke_without_command=True,aliases=["starboard","sb"])
     async def star(self,ctx,user:discord.Member=None):

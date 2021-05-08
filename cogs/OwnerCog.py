@@ -140,7 +140,7 @@ class OwnerCog(commands.Cog):
         server=ctx.guild
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                await connection.execute("UPDATE server_settings SET starboard_stars_required = $1 WHERE id = $2",amt,server.id)
+                await connection.execute("UPDATE server_info SET starboard_stars_required = $1 WHERE id = $2",amt,server.id)
                 await ctx.send(f"Starboard star limit to pin has been updated to {amt}.")
 
     @commands.is_owner()
@@ -149,7 +149,7 @@ class OwnerCog(commands.Cog):
         server=ctx.guild
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                await connection.execute("UPDATE server_settings SET meme_score_required_to_pin = $1 WHERE id = $2",amt,server.id)
+                await connection.execute("UPDATE server_info SET meme_score_required_to_pin = $1 WHERE id = $2",amt,server.id)
                 await ctx.send(f"Meme score required to pin has been updated to {amt}.")
 
 

@@ -54,19 +54,24 @@ class ImportantFunctions(commands.Cog):
     async def add_awards(self,user_recieving,user_giving,award_name:str):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                if user_recieving.bot:pass
+                
+                if user_recieving.bot:
+                    pass
                 else:
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_recieving.id)
                     user_account= dict(user_account)
                     awards_received=json.loads(user_account["awards_received"])
+                    
                     if award_name in awards_received:
                         awards_received[award_name]=awards_received[award_name] + 1
                     else:
                         awards_received.update({award_name:1})
+
                     awards_update=json.dumps(awards_received)
                     await connection.execute("UPDATE info SET awards_received = $1 WHERE user_id=$2",awards_update,user_recieving.id)
 
-                if user_giving.bot:pass
+                if user_giving.bot:
+                    pass
                 else:
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_giving.id)
                     user_account= dict(user_account)
@@ -78,6 +83,7 @@ class ImportantFunctions(commands.Cog):
                     awards_update=json.dumps(awards_given)
                     await connection.execute("UPDATE info SET awards_given = $1 WHERE user_id=$2",awards_update,user_giving.id)
 
+    #Adds reaction count for each perosn
     async def add_reactions(self,user_recieving,user_giving,reaction_name:str,num):
         await self.create_account(user=user_recieving)
         await self.create_account(user=user_giving)
@@ -105,64 +111,82 @@ class ImportantFunctions(commands.Cog):
                     #print("Giving",user_giving.name,reactions_update)
 
 
-    async def post_to_starboard(self,message,channel,user,emoji,type_of_reaction,reaction_name):  
-        starboard_channel=self.bot.get_channel(config.starboard_channel_id)
-        # for x in message.reactions:
-        #     if x.emoji == emoji:
-        #         reaction = x
-        
+    async def post_to_starboard(self,message,channel,user,emoji,reaction_name): 
+        starboard_channel=self.bot.get_channel(config.starboard_channel_id)     
         reaction_count = await self.get_reaction_count(message=message,emoji=emoji)
-
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 reacted_message = await connection.fetchrow("SELECT * FROM starboard WHERE root_message_id=$1",message.id)
-                if reacted_message == None:#if message is not previously in starboard/ message is not in database
+                
+                if reacted_message == None:#if message is not previously in starboard/ message is not in database ie new message
+                    
+                    ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
+                    stars_required_for_starboard  = (await ImportantFunctions.fetch_server_info(channel.guild.id))["starboard_stars_required"]
                     all_award_ids=[]
                     for award in awards_list:
                         all_award_ids.append(award.reaction_id)
+
+
+                    if str(emoji) == "⭐" and reaction_count < stars_required_for_starboard:#if reaction is star
+                        return
+                        
+                    elif str(emoji) in all_award_ids:
+                        #award = await self.fetch_award(award_name_or_id=str(emoji))
+                        award = await self.fetch_award(award_name_or_id=str(emoji))
+                        if award.starboard_post != True:
+                            return
                     
-                    for r in message.reactions:
-                        if str(r.emoji) in all_award_ids or str(r.emoji) == "⭐": #if an award or star
-                            embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
-                            embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
-                            embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
-                            
-                            if len(message.attachments): #basically if len !=0
-                                embed.set_image(url=message.attachments[0].url)
-                            embed.set_footer(text=f"{message.id} ")
-                            
-                            
-                            OwnerCog = self.bot.get_cog('OwnerCog') 
-                            stars_required_for_starboard  = (await OwnerCog.fetch_server_settings(channel.guild.id))["starboard_stars_required"]
-                            if type_of_reaction == "Star" and reaction_count >= stars_required_for_starboard:
-                                reaction_id = "⭐" 
-                            
-                            elif type_of_reaction == "Award":
-                                award = await self.fetch_award(award_name=reaction_name)
-                                #print(award.name)
-                                reaction_id = award.reaction_id
-                            
-                            else:
-                                #means stars are less that the required number and there are no awards that posts to Starboard
-                                #Exits function
-                                return
+                    else:
+                        pass
+                    
+                    reactions_of_post={}    
+                    for r in message.reactions:      
+                        #print("r",r)      
+                        #print("str(r.emoji)",str(r.emoji))       
+                        if str(r.emoji) == "⭐":#if reaction is star
+                            #print("star")
+                            reactions_of_post["star"] = r.count  
+                        
+                        elif str(r.emoji) in all_award_ids: #str(r.emoji) gives the name of the reaction if it is a Emoji object
+                            #print("award")
+                            for award in awards_list:
+                                if str(r.emoji) == award.reaction_id:#if reaction id is equal to one of the awards ids
+                                    award = await self.fetch_award(award_name_or_id=str(r.emoji))
+                                    reactions_of_post[award.name.lower()] = r.count
+                                    
+                        else:
+                            pass
+                    
+                    reaction_id_string = await self.format_awards_in_order(reactions_of_post=reactions_of_post)
+                    reaction_id_string = reaction_id_string + channel.mention
+                    
+                
+                    #Embed
+                    embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
+                    embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
+                    embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+                    if len(message.attachments): #basically if len !=0 or if attachments are there
+                        embed.set_image(url=message.attachments[0].url)
+                    embed.set_footer(text=f"{message.id} ")
 
-                            StarMessage = await starboard_channel.send(f"{reaction_count} {reaction_id} {channel.mention}",embed=embed)
+                    StarMessage = await starboard_channel.send(content=f"{reaction_id_string}",embed=embed)
 
-                            reaction_json=json.dumps({reaction_name.lower():reaction_count})                            
-                            await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,reactions) VALUES ($1,$2,$3)',message.id,StarMessage.id,reaction_json)
-                            
+                    reactions_of_post_j=json.dumps(reactions_of_post)
+                    await connection.execute('INSERT INTO starboard (root_message_id,star_message_id,reactions) VALUES ($1,$2,$3)',message.id,StarMessage.id,reactions_of_post_j)
+                   
+                                
+                
                 elif reacted_message != None:#message exists in starboard/is present in the databse
                     reacted_message=dict(reacted_message)
                     StarMessage= await starboard_channel.fetch_message(reacted_message["star_message_id"])
                     reactions_of_post=json.loads(reacted_message["reactions"])
+                    
                     if reaction_name.lower() in reactions_of_post:
-                        #reactions_of_post[reaction_name.lower()] = reactions_of_post[reaction_name.lower()] + 1
-                        reactions_of_post[reaction_name.lower()] = reaction_count
+                        reactions_of_post[reaction_name.lower()] = reactions_of_post[reaction_name.lower()] + 1
                     else:
                         reactions_of_post.update({reaction_name.lower():1})
                     
-                    reaction_id_string= await self.format_awards_in_order(message=message,channel=channel,user=user,reactions_of_post=reactions_of_post)
+                    reaction_id_string = await self.format_awards_in_order(reactions_of_post=reactions_of_post)
                     reaction_id_string = reaction_id_string + channel.mention
                     
                     await StarMessage.edit(content=f"{reaction_id_string}")
@@ -173,7 +197,7 @@ class ImportantFunctions(commands.Cog):
                 else:
                     print("How is did we get here? This is not possible")
     
-    async def format_awards_in_order(self,message,channel,user,reactions_of_post):
+    async def format_awards_in_order(self,reactions_of_post):
         #used to arrange the award and stars in order so that the order in starboard is [ternion,argentinum,platinum,gold....star]
         ordered_reactions_of_post={}
         for x in awards_list[::-1]:
@@ -197,8 +221,8 @@ class ImportantFunctions(commands.Cog):
             if r == "star":
                 reaction_id = "⭐"
             elif r in all_award_names:
-                award = await self.fetch_award(award_name=r)
-                if award == "Not Found":
+                award = await self.fetch_award(award_name_or_id=r)
+                if award == None:
                     print("Not found award")
                     #return
                 reaction_id = award.reaction_id
@@ -209,13 +233,31 @@ class ImportantFunctions(commands.Cog):
         return reaction_id_string
     
     
-    async def fetch_award(self,award_name):
-        for award in awards_list:
-            if award_name.lower() == award.name.lower():
-                #print(award.name)
+    async def fetch_award(self,award_name_or_id):  
+        #print(award_name_or_id)   
+        
+        #print("name")
+        for award in awards_list: 
+            #print(award.name.lower())
+            if award_name_or_id.lower() == award.name.lower():#check against names
                 return award
         else:
-            return "Not found"
+            
+            #print("name with id")
+            for award in awards_list:
+                #print(award.reaction_id.lower())
+                if award_name_or_id.lower() == award.reaction_id.lower():#check against name of emojis with ids
+                    return award
+            else:
+               
+                #print("id")
+                #print(int(award.reaction_id.split(":")[-1][:-1]))
+                for award in awards_list:
+                    if award_name_or_id == int(award.reaction_id.split(":")[-1][:-1]):#check against ids/ Numeric Value of the id
+                        return award
+                else:
+                    #Not Int or String
+                    return None
 
     async def get_reaction_count(self,message,emoji):
         if len(message.reactions) == 0:
@@ -240,11 +282,11 @@ class ImportantFunctions(commands.Cog):
         #print(upvote_count,downvote_count,score)
         return score
 
-    async def fetch_server_settings(self,server_id):
+    async def fetch_server_info(self,server_id):
         if server_id in config.APPROVED_SERVERS:
             async with self.bot.pool.acquire() as connection:
                 async with connection.transaction():
-                    settings = await connection.fetchrow("SELECT * FROM server_settings WHERE id=$1",server_id)
+                    settings = await connection.fetchrow("SELECT * FROM server_info WHERE id=$1",server_id)
                     return dict(settings)
 
     

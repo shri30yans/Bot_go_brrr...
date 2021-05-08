@@ -66,8 +66,8 @@ class Economy(commands.Cog):
         reaction_id_string=""
         for r in ordered_reactions_of_post:
             if r in all_award_names:
-                award = await ImportantFunctions.fetch_award(award_name=r)
-                if award == "Not Found":
+                award = await ImportantFunctions.fetch_award(award_name_or_id=r)
+                if award == None:
                     print("Not found award")
                     #return
                 reaction_id = award.reaction_id
@@ -269,6 +269,9 @@ class Economy(commands.Cog):
 #                \____/ \_/ \___|_| |_|\__|___/  
 #     
 #================================================================================
+    
+   #All reaction listeners for awards take place in Reactions.py
+   
     @commands.Cog.listener()
     async def on_message(self,message):
         if message.author == self.bot.user:
@@ -286,135 +289,7 @@ class Economy(commands.Cog):
             await message.add_reaction(config.downvote_reaction)
 
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self,payload): 
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
-        channel=self.bot.get_channel(payload.channel_id) 
-        user=self.bot.get_user(payload.user_id)
-        message= await channel.fetch_message(payload.message_id)
-        emoji=payload.emoji  
-        all_reacts=message.reactions
-        if user.bot:#if reaction is by a bot
-            return
 
-        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
-            
-
-        #Upvote add Karma
-        if str(emoji) == config.upvote_reaction and message.author != user:
-            amt = random.randint(0,2)
-            await ImportantFunctions.add_karma(user=message.author,amt=amt)
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
-        #Downvote remove Karma
-        
-        elif str(emoji) == config.downvote_reaction and message.author != user:
-            amt = random.randint(-3,-1)
-            await ImportantFunctions.add_karma(user=message.author,amt=amt)
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
-
-
-        #awards
-        for award in awards_list:
-            if str(emoji) == award.reaction_id:
-                async with self.bot.pool.acquire() as connection:
-                    async with connection.transaction():
-                        await ImportantFunctions.create_account(user)
-                        user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                        user_account=dict(user_account)
-                        if user_account["credits"] < award.cost:
-                            await message.remove_reaction(emoji, user)
-                            await message.channel.send(f"{user.mention} You don't have enough credits to buy this {award.name} award. Try earning some credits first.",delete_after=5)
-                        
-                        else:
-                            if user == message.author:
-                                await message.remove_reaction(emoji, user)
-                                await channel.send("Awarding yourself? You seriously aren't that desperate, are you?")
-                                return
-                            elif message.author.bot:
-                                await message.remove_reaction(emoji, user)
-                                await channel.send("Awarding bots? Sorry no can do.")
-                                return
-                            else:
-
-                                embed = discord.Embed(title=f"{user.name}, Give {award.name} award to {message.author.name}?",description="React with ✅ to give the award and ❌ to not give it.",color = 0xFFD700)
-                                embed.add_field(name="Note:",value="An award cannot be revoked, once given. The reaction can be removed, but that would not remove the award. \n This action is irreversible. \n Credits cannot be refunded.")
-                                embed.set_thumbnail(url=str(emoji.url))
-                                embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {user.name} • {self.bot.user.name} ")
-                                check_message=await message.channel.send(embed=embed)
-                                await check_message.add_reaction('✅')
-                                await check_message.add_reaction('❌')
-                                
-                                def check_accept_or_reject(confirm_reaction,confirm_user):
-                                    return str(confirm_reaction.emoji) in ['✅', '❌'] and user == confirm_user
-
-                                try:
-                                    confirm_reaction,confirm_user = await self.bot.wait_for('reaction_add',check=check_accept_or_reject, timeout=60)#pylint: disable=unused-argument 
-                                    #disables the confirm_user unusesd argument error
-
-                                except asyncio.TimeoutError:
-                                    await check_message.delete()
-                                    #await check_message.edit(embed=discord.Embed(title="Timeout!",description=f"{user.mention}, did not react after 60 seconds. Award is cancelled.",color = 0xFFD700))
-
-                                else:
-                                    if str(confirm_reaction.emoji) == '✅':
-                                        await check_message.delete()
-                                        #await message.channel.send(f"{user.mention} gave {message.author.mention} a {award.name} award.")
-                                        embed = discord.Embed(title=f"{message.author.name} received a {award.name} Award!",description=f"{user.mention} liked {message.author.mention}'s [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
-                                        embed.set_thumbnail(url=str(emoji.url))
-                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
-                                        await channel.send(embed=embed)
-                                        
-                                        embed = discord.Embed(title=f"You received an {award.name} Award!",description=f"{user.mention} liked your [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
-                                        embed.set_thumbnail(url=str(emoji.url))
-                                        embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
-
-                                        try:await message.author.send(embed=embed)
-                                        except:pass
-                                        
-                                        if award.starboard_post:#starboard_post is a boolean value
-                                            
-                                            await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,type_of_reaction="Award",reaction_name=award.name)
-
-                                        await ImportantFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
-                                        await ImportantFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
-                                        await ImportantFunctions.add_credits(user=user,amt = -award.cost)
-                                        await ImportantFunctions.add_credits(user=message.author,amt = award.credits_given_to_receiver)
-                                        await ImportantFunctions.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
-
-                                    
-
-                                    
-                                    elif str(confirm_reaction.emoji) == '❌':
-                                        await check_message.delete()
-                                        await message.remove_reaction(emoji, user)
-                                        await message.channel.send("Award was cancelled.",delete_after=5)
-                                    else:
-                                        await message.channel.send("Well, you should not be able to see this. Something went wrong")
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self,payload):  
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
-        channel=self.bot.get_channel(payload.channel_id) 
-        user=self.bot.get_user(payload.user_id)
-        message= await channel.fetch_message(payload.message_id)
-        emoji=payload.emoji  
-        all_reacts =message.reactions
-        
-        if user.bot:#if reaction is by a bot
-            return
-
-        reaction_count = await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
-
-
-        if str(emoji) == config.upvote_reaction and message.author != user:
-            amt = random.randint(-3,-1)
-            await ImportantFunctions.add_karma(user=message.author,amt=amt)
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=-1)
-
-        elif str(emoji) == config.downvote_reaction and message.author != user:
-            amt = random.randint(0,2)
-            await ImportantFunctions.add_karma(user=message.author,amt=amt)
-            await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
 
 
    
