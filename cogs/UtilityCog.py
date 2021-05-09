@@ -404,7 +404,7 @@ class Utility(commands.Cog):
             optionnum=0
             for option in options:
                 bar_string, percent=self.bar_generator(count=0,total=len(options))
-                embed.add_field(name=f"{number_emojis[optionnum]} {option.capitalize()}",value=f"`{bar_string}` | {percent}% | (0)",inline=False)
+                embed.add_field(name=f"{number_emojis[optionnum]} {option.lstrip().capitalize()}",value=f"`{bar_string}` | {percent}% | (0)",inline=False)
                 optionnum +=1
             
             embed.set_footer(text=f"You may choose only one option • {self.bot.user.name} ") 
