@@ -388,7 +388,7 @@ class Utility(commands.Cog):
         response =  ' '.join(arguments)
         result = re.search('\[(.*)\]', response) #regex to find string between [ ]
         question = result.group(1)
-        options = response.replace(f"[{question}]","").replace(" ","").split(",")
+        options = response.replace(f"[{question}]","").split(",")
         
         if len(options) > 10:
             await ctx.send("You inputted too many options. Maximum options is 10.")
