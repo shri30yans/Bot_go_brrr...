@@ -366,50 +366,162 @@ class Utility(commands.Cog):
     #     await giveaway_msg.edit(embed=embed)
     #     await channel.send(f"Congratulations! {winner_list} won {prize}!")
     
-    # @commands.has_permissions(manage_messages=True)
-    # @commands.cooldown(1, 10, commands.BucketType.user)
-    # @commands.command(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"')
-    # async def poll(self,ctx,*arguments):
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.group(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"',require_var_positional=True)#require_var_positional=True makes sure input is not empty
+    async def poll(self,ctx,*arguments):
+
         
-    #     number_emojis=[
-    #                 "1\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "2\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "3\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "4\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "5\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "6\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "7\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "8\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "9\N{variation selector-16}\N{combining enclosing keycap}",
-    #                 "\N{keycap ten}",]
-
-    #     response =  ' '.join(arguments)
-    #     result = re.search('\[(.*)\]', response) #regex to find string between [ ]
-    #     if result == None:
-    #         raise commands.MissingRequiredArgument
-    #     question = result.group(1)
-    #     options = response.replace(f"[{question}]","").replace(" ","").split(",")
-    #     if len(options) > 10:
-    #         await ctx.send("You inputted too many options. Maximum options is 10.")
         
-    #     elif len(options) <= 1:
-    #         await ctx.send("You inputted too les options. Minimum options is 2.")
+        number_emojis=[
+                    "1\N{variation selector-16}\N{combining enclosing keycap}",
+                    "2\N{variation selector-16}\N{combining enclosing keycap}",
+                    "3\N{variation selector-16}\N{combining enclosing keycap}",
+                    "4\N{variation selector-16}\N{combining enclosing keycap}",
+                    "5\N{variation selector-16}\N{combining enclosing keycap}",
+                    "6\N{variation selector-16}\N{combining enclosing keycap}",
+                    "7\N{variation selector-16}\N{combining enclosing keycap}",
+                    "8\N{variation selector-16}\N{combining enclosing keycap}",
+                    "9\N{variation selector-16}\N{combining enclosing keycap}",
+                    "\N{keycap ten}",]
+
+        response =  ' '.join(arguments)
+        result = re.search('\[(.*)\]', response) #regex to find string between [ ]
+        question = result.group(1)
+        options = response.replace(f"[{question}]","").replace(" ","").split(",")
+        
+        if len(options) > 10:
+            await ctx.send("You inputted too many options. Maximum options is 10.")
+        
+        elif len(options) <= 1:
+            await ctx.send("You inputted too less options. Minimum options is 2.")
 
 
-    #     #Proper outcome. There is a question and 1-10 Options
-    #     elif question !=None:
-    #         embed=discord.Embed(title=f"{question}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-    #         for option in options:
-    #             embed.add_field(name=f"{option}",value=f"lol",inline=False)
-    #         embed.set_footer(text=f"You may choose only one option. • {self.bot.user.name} ") 
-    #         message=await ctx.send(embed=embed)
+        #Proper outcome. There is a question and 1-10 Options
+        elif question !=None:
+            embed=discord.Embed(title=f"{question.capitalize()}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
             
-    #         for num in range(0,len(options)):
-    #             reaction=number_emojis[num]
-    #             await message.add_reaction(reaction)
+            optionnum=0
+            for option in options:
+                bar_string, percent=self.bar_generator(count=0,total=len(options))
+                embed.add_field(name=f"{number_emojis[optionnum]} {option.capitalize()}",value=f"`{bar_string}` | {percent}% | (0)",inline=False)
+                optionnum +=1
+            
+            embed.set_footer(text=f"You may choose only one option. • {self.bot.user.name} ") 
+            PollMessage = await ctx.send(embed=embed)
+            
+            for num in range(0,len(options)):#react with the options
+                reaction=number_emojis[num]
+                await PollMessage.add_reaction(reaction)
+            
+            await PollMessage.add_reaction("\U0000274c")
+            
 
-    #     else:
-    #         await ctx.send("Invalid syntax")
+
+            async with self.bot.pool.acquire() as connection:
+                async with connection.transaction():
+
+                    server_info = await connection.fetchrow("SELECT * FROM server_info WHERE id=$1",ctx.guild.id)
+                    ongoing_polls=json.loads(server_info["ongoing_polls"])
+                    
+                    ongoing_polls_list=ongoing_polls["polls"]
+                    ongoing_polls_list.append(PollMessage.id)
+                    
+                    ongoing_polls_j=json.dumps(ongoing_polls)
+                    await connection.execute("UPDATE server_info SET ongoing_polls = $1 WHERE id=$2",ongoing_polls_j,ctx.guild.id)
+
+        else:
+            await ctx.send("Invalid syntax")
+     
+
+    async def update_poll(self,PollMessage,emoji,user,type_of_event):    #type of event = reaction_add, reaction_remove
+        print("update",str(emoji))      
+        if str(emoji)== "\U0000274c" and type_of_event =="reaction_add":#If cross is selected
+            member=PollMessage.guild.get_member(user.id)
+            if member.guild_permissions.manage_messages == True or user.id == self.bot.owner_id:
+                embed=PollMessage.embeds[0]
+                embed.description=f"This poll is ended."
+                #embed.insert_field_at(0, name="", value="", inline=True)
+                await PollMessage.edit(embed=embed)
+                await PollMessage.clear_reactions()
+
+                async with self.bot.pool.acquire() as connection:
+                    async with connection.transaction():
+                        server_info = await connection.fetchrow("SELECT * FROM server_info WHERE id=$1",PollMessage.guild.id)
+                        ongoing_polls=json.loads(server_info["ongoing_polls"]) #load the json content of  ongoing_polls
+                        ongoing_polls_list=ongoing_polls["polls"] #fetch the list of all ids
+                        ongoing_polls_list.remove(PollMessage.id)  #remove that id           
+                        ongoing_polls_j=json.dumps(ongoing_polls) #change back to json
+                        await connection.execute("UPDATE server_info SET ongoing_polls = $1 WHERE id=$2",ongoing_polls_j,PollMessage.guild.id)   
+            else:
+                #user with no manage_message perms react = delete their reaction
+                await PollMessage.remove_reaction(emoji, user)
+
+        else:  
+            number_emojis=[
+                    "1\N{variation selector-16}\N{combining enclosing keycap}",
+                    "2\N{variation selector-16}\N{combining enclosing keycap}",
+                    "3\N{variation selector-16}\N{combining enclosing keycap}",
+                    "4\N{variation selector-16}\N{combining enclosing keycap}",
+                    "5\N{variation selector-16}\N{combining enclosing keycap}",
+                    "6\N{variation selector-16}\N{combining enclosing keycap}",
+                    "7\N{variation selector-16}\N{combining enclosing keycap}",
+                    "8\N{variation selector-16}\N{combining enclosing keycap}",
+                    "9\N{variation selector-16}\N{combining enclosing keycap}",
+                    "\N{keycap ten}",]
+
+            # reaction_count=0
+            # for reaction in PollMessage.reactions:
+            #     reacted_users = await reaction.users().flatten()
+            #     if user in reacted_users and str(reaction.emoji) in number_emojis:
+            #         reaction_count+=1
+            # print(reaction_count)
+            # if reaction_count >1:
+            #     await user.send("You can only react to one option. Please uncheck your current choice then select another option.")
+            #     await PollMessage.remove_reaction(emoji, user)
+
+
+            # if type_of_event == "reaction_add":          
+            #     for reaction in PollMessage.reactions:#checks all reactions of message
+            #         if (str(reaction.emoji) in number_emojis) and (str(reaction.emoji) != str(emoji)) and reaction_count > 1 :
+            #             print("del",str(reaction.emoji),str(emoji))
+            #             await PollMessage.remove_reaction(reaction.emoji, user)
+
+                        
+                
+            reactions_count_dict={}
+            total_reactions=0
+            for r in PollMessage.reactions:
+                if r.me and str(r.emoji) in number_emojis :
+                    reactions_count_dict[str(r.emoji)] = r.count-1
+                    total_reactions+=r.count-1  
+
+
+            embed=PollMessage.embeds[0]
+            embed_fields=embed.fields
+            for x in embed_fields:
+                count=reactions_count_dict[x.name[0:3]]
+                bar_string, percent=self.bar_generator(count=count,total=total_reactions)                
+                embed.set_field_at(embed_fields.index(x),name=f"{x.name}", value=f"`{bar_string}` | {percent}% | ({count})", inline=False)
+            await PollMessage.edit(embed=embed)
+        
+
+    
+
+
+           
+    def bar_generator(self,count,total):
+        if total == 0 :#prevent zero division error
+            total = 1
+        percent=round(count/total * 100,1)
+        bar_count=round(percent/100*20)
+        bars_string='█' * bar_count
+        bars_string=bars_string + " " * (20-len(bars_string))
+        return bars_string,percent
+
+            
+
+
                 
 
                 

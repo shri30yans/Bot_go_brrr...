@@ -13,8 +13,11 @@ class OwnerCog(commands.Cog):
         await ctx.send("Add what? Apples? Oranges? Enter a valid subcommand. Current Options: Credits, Karma.")
     
     @commands.is_owner()
-    @add.command(name="Credits",aliases=["credit","creds","cred"])
+    @add.command(name="Credits",aliases=["credit","creds","cred"],help="`?add credits user1 user2 user3 500`")
     async def add_credits(self,ctx,users: commands.Greedy[discord.Member],amt:int):
+        if len(users) <1:
+            await ctx.send("You didn't mention any users. Example: `?add credits user1 user2 user3 500`")
+            return
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         given_to_users=""
         for user in users:
@@ -25,14 +28,17 @@ class OwnerCog(commands.Cog):
         await ctx.send(f"{amt} credits has been added to {given_to_users}'s accounts.")
     
     @commands.is_owner()
-    @add.command(name="Karma",aliases=["karm"])
+    @add.command(name="Karma",aliases=["karm"],help="`?add karma user1 user2 user3 500`")
     async def add_karma(self,ctx,users: commands.Greedy[discord.Member],amt:int):
+        if len(users) <1:
+            await ctx.send("You didn't mention any users. Example: `?add karma user1 user2 user3 500`")
+            return
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         given_to_users=""
         for user in users:
             await ImportantFunctions.create_account(user)
             await ImportantFunctions.add_karma(user=user,amt=amt)
-            given_to_users=given_to_users + user.mention +", "
+            given_to_users = given_to_users + user.mention +", "
         
         await ctx.send(f"{amt} karma has been added to {given_to_users}'s accounts.")
 
@@ -43,8 +49,11 @@ class OwnerCog(commands.Cog):
         await ctx.send("Set to what? Apples? Oranges? Enter a valid subcommand. Current Options: Credits, Karma")
     
     @commands.is_owner()
-    @set_to.command(name="Credits",aliases=["credit","creds","cred"])
+    @set_to.command(name="Credits",aliases=["credit","creds","cred"],help="`?set credits user1 user2 user3 500`")
     async def set_credits(self,ctx,users: commands.Greedy[discord.Member],amt:int):
+        if len(users) <1:
+            await ctx.send("You didn't mention any users. Example: `?set credits user1 user2 user3 500`")
+            return
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         given_to_users=""
         for user in users:
@@ -61,8 +70,11 @@ class OwnerCog(commands.Cog):
         await ctx.send(f"{given_to_users}'s credits have been set to {amt}.")
     
     @commands.is_owner()
-    @set_to.command(name="Karma",aliases=["karm"])
+    @set_to.command(name="Karma",aliases=["karm"],help="`?set karma user1 user2 user3 500`")
     async def set_karma(self,ctx,users: commands.Greedy[discord.Member],amt:int):
+        if len(users) <1:
+            await ctx.send("You didn't mention any users. Example: `?set karma user1 user2 user3 500`")
+            return
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         given_to_users=""
         for user in users:

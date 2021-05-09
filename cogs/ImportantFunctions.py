@@ -48,7 +48,7 @@ class ImportantFunctions(commands.Cog):
                     await self.create_account(user)             
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     #Boost
-                    amt=amt+50/100*amt #50% Boost
+                    #amt=amt+50/100*amt #50% Boost
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
