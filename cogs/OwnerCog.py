@@ -113,6 +113,15 @@ class OwnerCog(commands.Cog):
             async with connection.transaction():
                 await connection.execute("DELETE FROM starboard")
                 await ctx.send("Starboard has been resetted.")
+    
+    @commands.is_owner()
+    @reset.command(name="Polls",aliases=["poll"])
+    async def reset_all_polls(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                no_polls='{"polls": []}'
+                await connection.execute("UPDATE server_info SET ongoing_polls = $1 WHERE id=$2",no_polls,ctx.guild.id)
+                await ctx.send("All polls have been resetted. There are no ongoing polls.")
 
     
     @commands.is_owner()
@@ -138,6 +147,9 @@ class OwnerCog(commands.Cog):
             async with connection.transaction():
                 await connection.execute("UPDATE info SET credits = $1",amt)
                 await ctx.send(f"Credits for all users has been set to {amt}")
+    
+    
+    
     
     
     @commands.is_owner()

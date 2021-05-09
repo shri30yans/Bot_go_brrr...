@@ -407,7 +407,7 @@ class Utility(commands.Cog):
                 embed.add_field(name=f"{number_emojis[optionnum]} {option.capitalize()}",value=f"`{bar_string}` | {percent}% | (0)",inline=False)
                 optionnum +=1
             
-            embed.set_footer(text=f"You may choose only one option. • {self.bot.user.name} ") 
+            embed.set_footer(text=f"You may choose only one option • {self.bot.user.name} ") 
             PollMessage = await ctx.send(embed=embed)
             
             for num in range(0,len(options)):#react with the options
@@ -435,12 +435,13 @@ class Utility(commands.Cog):
      
 
     async def update_poll(self,PollMessage,emoji,user,type_of_event):    #type of event = reaction_add, reaction_remove
-        print("update",str(emoji))      
+        #print("update",str(emoji))      
         if str(emoji)== "\U0000274c" and type_of_event =="reaction_add":#If cross is selected
             member=PollMessage.guild.get_member(user.id)
             if member.guild_permissions.manage_messages == True or user.id == self.bot.owner_id:
                 embed=PollMessage.embeds[0]
                 embed.description=f"This poll is ended."
+                embed.set_footer(text=f"Ended by {user.name} • {self.bot.user.name} ")
                 #embed.insert_field_at(0, name="", value="", inline=True)
                 await PollMessage.edit(embed=embed)
                 await PollMessage.clear_reactions()
