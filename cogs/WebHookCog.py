@@ -13,7 +13,7 @@ class WebHook(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self,message):
         print(message.content)
-        if message.content.startswith(";") and message.content.endswith(";"):
+        if message.content.startswith(":") and message.content.endswith(":"):
             await message.delete()
             await self.send_message(message)
 
