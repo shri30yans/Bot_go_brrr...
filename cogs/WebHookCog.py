@@ -18,6 +18,8 @@ class WebHook(commands.Cog):
             if emoji != None:
                 await message.delete()
                 await self.send_message(message,emoji)
+            else:
+                await message.add_reaction("\U0000274c")
 
         
            
