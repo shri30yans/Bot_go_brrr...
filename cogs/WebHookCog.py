@@ -14,15 +14,16 @@ class WebHook(commands.Cog):
     async def on_message(self,message):
         print(message.content)
         if message.content.startswith(";") and message.content.endswith(";"):
-            await message.delete()
-            await self.send_message(message)
+            emoji=await self.get_emoji(message)
+            if emoji != None:
+                await message.delete()
+                await self.send_message(message,emoji)
 
         
            
-    async def send_message(self,message):
+    async def send_message(self,message,emoji):
         user=message.author
         url = await self.get_webhook_url(message)
-        emoji=await self.get_emoji(message)
         async with aiohttp.ClientSession() as session:
             webhook = Webhook.from_url(url, adapter=AsyncWebhookAdapter(session))
             await webhook.send(emoji, username=user.display_name,avatar_url=user.avatar_url)
