@@ -21,25 +21,31 @@ class WebHook(commands.Cog):
                 await message.add_reaction("\U0000274c")
 
         
-           
     async def send_message(self,message,emoji):
         user=message.author
         url = await self.get_webhook_url(message)
         async with aiohttp.ClientSession() as session:
             webhook = Webhook.from_url(url, adapter=AsyncWebhookAdapter(session))
             await webhook.send(emoji, username=user.display_name,avatar_url=user.avatar_url)
-            #await webhook.send('Hello World', username=user.name,avatar_url=user.avatar_url)
 
     async def get_webhook_url(self,message):
         channel=message.channel
         webhook_urls= await channel.webhooks()
-        print(webhook_urls)
         for webhook in webhook_urls:
             if webhook.name=="Emoji Webhook":
                 return webhook.url
             else:
-                webhook=await channel.create_webhook(name="Emoji Webhook", avatar=None, reason="Webhook to use animated emojis.")
-                return webhook.url
+                webhook_url = await self.create_webhook(channel)
+                return webhook_url
+        
+        if len(webhook_urls) == 0:
+            webhook_url = await self.create_webhook(channel)
+            return webhook_url
+
+
+    async def create_webhook(self,channel):
+        webhook = await channel.create_webhook(name="Emoji Webhook", avatar= await self.bot.user.avatar_url.read(), reason="Webhook to use animated emojis.")
+        return webhook.url
     
     async def get_emoji(self,message):
         emoji_name = message.content.lower()[1:-1]
@@ -74,7 +80,7 @@ class WebHook(commands.Cog):
             Emoji_list_seperated=[]
             for elem in selected_emojis_list:
                 length=length+len(str(elem))+len(str(elem.name))+15
-                if length<1000:
+                if length<850:
                     emoji_string=emoji_string + str(elem) +"    |    `;" + str(elem.name) + ";` \n"
                     
                 else:
