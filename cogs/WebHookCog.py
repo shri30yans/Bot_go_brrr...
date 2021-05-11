@@ -1,9 +1,9 @@
 import discord,random,aiohttp,json,asyncio
-from discord.ext import commands,tasks
-# import utils.awards as awards
-# import config   
+from discord.ext import commands,tasks,menus
+import config   
 from discord import Webhook, AsyncWebhookAdapter
 import aiohttp
+colourlist=config.embed_colours
     
 class WebHook(commands.Cog): 
     def __init__(self, bot):
@@ -12,7 +12,6 @@ class WebHook(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self,message):
-        print(message.content)
         if message.content.startswith(";") and message.content.endswith(";"):
             emoji=await self.get_emoji(message)
             if emoji != None:
@@ -48,9 +47,63 @@ class WebHook(commands.Cog):
             if emoji_name == emoji.name.lower():
                 return emoji
 
+
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command(name="Emojis", help=f"Shows the available reactions that you can use with `;reaction-name;` \n \"{config.prefix}emojis reaction-name\"")
+    async def reaction_search(self,ctx,*emojis_keyword_tuple):
+        emojis_keyword_list=list(emojis_keyword_tuple)
+        for i in range(len(emojis_keyword_list)):
+            emojis_keyword_list[i] = emojis_keyword_list[i].lower() 
+            #Iterate through string_list and convert each elem to lowercase                         
+        selected_emojis_list=[]
+        # Test if all elements are present in list 
+        # Using list comprehension + all()      
+        for i in self.bot.emojis:
+            emoji_name=i.name.lower()
+            if all(ele in emoji_name for ele in emojis_keyword_list):
+                selected_emojis_list.append(i)
+            
+        if selected_emojis_list==[]:
+                embed = discord.Embed(title ="Emoji not found",description=f"The emoji with the keywords :  {str(emojis_keyword_list)[1:-1]}  is not found. Please try a different keyword.",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+                author_avatar=ctx.author.avatar_url
+                embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • Yeet Bot ")
+                await ctx.send(embed=embed)
+        else:
+            length=0
+            emoji_string=""
+            Emoji_list_seperated=[]
+            for elem in selected_emojis_list:
+                length=length+len(str(elem))+len(str(elem.name))+15
+                if length<1000:
+                    emoji_string=emoji_string + str(elem) +"    |    `;" + str(elem.name) + ";` \n"
+                    
+                else:
+                    Emoji_list_seperated.append(emoji_string)
+                    emoji_string=str(elem) +"    |    `;" + str(elem.name) + ";` \n"
+                    length=0
+            Emoji_list_seperated.append(emoji_string)
+                
+            if len(Emoji_list_seperated)>1:
+                embeds_list = []
+                for embed_string in Emoji_list_seperated:
+                    embed_string_index=Emoji_list_seperated.index(embed_string)
+                    embeds_list.append(discord.Embed(title =f"{len(selected_emojis_list)} Emoji's found!",description=f"The requested keywords: {str(emojis_keyword_list)[1:-1]}  have the {len(selected_emojis_list)} results: \n Paste the name of anyone of the emojis in chat.",color = random.choice(colourlist),timestamp=ctx.message.created_at).add_field(name="Search results:",value=f"{embed_string}\n").set_footer(icon_url= ctx.author.avatar_url,text=f" Page: {embed_string_index+1} of {len(Emoji_list_seperated)+1} • Requested by {ctx.message.author} • Yeet Bot "))
+                menu = menus.MenuPages(EmbedPageSource(embeds_list, per_page=1))
+                await menu.start(ctx)
+            else:
+                embed = discord.Embed(title =f"{len(selected_emojis_list)} Emoji's found!",description=f"The requested keywords: {str(emojis_keyword_list)[1:-1]}  have the {len(selected_emojis_list)} results:",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+                embed.add_field(name="Search results:",value=f"{Emoji_list_seperated[0]}")
+                author_avatar=ctx.author.avatar_url
+                embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • Yeet Bot ")
+                await ctx.send(embed=embed)
+
             
 
     
 
 def setup(bot):
     bot.add_cog(WebHook(bot))
+
+class EmbedPageSource(menus.ListPageSource):
+    async def format_page(self, menu, embed):
+        return embed
