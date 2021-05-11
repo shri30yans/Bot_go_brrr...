@@ -79,7 +79,7 @@ class WebHook(commands.Cog):
                     
                 else:
                     Emoji_list_seperated.append(emoji_string)
-                    emoji_string=str(elem) +"    |    `;" + str(elem.name) + ";` \n"
+                    emoji_string=str(elem) +"    |     ` ;" + str(elem.name) + "; ` \n"
                     length=0
             Emoji_list_seperated.append(emoji_string)
                 
