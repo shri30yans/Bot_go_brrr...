@@ -45,7 +45,7 @@ reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
 #score_needed_to_pin = 8# for meme channel
 
 #to run the events
-run_event=False
+run_event=True
 
 
 embed_colours=[0xFFFF00,#yellow
