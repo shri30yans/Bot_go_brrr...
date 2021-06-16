@@ -12,7 +12,7 @@ class WebHook(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self,message):
-        if message.content.startswith(";") and message.content.endswith(";"):
+        if message.content.startswith(":") and message.content.endswith(":"):
             emoji=await self.get_emoji(message)
             if emoji != None:
                 await message.delete()

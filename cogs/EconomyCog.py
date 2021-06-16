@@ -152,6 +152,9 @@ class Economy(commands.Cog):
     #                         await ctx.send("error")
                         
     #                     await ImportantFunctions.add_credits(user=user,amt=total_earned)
+    
+    
+
 
     @commands.cooldown(1,24*60*60, commands.BucketType.user)
     @commands.command(name="Daily", help='Daily bonus')
@@ -287,6 +290,8 @@ class Economy(commands.Cog):
         elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
             await message.add_reaction(config.upvote_reaction)
             await message.add_reaction(config.downvote_reaction)
+
+
 
 
 
