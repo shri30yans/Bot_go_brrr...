@@ -24,7 +24,7 @@ class Wheel(commands.Cog):
     async def wheel(self,ctx):
         wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Server_Perms","Add_Emoji","Celebrity","Mute_Others",]
         #random_wheel_outcome=random.choice(wheel_outcomes)
-        random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,10,10,15,10,5,5,2),k=1)[0]
+        random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,10,10,15,10,5,5,5,2),k=1)[0]
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
@@ -34,7 +34,7 @@ class Wheel(commands.Cog):
             options=[f"You committed Tax Fraud and got {amt} credits!",f"The mafia decided to give you some dough. You got {amt} credits",f"It's your Birthday! You got {amt} credits.",f"Here is a GET OUT OF JAIL CARD. Collect {amt} as you go."]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_dark_blue)
             random_picture=random.choice(os.listdir(f"{images_dir}/Free_Credits/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/Free_Credits/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -52,7 +52,7 @@ class Wheel(commands.Cog):
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_upvote)
             
             random_picture=random.choice(os.listdir(f"{images_dir}/Free_Karma/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -69,7 +69,7 @@ class Wheel(commands.Cog):
             options=[f"The IRS raided your house. You lost {amt} credits.",f"You lost {amt} credits!",f"You got a GO TO JAIL CARD and paid {amt} credits for bail.",]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_red)
             random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Credits/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -87,7 +87,7 @@ class Wheel(commands.Cog):
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_downvote)
             
             random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Karma/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -103,7 +103,7 @@ class Wheel(commands.Cog):
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_red)
             
             random_picture=random.choice(os.listdir(f"{images_dir}/Muted/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -118,7 +118,7 @@ class Wheel(commands.Cog):
             options=[f"You get the Manage Server Perms for 10 seconds!\nChange the name, the server icon or even add a bot."]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_serverperms)
             random_picture=random.choice(os.listdir(f"{images_dir}/Server_Perms/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -132,7 +132,7 @@ class Wheel(commands.Cog):
             options=[f"You get to add any one Emoji you want!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_yellow)
             random_picture=random.choice(os.listdir(f"{images_dir}/Add_Emoji/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             role=await self.get_role(ctx,role_id=config.wheel_mod_role_id,role_name="Wheel of Fortune Mod")
@@ -143,7 +143,7 @@ class Wheel(commands.Cog):
             options=[f"Smile you are a celebrity!\nStay high in the Member list for 24 hours!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_serverperms)
             random_picture=random.choice(os.listdir(f"{images_dir}/Celebrity/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -157,7 +157,7 @@ class Wheel(commands.Cog):
             options=[f"You can mute anyone you want for 30 mins!\nExpect a DM from me or in case you don't allow DM's, too bad."]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_serverperms)
             random_picture=random.choice(os.listdir(f"{images_dir}/Mute_Others/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
@@ -209,7 +209,7 @@ class Wheel(commands.Cog):
             options=[f"You win nothing lol.","You get absolutely nothing. Congrats!","Here you go. Have a nothing !"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=colour_dark_blue)
             random_picture=random.choice(os.listdir(f"{images_dir}/Nothing/")) 
-            path=f"{os.path.dirname(os.path.abspath(random_picture))}/{random_picture}"
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
