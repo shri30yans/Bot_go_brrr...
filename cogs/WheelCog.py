@@ -19,7 +19,7 @@ class Wheel(commands.Cog):
         self.bot = bot
 
     @commands.cooldown(1,300, commands.BucketType.user)
-    @commands.is_owner()
+    #@commands.is_owner()
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get exciting prizes or perhaps a mute or two.\nFormat: `{config.prefix}spin`\nAliases: `stw`,`wheel')
     async def wheel(self,ctx):
         wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Server_Perms","Add_Emoji","Celebrity","Mute_Others",]
