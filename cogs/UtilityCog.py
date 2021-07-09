@@ -571,6 +571,15 @@ class Utility(commands.Cog):
         await message.edit(embed=embed)
 
 
+        # mute_role = await ctx.guild.create_role(name="No Emojis", reason="Spin the Wheel")
+        # await message.edit(embed=embed)
+        # for channel in ctx.guild.channels:
+        #     await channel.set_permissions(mute_role, add_reactions=False, use_external_emojis=False)
+        # embed=discord.Embed(title='Creating role',description=f"Created a role: {mute_role.mention}")
+        # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")   
+        # await message.edit(embed=embed)
+
+
 
 
 

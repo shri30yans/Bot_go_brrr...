@@ -42,6 +42,8 @@ reddit_award_rocket_like="<:reddit_award_rocket_like:820293533642653717>"
 reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
 
 muted_role_id=748786284385796123
+admin_role_id=748786284385796122
+moderator_role_id=748786284385796121
 
 #Wheel Roles
 wheel_mod_role_id=861833144897372160
