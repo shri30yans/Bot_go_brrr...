@@ -14,7 +14,7 @@ APPROVED_SERVERS=[748786284373475358,]
 #BLACKLIST = []
 #List of Cogs to run on startup;
 STARTUP_COGS = [
-    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku","utils.ErrorHandler"#,"cogs.WebHookCog","cogs.WheelCog"#For notro emojis
+    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku","utils.ErrorHandler","cogs.WheelCog"
     ]
 
 #Channels and Roles
@@ -50,7 +50,7 @@ wheel_muted_role_id=861148090143997953
 wheel_celebrity_role_id=862547216636182529
 
 #to run the events
-run_event=False
+run_event=True
 
 
 embed_colours=[0xFFFF00,#yellow
