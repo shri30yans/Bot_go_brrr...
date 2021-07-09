@@ -14,8 +14,7 @@ class ReactionCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def check_if_message_is_poll(self,message,emoji,user,type_of_event):
-        
+    async def check_if_message_is_poll(self,message,emoji,user,type_of_event):    
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 server_info = await connection.fetchrow("SELECT * FROM server_info WHERE id=$1",message.guild.id)
@@ -60,7 +59,7 @@ class ReactionCog(commands.Cog):
             
             #if any post has 10 or more upvotes, award that posts author 100 credits
             if str(emoji) == config.upvote_reaction and message.channel.id == config.meme_channel_id :  
-                score_needed_to_pin = (await ImportantFunctions.fetch_server_info(channel.guild.id))["meme_score_required_to_pin"]
+                score_needed_to_pin = (await ImportantFunctions.get_settings(channel.guild.id))["meme_score_required_to_pin"]
                 
                 if score >= score_needed_to_pin:
                     await message.pin(reason="Got upvoted.")
@@ -74,7 +73,7 @@ class ReactionCog(commands.Cog):
                 # else:
                 # update the reactions sent in database
                 await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="star",num=1)
-                await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,reaction_name="star")\
+                await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,reaction_name="star")
 
             
             #awards
@@ -92,16 +91,16 @@ class ReactionCog(commands.Cog):
                             else:
                                 if user == message.author:
                                     await message.remove_reaction(emoji, user)
-                                    await channel.send("Awarding yourself? You seriously aren't that desperate, are you?")
+                                    await channel.send(f"{user.mention} Awarding yourself? You seriously aren't that desperate, are you?",delete_after=5)
                                     return
                                 elif message.author.bot:
                                     await message.remove_reaction(emoji, user)
-                                    await channel.send("Awarding bots? Sorry no can do.")
+                                    await channel.send(f"{user.mention} Awarding bots? Sorry no can do.")
                                     return
                                 else:
 
-                                    embed = discord.Embed(title=f"{user.name}, Give {award.name} award to {message.author.name}?",description="React with ✅ to give the award and ❌ to not give it.",color = 0xFFD700)
-                                    embed.add_field(name="Note:",value="An award cannot be revoked, once given. The reaction can be removed, but that would not remove the award. \n This action is irreversible. \n Credits cannot be refunded.")
+                                    embed = discord.Embed(title=f"{user.name}, Give {award.name} award to {message.author.name}?",description="React with ✅ to give the award and ❌ to ncancel.",color = 0xFFD700)
+                                    embed.add_field(name="Note:",value="An award cannot be revoked, once given. The reaction can be removed, but that would not remove the award. \nThis action is irreversible. \nCredits cannot be refunded.")
                                     embed.set_thumbnail(url=str(emoji.url))
                                     embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {user.name} • {self.bot.user.name} ")
                                     check_message=await message.channel.send(embed=embed)
@@ -132,36 +131,29 @@ class ReactionCog(commands.Cog):
                                             embed.set_thumbnail(url=str(emoji.url))
                                             embed.set_footer(icon_url= user.avatar_url,text=f"Given by {user.name} • {self.bot.user.name} ")
 
-                                            try:await message.author.send(embed=embed)
-                                            except:pass
-                                            
-
+                                            try: 
+                                                await message.author.send(embed=embed)
+                                            except:
+                                                pass
                                             #post to starboard 
                                             #has a check to see if Award posts to starboard                                  
                                             await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,reaction_name=award.name)
                                             
-
                                             await ImportantFunctions.add_karma(user=message.author,amt=award.karma_given_to_receiver)
                                             await ImportantFunctions.add_karma(user=user,amt=award.karma_given_to_giver)
                                             await ImportantFunctions.add_credits(user=user,amt = -award.cost)
                                             await ImportantFunctions.add_credits(user=message.author,amt = award.credits_given_to_receiver)
                                             await ImportantFunctions.add_awards(user_recieving=message.author,user_giving=user,award_name=award.name)
-
                                         
 
-                                        
                                         elif str(confirm_reaction.emoji) == '❌':
                                             await check_message.delete()
                                             await message.remove_reaction(emoji, user)
-                                            await message.channel.send("Award was cancelled.",delete_after=5)
+                                            embed = discord.Embed(title=f"Award was cancelled.",description=f"{award.name} was cancelled.")
+                                            await message.channel.send(embed=embed,delete_after=5)
                                         else:
                                             await message.channel.send("Well, you should not be able to see this. Something went wrong")
 
-
-
-
-
-                
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self,payload):  
         ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
@@ -180,8 +172,7 @@ class ReactionCog(commands.Cog):
             reaction_count =await ImportantFunctions.get_reaction_count(message=message,emoji=emoji)
             score = await ImportantFunctions.score_calculator(message=message)
 
-            score_needed_to_pin = await ImportantFunctions.fetch_server_info(channel.guild.id)
-            score_needed_to_pin =score_needed_to_pin["meme_score_required_to_pin"]
+            score_needed_to_pin = (await ImportantFunctions.get_settings(channel.guild.id))["meme_score_required_to_pin"]
             
             #if any post has 10 or more upvotes, award that posts author 100 credits    
             if str(emoji) == config.upvote_reaction and score <= score_needed_to_pin  and message.channel.id == config.meme_channel_id :
@@ -201,8 +192,6 @@ class ReactionCog(commands.Cog):
                 await ImportantFunctions.add_karma(user=message.author,amt=amt)
                 await ImportantFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
 
-
-
             #if the emoji is a star
             if str(emoji) == "⭐":
                 #update the reactions sent in database
@@ -215,7 +204,7 @@ class ReactionCog(commands.Cog):
                         if reacted_message == None:
                             return
                         else:  
-                            stars_required_for_starboard  = (await ImportantFunctions.fetch_server_info(channel.guild.id))["starboard_stars_required"]
+                            stars_required_for_starboard  = (await ImportantFunctions.get_settings(channel.guild.id))["starboard_stars_required"]
 
                             reacted_message=dict(reacted_message)
                             StarMessage = await starboard_channel.fetch_message(reacted_message["star_message_id"])
@@ -236,24 +225,6 @@ class ReactionCog(commands.Cog):
                             elif reaction_count >= stars_required_for_starboard:
                                 await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user,emoji=emoji,reaction_name="star")
                         
-
-            
-                    
-    #When a message in Starboard gets deleted, delete that message from the Database
-    @commands.Cog.listener()
-    async def on_raw_message_delete(self,payload): 
-        channel=self.bot.get_channel(payload.channel_id)
-        if channel.guild.id in config.APPROVED_SERVERS:#if that server is approved/that server has the settings
-            if channel.id == config.starboard_channel_id:#if the message was deleted in the starboard channel
-                async with self.bot.pool.acquire() as connection:
-                    async with connection.transaction(): 
-                        all_rows = await connection.fetch("SELECT * FROM starboard")
-                        for row in all_rows:
-                            row=dict(row)
-                            if payload.message_id == row["star_message_id"]:
-                                await connection.execute("DELETE FROM starboard WHERE star_message_id=$1",payload.message_id)
-
-
 
 
 def setup(bot):

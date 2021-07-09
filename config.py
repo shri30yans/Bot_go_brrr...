@@ -14,7 +14,7 @@ APPROVED_SERVERS=[748786284373475358,]
 #BLACKLIST = []
 #List of Cogs to run on startup;
 STARTUP_COGS = [
-    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.FunCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku","utils.ErrorHandler"#,"cogs.WebHookCog"#For notro emojis
+    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku","utils.ErrorHandler"#,"cogs.WebHookCog","cogs.WheelCog"#For notro emojis
     ]
 
 #Channels and Roles
@@ -41,11 +41,16 @@ reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
 reddit_award_rocket_like="<:reddit_award_rocket_like:820293533642653717>"
 reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
 
-#stars_required_for_starboard=6
-#score_needed_to_pin = 8# for meme channel
+muted_role_id=748786284385796123
+
+#Wheel Roles
+wheel_mod_role_id=861833144897372160
+wheel_server_perms_role_id=861138978609430558# arole with the Manage Server Permissions
+wheel_muted_role_id=861148090143997953
+wheel_celebrity_role_id=862547216636182529
 
 #to run the events
-run_event=True
+run_event=False
 
 
 embed_colours=[0xFFFF00,#yellow

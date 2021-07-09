@@ -11,10 +11,7 @@ class Starboard(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
-    
-    
-    @commands.group(name="Star",invoke_without_command=True,aliases=["starboard","sb"])
+    @commands.group(name="Starboard",invoke_without_command=True,aliases=["star","sb"],help=f"Command to access starboard data.\nFormat: `{config.prefix}starboard` \nSubcommands: random\nAliases:star, sb")
     async def star(self,ctx,user:discord.Member=None):
         user= user or ctx.author
         total_stars=0
@@ -36,10 +33,10 @@ class Starboard(commands.Cog):
                 embed.add_field(name="Stars received:",value=f'{reactions_received["star"]}',inline=True)
 
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-                await ctx.send(embed=embed)
+                await ctx.reply(embed=embed)
     
     @star.command(name="random")
-    async def star_random(self,ctx):
+    async def star_random(self,ctx,help=f"Command to get a random message from the starboard.\nFormat: `{config.prefix}starboard random`"):
          async with self.bot.pool.acquire() as connection:
         # create a transaction for that connection
             async with connection.transaction():
@@ -48,7 +45,7 @@ class Starboard(commands.Cog):
                 post=random.choice(all_rows)
                 post=dict(post)
                 StarMessage= await starboard_channel.fetch_message(post["star_message_id"])
-                await ctx.send(content=StarMessage.content,embed=StarMessage.embeds[0])
+                await ctx.reply(content=StarMessage.content,embed=StarMessage.embeds[0])
 
 
 def setup(bot):

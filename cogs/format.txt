@@ -3,11 +3,11 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
     
-class Starboard(commands.Cog): 
+class Format(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
 
     
 
 def setup(bot):
-    bot.add_cog(Starboard(bot))
+    bot.add_cog(Format(bot))

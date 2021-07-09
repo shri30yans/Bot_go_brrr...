@@ -1,8 +1,7 @@
-import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
+import discord,random,aiohttp,json,time,asyncio
 from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
-#from cogs.EconomyCog import Economy
 from datetime import datetime 
 import pytz 
 
@@ -13,7 +12,7 @@ class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.messages_count_dict={}
-        #basically runs this function when this cog is loaded (which program is started)
+        # run this function when this cog is loaded (which program is started)
         self.bot.loop.create_task(self.startup())
 
     async def check_if_time_is_ok(self):
@@ -74,7 +73,8 @@ class Events(commands.Cog):
                 msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=300)#timeout after 5 mins
 
             except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
+                await sent_msg.delete()
+                #await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
             
             else:
                 user=msg.author
@@ -103,7 +103,8 @@ class Events(commands.Cog):
                 msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() == questions[word].lower()), timeout=180.0)
 
             except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
+                await sent_msg.delete()
+                #await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
             
             else:
                 user=msg.author
@@ -127,7 +128,8 @@ class Events(commands.Cog):
                 msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() == word.lower()), timeout=180.0)
 
             except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
+                await sent_msg.delete()
+                #await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
             
             else:
                 user=msg.author
@@ -149,7 +151,8 @@ class Events(commands.Cog):
                 msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
 
             except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
+                await sent_msg.delete()
+                #await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
             
             else:
                 user=msg.author
@@ -174,7 +177,8 @@ class Events(commands.Cog):
                 msg = await self.bot.wait_for('message', check=lambda m:(m.content.lower() in questions[word]), timeout=180.0)
 
             except asyncio.TimeoutError:
-                await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
+                await sent_msg.delete()
+                #await ctx.send(embed=discord.Embed(title ="Timed Out!",description=f"None of you answered on time!",color = self.bot.user.color).set_footer(icon_url= self.bot.user.avatar_url,text=f" • {self.bot.user.name} "))
             
             else:
                 user=msg.author
@@ -213,8 +217,7 @@ class Events(commands.Cog):
             if str(user.id) in self.messages_count_dict:
                 if self.messages_count_dict[str(user.id)] >= 5:
                     self.messages_count_dict[str(user.id)] = 0 #reset messages
-                    #print("added cash")
-                    
+                    #Add credits
                     ImportantFunctions = self.bot.get_cog('ImportantFunctions')
                     amt=5
                     await ImportantFunctions.create_account(user)
@@ -226,27 +229,6 @@ class Events(commands.Cog):
             else:
                 self.messages_count_dict[str(user.id)] = 1
         
-            # with open("messagecount.json","r") as messagecount_j:
-            #     users = json.load(messagecount_j)
-
-            # if str(user.id) in users:
-            #     if users[str(user.id)] >= 5:
-            #         users[str(user.id)] = 0 #reset messages
-            #         #print("added cash")
-                    
-            #         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-            #         amt=5
-            #         await ImportantFunctions.create_account(user)
-            #         await ImportantFunctions.add_credits(user=user,amt=amt)
-                
-            #     else:
-            #         users[str(user.id)] += 1
-                
-            # else:
-            #     users[str(user.id)] = 1
-            
-            # with open("messagecount.json","w") as messagecount_j:
-            #     json.dump(users,messagecount_j)
 
     
           

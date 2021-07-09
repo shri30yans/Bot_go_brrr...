@@ -10,17 +10,15 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-        
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help='Displays the account of a user')
+    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help=f"Shows the Karma, Credits and Awards of a user\nFormat: `{config.prefix}stats'\nAliases: `Account`, `Bal`, `Acc`, `Balance`, `Karma`, `Credits`, `Stats")
     async def bal(self,ctx,user:discord.Member=None):
         user = user or ctx.author
-        sent_msg=await ctx.send(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
+        sent_msg=await ctx.reply(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-
         if user.bot:
-            await ctx.send(f"{user.name} is a bot. Bots don't have accounts.")
+            await ctx.reply(f"{user.name} is a bot. Bots don't have accounts.")
         else:
         # retrieve an individual connection from our pool, defined later
             async with self.bot.pool.acquire() as connection:
@@ -48,10 +46,10 @@ class Economy(commands.Cog):
 
 
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-                    #await ctx.send(embed=embed)
                     await sent_msg.edit(embed=embed)
 
     async def format_awards_in_order(self,awards_given_or_recieved_dict):
+        #formats the awards in order of cost
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         ordered_reactions_of_post={}
         for x in awards_list[::-1]:
@@ -79,7 +77,7 @@ class Economy(commands.Cog):
 
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Awards",aliases=["award,awardlist"], help='A list of all the awards')
+    @commands.command(name="Awards",aliases=["award,awardlist"], help=f"Shows list of all the awards with their description, cost and other details\nFormat: `?Awardlist'\nAliases: `Awardlist`")
     async def award_list(self,ctx):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
@@ -93,21 +91,19 @@ class Economy(commands.Cog):
                 awards_string=""
 
                 for award in awards_list:
-                    #awards_string=awards_string + f"{award.reaction_id} **{award.name}** \n {award.cost} credits \n {award.description} \n"
                     embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{award.cost} credits \n {award.description} \n",inline=False)
 
-                #embed.add_field(name="Awards:",value=f"{awards_string}",inline=True)
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-                await ctx.send(embed=embed)
+                await ctx.reply(embed=embed)
 
     @commands.cooldown(1, 60, commands.BucketType.user)
-    @commands.command(name="Beg", help='Beg for cash')
+    @commands.command(name="Beg", help='Beg for cash\nFormat: `?beg`')
     async def beg(self,ctx):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author 
         amt=random.randint(1,20)
         beg_options=[f"Someone gave you {amt} credits",f"A comrade gave you half his money. You got {amt} credits.",f"You begged and got {amt} credits.",]
-        await ctx.send(random.choice(beg_options))
+        await ctx.reply(random.choice(beg_options))
         await ImportantFunctions.create_account(user)
         await ImportantFunctions.add_credits(user=ctx.message.author,amt=amt)
 
@@ -153,31 +149,29 @@ class Economy(commands.Cog):
                         
     #                     await ImportantFunctions.add_credits(user=user,amt=total_earned)
     
-    
-
 
     @commands.cooldown(1,24*60*60, commands.BucketType.user)
-    @commands.command(name="Daily", help='Daily bonus')
+    @commands.command(name="Daily", help='Get some bonus coins everyday.\nFormat: `?Daily`')
     async def daily_credits(self,ctx):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         amt = 100
-        await ctx.send(f"{amt} credits were added to your account.")   
+        await ctx.reply(f"{amt} credits were added to your account.")   
         await ImportantFunctions.create_account(user)
         await ImportantFunctions.add_credits(user=user,amt=amt) 
     
 
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Give", help='Give your credits to others')
+    @commands.command(name="Give", help='Give your credits to others\nFormat: `?Give @user amount_to_give`')
     async def give(self,ctx,user_mentioned:discord.Member,amt:int):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
         if amt<=0:
-            await ctx.send(f"You can't give zero or negative credits, dum-dum")
+            await ctx.reply(f"You can't give zero or negative credits, dum-dum")
         elif user==user_mentioned:
-            await ctx.send(f"You can't give yourself the credits dum dum")
+            await ctx.reply(f"You can't give yourself the credits dum dum")
         elif user_mentioned.bot:
-            await ctx.send(f"Bots don't have accounts dum dum.")
+            await ctx.reply(f"Bots don't have accounts dum dum.")
         else:
             await ImportantFunctions.create_account(user)
             await ImportantFunctions.create_account(user_mentioned)
@@ -185,22 +179,18 @@ class Economy(commands.Cog):
                 async with connection.transaction():
                     user_balance = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     if amt > user_balance["credits"]:
-                        await ctx.send(f"You can't give what you don't have.")
+                        await ctx.reply(f"You can't give what you don't have.")
                     else:
                         await ImportantFunctions.add_credits(user=user,amt=-amt)   
                         await ImportantFunctions.add_credits(user=user_mentioned,amt=amt)  
-                        await ctx.send(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
+                        await ctx.reply(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
 
-    @commands.group(name="Leaderboard",aliases=["lb"],case_insensitive=True,invoke_without_command=True)   
+    @commands.group(name="Leaderboard",aliases=["lb"],help=f"Shows the server leaderboard\nFormat: `{config.prefix}Leaderboard subcommand`\nSubcommands: `Karma`, `Credits`",case_insensitive=True,invoke_without_command=True)   
     async def leaderboard(self,ctx):
-        # embed=discord.Embed(title=f"Leaderboard",colour=ctx.guild.me.colour,)
-        # embed.add_field(name="Please enter a valid subcommand.",value=f"You can check the leaderboasrds of the highest Karma or Credits.\n Type \"{config.prefix}leaderboard credits\" or \"{config.prefix}leaderboard karma\" ")
-        # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-        # await ctx.send(embed=embed)
         await self.karma_leaderboard(ctx)
 
     
-    @leaderboard.command(name="Credits",aliases=["credit","creds","cred"])
+    @leaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the server leaderboard according to the credits.\nFormat: `{config.prefix}Leaderboard credits`")
     async def credits_leaderboard(self,ctx):
         def myFunc(e):
             return e['credits']
@@ -213,8 +203,6 @@ class Economy(commands.Cog):
         num=1
         for entry in top5:
             user = self.bot.get_user(entry["user_id"])
-            # if user == None:
-            #     print(entry["user_id"])
             top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             num=num+1
         
@@ -223,9 +211,9 @@ class Economy(commands.Cog):
         
         embed=discord.Embed(title=f"Credits Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
-    @leaderboard.command(name="Karma")
+    @leaderboard.command(name="Karma",help=f"Shows the server leaderboard according to the karma.\nFormat: `{config.prefix}Leaderboard karma`")
     async def karma_leaderboard(self,ctx):
         def myFunc(e):
             return e['karma']
@@ -246,7 +234,7 @@ class Economy(commands.Cog):
         
         embed=discord.Embed(title=f"Karma Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
-        await ctx.send(embed=embed)
+        await ctx.reply(embed=embed)
 
     
     async def leaderboard_row_formatter(self):
@@ -263,41 +251,12 @@ class Economy(commands.Cog):
                 return formated_list
 
                 
-#================================================================================
-#                _____                _       
-#                |  ___|              | |      
-#                | |____   _____ _ __ | |_ ___ 
-#                |  __\ \ / / _ \ '_ \| __/ __|
-#                | |___\ V /  __/ | | | |_\__ \
-#                \____/ \_/ \___|_| |_|\__|___/  
-#     
-#================================================================================
+
     
-   #All reaction listeners for awards take place in Reactions.py
+   #Reaction listeners for awards have been shifted to Reactions.py
    
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        if message.author == self.bot.user:
-            return
-
-        elif message.channel.id==config.suggestions_channel_id:
-            if message.content.startswith("//"):
-                return
-            else:
-                await message.add_reaction(config.upvote_reaction)
-                await message.add_reaction(config.downvote_reaction)
-
-        elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
 
 
-
-
-
-
-
-   
 def setup(bot):
     bot.add_cog(Economy(bot))
         
