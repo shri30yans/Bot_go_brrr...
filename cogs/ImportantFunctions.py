@@ -39,6 +39,7 @@ class ImportantFunctions(commands.Cog):
                 else: 
                     await self.create_account(user)
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                    amt = await self.check_for_boosts(user,amt)
                     await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
 
     async def add_credits(self,user,amt):
@@ -50,9 +51,17 @@ class ImportantFunctions(commands.Cog):
                 else: 
                     await self.create_account(user)             
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                    boost=0
-                    amt=int(amt+boost/100*amt) 
+                    # boost=0
+                    # amt=int(amt+boost/100*amt) 
+                    amt = await self.check_for_boosts(user,amt)
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
+    
+    async def check_for_boosts(self,user,amt):
+        for role in user.roles:
+            if role.id in[config.wheel_karma_boost_role_id, config.wheel_credit_boost_role_id]:
+                amt=amt*2
+                return amt
+
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
         async with self.bot.pool.acquire() as connection:

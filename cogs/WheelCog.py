@@ -22,13 +22,13 @@ class Wheel(commands.Cog):
     #@commands.is_owner()
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get exciting prizes or perhaps a mute or two.\nFormat: `{config.prefix}spin`\nAliases: `stw`,`wheel')
     async def wheel(self,ctx):
-        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Server_Perms","Add_Emoji","Celebrity","Mute_Others",]
+        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Credits_Boost","Karma_Boost","Server_Perms","Add_Emoji","Mute_Others",]#"Celebrity"
         #random_wheel_outcome=random.choice(wheel_outcomes)
-        random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,10,10,15,10,5,5,5,2),k=1)[0]
+        random_wheel_outcome=random.choices(wheel_outcomes,weights=(15,15,10,10,15,10,10,10,5,5,5,),k=1)[0]
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
-            numbers=list(range(1,200))+list(range(400,500))+list(range(2000,2050))
+            numbers=list(range(1,200))+list(range(400,500))+list(range(1000,1025))
             amt=random.choice(numbers)
             
             options=[f"You committed Tax Fraud and got {amt} credits!",f"The mafia decided to give you some dough. You got {amt} credits",f"It's your Birthday! You got {amt} credits.",f"Here is a GET OUT OF JAIL CARD. Collect {amt} as you go."]
@@ -45,7 +45,7 @@ class Wheel(commands.Cog):
 
         elif random_wheel_outcome == "Free_Karma":
             user=ctx.author 
-            numbers=list(range(1,20))+list(range(50,100))+list(range(150,160))
+            numbers=list(range(1,20))+list(range(30,40))
             amt=random.choice(numbers)
             
             options=[f"God messed up the balance sheet and you get {amt} Karma!",f"You got free {amt} karma for breathing. Yay!",f"You got {amt} free Karma.",]
@@ -63,7 +63,7 @@ class Wheel(commands.Cog):
         
         elif random_wheel_outcome == "Deduct_Credits":
             user=ctx.author 
-            numbers=list(range(1,200))+list(range(400,500))+list(range(2000,2050))
+            numbers=list(range(1,200))+list(range(400,500))+list(range(1000,1025))
             amt=random.choice(numbers)
             
             options=[f"The IRS raided your house. You lost {amt} credits.",f"You lost {amt} credits!",f"You got a GO TO JAIL CARD and paid {amt} credits for bail.",]
@@ -80,7 +80,7 @@ class Wheel(commands.Cog):
         
         elif random_wheel_outcome == "Deduct_Karma":
             user=ctx.author 
-            numbers=list(range(1,20))+list(range(50,100))+list(range(150,160))
+            numbers=list(range(1,20))+list(range(30,40))
             amt=random.choice(numbers)
             
             options=[f"You posted a shit meme and lost {amt} Karma.",f"You lost {amt} Karma for fun.",f"Karma? Who needs that? You lost {amt} karma.",]
@@ -112,7 +112,6 @@ class Wheel(commands.Cog):
             await asyncio.sleep(int(minutes_to_be_muted*60))
             await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
 
-        
         elif random_wheel_outcome == "Server_Perms":
             user=ctx.author 
             options=[f"You get the Manage Server Perms for 10 seconds!\nChange the name, the server icon or even add a bot."]
@@ -151,18 +150,47 @@ class Wheel(commands.Cog):
             await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_celebrity_role_id,role_name="Celebrity (Spin the Wheel)",description="Celebrity")
             await asyncio.sleep(int(24*60*60))
             await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_celebrity_role_id,role_name="Celebrity (Spin the Wheel)",description="Celebrity")
+       
+        elif random_wheel_outcome == "Credits_Boost":
+            user=ctx.author 
+            options=[f"You get a Credit boost!\nAny Credits you earn or lose in the next one hour are doubled!"]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_yellow)
+            random_picture=random.choice(os.listdir(f"{images_dir}/Credits_Boost/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.send(embed=embed,file=image)
+            
+            await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
+            await asyncio.sleep(int(60*60))
+            await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
+
+        elif random_wheel_outcome == "Karma_Boost":
+            user=ctx.author 
+            options=[f"You get a Karma boost!\nAny Karma you earn or lose in the next one hour are doubled!"]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_red)
+            random_picture=random.choice(os.listdir(f"{images_dir}/Karma_Boost/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.send(embed=embed,file=image)
+            
+            await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
+            await asyncio.sleep(int(60*60))
+            await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
+        
         
         elif random_wheel_outcome == "Mute_Others":
             user=ctx.author 
             options=[f"You can mute anyone you want for 30 mins!\nExpect a DM from me or in case you don't allow DM's, too bad."]
-            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_serverperms)
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=0xC651FF )
             random_picture=random.choice(os.listdir(f"{images_dir}/Mute_Others/")) 
             path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
             image = discord.File(path, filename=random_picture)
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
             
-            embed=discord.Embed(title=f"You get to mute anyone for an hour!",description=f"Reply to this message with the User ID of the person you would like to mute\nIf you are not sure about how to get the User ID:\n```1) Navigate to User Settings\n2) Choose the Advanced Setting\n3) Enable Developer Mode\n4)Right-Click on a user and select Copy ID```\nBe quick about it. This offer expires in 5 minutes.\nYou can't mute Moderators.",colour=colour_serverperms)
+            embed=discord.Embed(title=f"You get to mute anyone for 5 minutes!",description=f"Reply to this message with the User ID of the person you would like to mute\nIf you are not sure about how to get the User ID:\n```1) Navigate to User Settings\n2) Choose the Advanced Setting\n3) Enable Developer Mode\n4)Right-Click on a user and select Copy ID```\nBe quick about it. This offer expires in 5 minutes.\nYou can't mute Moderators.",colour=colour_serverperms)
             try:
                 message = await user.send(embed=embed)
             except:
@@ -197,8 +225,13 @@ class Wheel(commands.Cog):
                         return user_to_mute
                 
                 user_to_mute=await wait_for_message()
+                embed=discord.Embed(title=f"Done!",description=f"{user_to_mute.name} was muted.")
+                try:
+                    message = await user.send(embed=embed)
+                except:
+                    pass
                 await self.role_management(ctx,user=user_to_mute,type="add",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
-                await asyncio.sleep(30*60)
+                await asyncio.sleep(5*60)
                 await self.role_management(ctx,user=user_to_mute,type="remove",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
 
         elif random_wheel_outcome == "Nothing":

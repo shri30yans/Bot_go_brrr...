@@ -50,6 +50,8 @@ wheel_mod_role_id=861833144897372160
 wheel_server_perms_role_id=861138978609430558# arole with the Manage Server Permissions
 wheel_muted_role_id=861148090143997953
 wheel_celebrity_role_id=862547216636182529
+wheel_credit_boost_role_id=864522508400459827
+wheel_karma_boost_role_id=864522656752467988
 
 #to run the events
 run_event=True
