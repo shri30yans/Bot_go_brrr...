@@ -28,7 +28,7 @@ class Wheel(commands.Cog):
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
-            numbers=list(range(1,200))+list(range(400,500))+list(range(1000,1025))
+            numbers=list(range(1,200))+list(range(490,500))
             amt=random.choice(numbers)
             
             options=[f"You committed Tax Fraud and got {amt} credits!",f"The mafia decided to give you some dough. You got {amt} credits",f"It's your Birthday! You got {amt} credits.",f"Here is a GET OUT OF JAIL CARD. Collect {amt} as you go."]
@@ -45,7 +45,7 @@ class Wheel(commands.Cog):
 
         elif random_wheel_outcome == "Free_Karma":
             user=ctx.author 
-            numbers=list(range(1,20))+list(range(30,40))
+            numbers=list(range(1,20))
             amt=random.choice(numbers)
             
             options=[f"God messed up the balance sheet and you get {amt} Karma!",f"You got free {amt} karma for breathing. Yay!",f"You got {amt} free Karma.",]
@@ -63,7 +63,7 @@ class Wheel(commands.Cog):
         
         elif random_wheel_outcome == "Deduct_Credits":
             user=ctx.author 
-            numbers=list(range(1,200))+list(range(400,500))+list(range(1000,1025))
+            numbers=list(range(1,200))+list(range(490,500))
             amt=random.choice(numbers)
             
             options=[f"The IRS raided your house. You lost {amt} credits.",f"You lost {amt} credits!",f"You got a GO TO JAIL CARD and paid {amt} credits for bail.",]
@@ -80,7 +80,7 @@ class Wheel(commands.Cog):
         
         elif random_wheel_outcome == "Deduct_Karma":
             user=ctx.author 
-            numbers=list(range(1,20))+list(range(30,40))
+            numbers=list(range(1,20))
             amt=random.choice(numbers)
             
             options=[f"You posted a shit meme and lost {amt} Karma.",f"You lost {amt} Karma for fun.",f"Karma? Who needs that? You lost {amt} karma.",]
