@@ -232,8 +232,8 @@ class Events(commands.Cog):
         except asyncio.TimeoutError:
             await message.remove_reaction(reaction.emoji,self.bot.user)
         else:
-            amt=random.randint(100,550)
-            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to this emoji first.")
+            amt=random.choice(list(range(1,200))+list(range(400,450))+list(range(975,1000)))
+            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to the Credit Emoji first.")
            
 
           
