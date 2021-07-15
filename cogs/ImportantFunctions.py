@@ -51,16 +51,19 @@ class ImportantFunctions(commands.Cog):
                 else: 
                     await self.create_account(user)             
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                    print("User acc",user_account["credits"])
                     # boost=0
                     # amt=int(amt+boost/100*amt) 
                     amt = await self.check_for_boosts(user,amt)
+                    print("amt2",amt)
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
     
     async def check_for_boosts(self,user,amt):
-        for role in user.roles:
-            if role.id in[config.wheel_karma_boost_role_id, config.wheel_credit_boost_role_id]:
-                amt=amt*2
-                return amt
+        if any([role.id in [config.wheel_karma_boost_role_id,config.wheel_credit_boost_role_id] for role in user.roles]):
+            amt=amt*2
+            return amt
+        else:
+            return amt
 
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
