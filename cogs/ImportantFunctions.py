@@ -57,6 +57,8 @@ class ImportantFunctions(commands.Cog):
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
     
     async def check_for_boosts(self,user,amt):
+        if amt < 0: #if negative
+            return amt
         if any([role.id in [config.wheel_karma_boost_role_id,config.wheel_credit_boost_role_id] for role in user.roles]):
             amt=amt*2
             return amt

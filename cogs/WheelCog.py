@@ -153,7 +153,7 @@ class Wheel(commands.Cog):
        
         elif random_wheel_outcome == "Credits_Boost":
             user=ctx.author 
-            options=[f"You get a Credit boost!\nAny Credits you earn or lose in the next one hour are doubled!"]
+            options=[f"You get a Credit boost!\nAny Credits you earn in the next one hour are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_yellow)
             random_picture=random.choice(os.listdir(f"{images_dir}/Credits_Boost/")) 
             path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
@@ -167,7 +167,7 @@ class Wheel(commands.Cog):
 
         elif random_wheel_outcome == "Karma_Boost":
             user=ctx.author 
-            options=[f"You get a Karma boost!\nAny Karma you earn or lose in the next one hour are doubled!"]
+            options=[f"You get a Karma boost!\nAny Karma you earn in the next one hour are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_red)
             random_picture=random.choice(os.listdir(f"{images_dir}/Karma_Boost/")) 
             path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
