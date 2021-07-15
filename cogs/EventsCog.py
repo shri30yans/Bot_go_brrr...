@@ -216,7 +216,7 @@ class Events(commands.Cog):
         else:    
             #For random reactions that give you credits
             outcomes=[True,False]
-            outcome=random.choices(outcomes,weights=(10,90),k=1)[0]
+            outcome=random.choices(outcomes,weights=(1,99),k=1)[0]
             if outcome == True:
                 await self.credit_reaction(message)
 
@@ -232,8 +232,8 @@ class Events(commands.Cog):
         except asyncio.TimeoutError:
             await message.remove_reaction(reaction.emoji,self.bot.user)
         else:
-            amt=random.choice(list(range(1,200))+list(range(400,450))+list(range(975,1000)))
-            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to the Credit Emoji first.")
+            amt=random.choice(list(range(1,200))+list(range(400,500))+list(range(975,1000))+list(range(1975,2000)))
+            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to the Credit Emojiyeh first.")
            
 
           
