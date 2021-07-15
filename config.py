@@ -18,6 +18,7 @@ STARTUP_COGS = [
     ]
 
 #Channels and Roles
+main_chat_id=748786284599705688
 muted_role_id=748786284385796123
 suggestions_channel_id=799552024156045332
 meme_channel_id=748786284599705689
@@ -40,6 +41,7 @@ reddit_award_wholesome="<:reddit_award_wholsome:807938111027413002>"
 #reddit_award_helpful="<:reddit_award_helpful:808916667160592385>"
 reddit_award_rocket_like="<:reddit_award_rocket_like:820293533642653717>"
 reddit_award_rocket_dislike="<:reddit_award_rocket_dislike:820297716177043476>"
+credits_emoji="<:credit:865214399588991017>"
 
 muted_role_id=748786284385796123
 admin_role_id=748786284385796122
@@ -52,6 +54,7 @@ wheel_muted_role_id=861148090143997953
 wheel_celebrity_role_id=862547216636182529
 wheel_credit_boost_role_id=864522508400459827
 wheel_karma_boost_role_id=864522656752467988
+
 
 #to run the events
 run_event=True

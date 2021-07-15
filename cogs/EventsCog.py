@@ -11,7 +11,6 @@ colourlist=config.embed_colours
 class Events(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
-        self.messages_count_dict={}
         # run this function when this cog is loaded (which program is started)
         self.bot.loop.create_task(self.startup())
 
@@ -196,42 +195,6 @@ class Events(commands.Cog):
         except:
             pass
 
-    
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        user=message.author
-        if user.bot:
-            return
-        if message.channel.id != 748786284599705688:
-            return
-        messages = await message.channel.history(limit=5).flatten() 
-        #if previous message is also written by same person
-        count=0
-        for msg in messages:
-            if msg.author == message.author:
-                count += 1
-        if count >= 3:
-            return
-
-        else:    
-            if str(user.id) in self.messages_count_dict:
-                if self.messages_count_dict[str(user.id)] >= 5:
-                    self.messages_count_dict[str(user.id)] = 0 #reset messages
-                    #Add credits
-                    ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-                    amt=5
-                    await ImportantFunctions.create_account(user)
-                    await ImportantFunctions.add_credits(user=user,amt=amt)
-                
-                else:
-                    self.messages_count_dict[str(user.id)] += 1
-                
-            else:
-                self.messages_count_dict[str(user.id)] = 1
-        
-
-    
-          
     @commands.command(name="Eventlist",aliases=["eventslist"],hidden=True)
     async def eventslist(self,ctx):
         embed=discord.Embed(title="Events List",color = random.choice(colourlist))
@@ -244,7 +207,38 @@ class Events(commands.Cog):
                         inline=False)
         await ctx.send(embed=embed)
 
-(40,30,15,10,5)
+    
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        user=message.author
+        if user.bot:
+            return
+        else:    
+            #For random reactions that give you credits
+            outcomes=[True,False]
+            outcome=random.choices(outcomes,weights=(10,90),k=1)[0]
+            if outcome == True:
+                await self.credit_reaction(message)
+
+        
+    async def credit_reaction(self,message):
+        await message.add_reaction(config.credits_emoji)
+
+        def check(reaction, user):
+            return str(reaction.emoji) in [config.credits_emoji,] and user != self.bot.user
+
+        try:
+            reaction,user = await self.bot.wait_for('reaction_add', check=check, timeout=30)
+        except asyncio.TimeoutError:
+            await message.remove_reaction(reaction.emoji,self.bot.user)
+        else:
+            amt=random.randint(100,550)
+            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to this emoji first.")
+           
+
+          
+   
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

@@ -126,5 +126,9 @@ class Fun(commands.Cog,name="Productivity or some shit"):
         await ctx.send(f"{ctx.author.mention}, **{final_time}** ago: {message}\n{ctx.message.jump_url}") #send this when asyncio.sleep() has done
 
 
+
+
+
+
 def setup(bot):
     bot.add_cog(Fun(bot))

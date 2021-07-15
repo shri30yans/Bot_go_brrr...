@@ -9,6 +9,7 @@ awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awa
 class Economy(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
+        self.messages_count_dict={}
         
 
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -250,10 +251,43 @@ class Economy(commands.Cog):
                     formated_list.append(dict(elem_dict))
                 return formated_list
 
-                
-
-    
    #Reaction listeners for awards have been shifted to Reactions.py
+
+
+
+   #For adding credits for chatting in #main_chat
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        user=message.author
+        if user.bot:
+            return
+        if message.channel.id != config.main_chat_id:
+            return
+        messages = await message.channel.history(limit=5).flatten() 
+        #if previous message is also written by same person
+        count=0
+        for msg in messages:
+            if msg.author == message.author:
+                count += 1
+        if count >= 3:
+            return
+
+        else:    
+            if str(user.id) in self.messages_count_dict:
+                if self.messages_count_dict[str(user.id)] >= 5:
+                    self.messages_count_dict[str(user.id)] = 0 #reset messages
+                    #Add credits
+                    ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                    amt=5
+                    await ImportantFunctions.create_account(user)
+                    await ImportantFunctions.add_credits(user=user,amt=amt)
+                
+                else:
+                    self.messages_count_dict[str(user.id)] += 1
+                
+            else:
+                self.messages_count_dict[str(user.id)] = 1
+            
    
 
 

@@ -51,11 +51,9 @@ class ImportantFunctions(commands.Cog):
                 else: 
                     await self.create_account(user)             
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                    print("User acc",user_account["credits"])
                     # boost=0
                     # amt=int(amt+boost/100*amt) 
                     amt = await self.check_for_boosts(user,amt)
-                    print("amt2",amt)
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
     
     async def check_for_boosts(self,user,amt):
