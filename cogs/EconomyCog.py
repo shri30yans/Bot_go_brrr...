@@ -173,18 +173,21 @@ class Economy(commands.Cog):
             await ctx.reply(f"You can't give yourself the credits dum dum")
         elif user_mentioned.bot:
             await ctx.reply(f"Bots don't have accounts dum dum.")
+        #checks if the person you are giving it to has a boost role.
+        elif any([role.id in [config.wheel_credit_boost_role_id,] for role in user_mentioned.roles]):
+            await ctx.reply(f"The person you are giving the credits to has a Booster role. Try again later.")
         else:
-            await ImportantFunctions.create_account(user)
-            await ImportantFunctions.create_account(user_mentioned)
-            async with self.bot.pool.acquire() as connection:
-                async with connection.transaction():
-                    user_balance = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                    if amt > user_balance["credits"]:
-                        await ctx.reply(f"You can't give what you don't have.")
-                    else:
-                        await ImportantFunctions.add_credits(user=user,amt=-amt)   
-                        await ImportantFunctions.add_credits(user=user_mentioned,amt=amt)  
-                        await ctx.reply(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
+                await ImportantFunctions.create_account(user)
+                await ImportantFunctions.create_account(user_mentioned)
+                async with self.bot.pool.acquire() as connection:
+                    async with connection.transaction():
+                        user_balance = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
+                        if amt > user_balance["credits"]:
+                            await ctx.reply(f"You can't give what you don't have.")
+                        else:
+                            await ImportantFunctions.add_credits(user=user,amt=-amt)   
+                            await ImportantFunctions.add_credits(user=user_mentioned,amt=amt)  
+                            await ctx.reply(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
 
     @commands.group(name="Leaderboard",aliases=["lb"],help=f"Shows the server leaderboard\nFormat: `{config.prefix}Leaderboard subcommand`\nSubcommands: `Karma`, `Credits`",case_insensitive=True,invoke_without_command=True)   
     async def leaderboard(self,ctx):

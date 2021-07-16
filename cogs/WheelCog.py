@@ -23,8 +23,8 @@ class Wheel(commands.Cog):
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get exciting prizes or perhaps a mute or two.\nFormat: `{config.prefix}spin`\nAliases: `stw`,`wheel')
     async def wheel(self,ctx):
         wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Credits_Boost","Karma_Boost","Server_Perms","Add_Emoji","Mute_Others",]#"Celebrity"
-        #random_wheel_outcome=random.choice(wheel_outcomes)
         random_wheel_outcome=random.choices(wheel_outcomes,weights=(15,15,10,10,15,10,10,10,5,5,5,),k=1)[0]
+        #random_wheel_outcome="Karma_Boost"
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
