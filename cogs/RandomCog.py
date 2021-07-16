@@ -1,4 +1,4 @@
-import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap
+import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap,re
 from discord.ext import commands,tasks
 import config
 
@@ -89,6 +89,20 @@ class Fun(commands.Cog,name="Productivity or some shit"):
     async def remind(self, ctx, time, *, message=None):
         if message == None:
             message = ". . ." #set the message if message is None
+        else:
+            print(message)
+            role_check = re.search("<@&.*>$",message)#regex
+            if "@everyone" in message :
+                message=message.replace("@everyone","everyone")
+            elif "@here" in message:
+                message=message.replace("@here","here")
+            elif role_check:
+                await ctx.send("Your message has a role mention. Please try the command again without the mention.")
+                #role_id=message.replace("<@&","").replace(">","")
+            else:
+                message=message
+
+            print(message)
         async def convert(time): #let's start convert the time provided
             pos = ['s', 'm', 'h', 'd'] #valid units
             time_dict = {"s": 1, "m": 60, "h": 3600, "d": 3600*24} #attribute for each unit
