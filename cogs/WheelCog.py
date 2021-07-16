@@ -153,7 +153,7 @@ class Wheel(commands.Cog):
        
         elif random_wheel_outcome == "Credits_Boost":
             user=ctx.author 
-            options=[f"You get a Credit boost!\nAny Credits you earn in the next one hour are doubled!"]
+            options=[f"You get a Credit boost!\nAny Credits you earn in the next 30 minutes are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_yellow)
             random_picture=random.choice(os.listdir(f"{images_dir}/Credits_Boost/")) 
             path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
@@ -162,12 +162,12 @@ class Wheel(commands.Cog):
             await ctx.send(embed=embed,file=image)
             
             await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
-            await asyncio.sleep(int(60*60))
+            await asyncio.sleep(int(60*30))
             await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
 
         elif random_wheel_outcome == "Karma_Boost":
             user=ctx.author 
-            options=[f"You get a Karma boost!\nAny Karma you earn in the next one hour are doubled!"]
+            options=[f"You get a Karma boost!\nAny Karma you earn in the next 30 minutes are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=colour_red)
             random_picture=random.choice(os.listdir(f"{images_dir}/Karma_Boost/")) 
             path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
@@ -176,7 +176,7 @@ class Wheel(commands.Cog):
             await ctx.send(embed=embed,file=image)
             
             await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
-            await asyncio.sleep(int(60*60))
+            await asyncio.sleep(int(60*30))
             await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
         
         
