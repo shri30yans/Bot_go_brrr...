@@ -224,15 +224,15 @@ class Wheel(commands.Cog):
                         user_to_mute=await wait_for_message()
                         return user_to_mute
                 
-                user_to_mute=await wait_for_message()
-                embed=discord.Embed(title=f"Done!",description=f"{user_to_mute.name} was muted.")
-                try:
-                    message = await user.send(embed=embed)
-                except:
-                    pass
-                await self.role_management(ctx,user=user_to_mute,type="add",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
-                await asyncio.sleep(5*60)
-                await self.role_management(ctx,user=user_to_mute,type="remove",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
+            user_to_mute=await wait_for_message()
+            embed=discord.Embed(title=f"Done!",description=f"{user_to_mute.name} was muted.")
+            try:
+                message = await user.send(embed=embed)
+            except:
+                pass
+            await self.role_management(ctx,user=user_to_mute,type="add",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
+            await asyncio.sleep(5*60)
+            await self.role_management(ctx,user=user_to_mute,type="remove",role_id=config.wheel_muted_role_id,role_name="Muted (Spin the Wheel)",description="Muted (Spin the Wheel)")
 
         elif random_wheel_outcome == "Nothing":
             user=ctx.author 
