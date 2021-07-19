@@ -206,8 +206,12 @@ class Economy(commands.Cog):
         top5_string=""
         num=1
         for entry in top5:
-            user = self.bot.get_user(entry["user_id"])
-            top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
+            try:
+                user = await self.bot.get_user(entry["user_id"])
+                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
+            except:
+                user = await self.bot.fetch_user(entry["user_id"])
+                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             num=num+1
         
         if len(top5_string) == 0:#is space/blank/None
@@ -228,8 +232,12 @@ class Economy(commands.Cog):
         top5_string=""
         num=1
         for entry in top5:
-            user = self.bot.get_user(entry["user_id"])
-            top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
+            try:
+                user = await self.bot.bot_user(entry["user_id"])
+                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
+            except:
+                user = await self.bot.fetch_user(entry["user_id"])
+                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
             num=num+1
         
         if top5_string == None:
