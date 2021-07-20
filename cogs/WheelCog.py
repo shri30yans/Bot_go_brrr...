@@ -22,9 +22,9 @@ class Wheel(commands.Cog):
     #@commands.is_owner()
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get exciting prizes or perhaps a mute or two.\nFormat: `{config.prefix}spin`\nAliases: `stw`,`wheel')
     async def wheel(self,ctx):
-        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Credits_Boost","Karma_Boost","Server_Perms","Add_Emoji","Mute_Others",]#"Celebrity"
-        random_wheel_outcome=random.choices(wheel_outcomes,weights=(15,15,10,10,15,10,10,10,5,5,5,),k=1)[0]
-        #random_wheel_outcome="Karma_Boost"
+        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Credits_Boost","Karma_Boost","Server_Perms","Add_Emoji",]#"Celebrity""Mute_Others",
+        random_wheel_outcome=random.choices(wheel_outcomes,weights=(15,15,10,10,15,10,10,10,5,5,),k=1)[0]
+        #random_wheel_outcome="Mute_Others"
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
@@ -192,15 +192,15 @@ class Wheel(commands.Cog):
             
             embed=discord.Embed(title=f"You get to mute anyone for 5 minutes!",description=f"Reply to this message with the User ID of the person you would like to mute\nIf you are not sure about how to get the User ID:\n```1) Navigate to User Settings\n2) Choose the Advanced Setting\n3) Enable Developer Mode\n4)Right-Click on a user and select Copy ID```\nBe quick about it. This offer expires in 5 minutes.\nYou can't mute Moderators.",colour=colour_serverperms)
             try:
-                message = await user.send(embed=embed)
+                sent_message = await user.send(embed=embed)
             except:
                 return
             async def wait_for_message():
                 try:
-                    message = await self.bot.wait_for('message', timeout =300,check=lambda m:(ctx.author == m.author and ctx.channel == m.channel) )
+                    message = await self.bot.wait_for('message', timeout =300,check=lambda m:(ctx.author == m.author and m.guild == None))#if it is a dm
                 except asyncio.TimeoutError: 
                     embed=discord.Embed(title=f"Oops!",description=f"You took too long and lost this chance. Better luck next time")
-                    await ctx.send(embed=embed)            
+                    await user.send(embed=embed)            
                 else: 
                     try:#This was added so that this doesnt break in case the message doesn't have any text in it.
                         if message.content.lower() in ["quit","exit"]:
@@ -209,20 +209,23 @@ class Wheel(commands.Cog):
                         pass
 
                     try:
-                        user_to_mute=self.bot.get_user(message.content)
-                        for role in user_to_mute.roles:
-                            if role.id in [config.moderator_role_id,config.admin_role_id]:
-                                embed=discord.Embed(title="⚠️ | Can't mute",description="The User ID you entered was of a moderator.\nEnter another User ID or type `quit` to exit.", color =colour_serverperms)
-                                await ctx.send(embed=embed)
-                                user_to_mute=await wait_for_message()
-                                return user_to_mute
-                        return user_to_mute
+                        user_to_mute=self.bot.get_user(int(message.content))
+                        print(user_to_mute)
+                        #return user_to_mute
            
                     except:
                         embed=discord.Embed(title="⚠️ | Invalid User",description="The User ID you entered was invalid.\nEnter another User ID or type `quit` to exit.", color =colour_serverperms)
-                        await ctx.send(embed=embed)
+                        await user.send(embed=embed)
                         user_to_mute=await wait_for_message()
-                        return user_to_mute
+                        #return user_to_mute
+                    
+                    finally:
+                        for role in user_to_mute.roles:
+                            if role.id in [config.moderator_role_id,config.admin_role_id]:
+                                embed=discord.Embed(title="⚠️ | Can't mute",description="The User ID you entered was of a moderator.\nEnter another User ID or type `quit` to exit.", color =colour_serverperms)
+                                await user.send(embed=embed)
+                                user_to_mute=await wait_for_message()
+                                return user_to_mute
                 
             user_to_mute=await wait_for_message()
             embed=discord.Embed(title=f"Done!",description=f"{user_to_mute.name} was muted.")
