@@ -3,7 +3,6 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config 
 
-awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 colourlist=config.embed_colours
 
 
@@ -77,7 +76,7 @@ class ReactionCog(commands.Cog):
 
             
             #awards
-            for award in awards_list:
+            for award in list(awards.awards_list.values()):
                 if str(emoji) == award.reaction_id:
                     async with self.bot.pool.acquire() as connection:
                         async with connection.transaction():

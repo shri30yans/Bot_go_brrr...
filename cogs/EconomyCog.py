@@ -5,7 +5,6 @@ import config
 
 colourlist=config.embed_colours
 
-awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 class Economy(commands.Cog): 
     def __init__(self, bot):
         self.bot = bot
@@ -34,8 +33,8 @@ class Economy(commands.Cog):
 
                     awards_given_j=json.loads(user_account["awards_given"])
                     awards_received_j=json.loads(user_account["awards_received"])
-                    awards_given_str= await self.format_awards_in_order(awards_given_or_recieved_dict=awards_given_j)
-                    awards_received_str= await self.format_awards_in_order(awards_given_or_recieved_dict=awards_received_j)
+                    awards_given_str= await self.format_awards_in_order(awards_dict=awards_given_j)
+                    awards_received_str= await self.format_awards_in_order(awards_dict=awards_received_j)
 
                     awards_given_str=awards_given_str or "None"
                     awards_received_str= awards_received_str or "None"
@@ -49,29 +48,20 @@ class Economy(commands.Cog):
                     embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
                     await sent_msg.edit(embed=embed)
 
-    async def format_awards_in_order(self,awards_given_or_recieved_dict):
+    async def format_awards_in_order(self,awards_dict:str):
         #formats the awards in order of cost
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         ordered_reactions_of_post={}
-        for x in awards_list[::-1]:
+        for x in list(awards.awards_list.values()):
             try:
-                ordered_reactions_of_post[x.name.lower()] = awards_given_or_recieved_dict[x.name]
+                ordered_reactions_of_post[x.name.lower()] = awards_dict[x.name]
             except:
-                pass
+                pass                
             
-        all_award_names=[]
-        for award in awards_list:
-            all_award_names.append(award.name.lower())
         reaction_id_string=""
         for r in ordered_reactions_of_post:
-            if r in all_award_names:
-                award = await ImportantFunctions.fetch_award(award_name_or_id=r)
-                if award == None:
-                    print("Not found award")
-                    #return
-                reaction_id = award.reaction_id
-            else:
-                print("Not an award or an Star")
+            award = await ImportantFunctions.fetch_award(award_name_or_id=r)
+            reaction_id = award.reaction_id
             reaction_id_string = reaction_id_string + f"{ordered_reactions_of_post[r]} {reaction_id} ,   "
 
         return reaction_id_string
@@ -91,7 +81,7 @@ class Economy(commands.Cog):
                 embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Your balance: **{user_account['credits']} Credits**")
                 awards_string=""
 
-                for award in awards_list:
+                for award in list(awards.awards_list.values()):
                     embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{award.cost} credits \n {award.description} \n",inline=False)
 
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
@@ -128,15 +118,15 @@ class Economy(commands.Cog):
     #                 return
     #             if amt <= 0:
     #                 await ctx.send(f"You can't gamble away zero or negative credits, dum-dum")
-    #             elif amt < 20:
-    #                 await ctx.send(f"Minimum Stakes is 20 credits.")
+    #             elif amt < 50:
+    #                 await ctx.send(f"Minimum Stakes is 50 credits.")
     #             else:
     #                 if amt > user_account["credits"]:
     #                     await ctx.send("You can't gamble away what you don't have.")
     #                     return
     #                 else:
     #                     choice=random.choice(["lose","win"])
-    #                     earnings=random.randint(0,50)
+    #                     earnings=random.randint(0,20)
     #                     if choice=="lose":
     #                         total_earned=-(round(amt*(earnings/100)))
     #                         bal=user_account["credits"]+total_earned
@@ -190,61 +180,59 @@ class Economy(commands.Cog):
                             await ctx.reply(f"{user.mention} gave {user_mentioned.mention}, {amt} credits.")     
 
     @commands.group(name="Leaderboard",aliases=["lb"],help=f"Shows the server leaderboard\nFormat: `{config.prefix}Leaderboard subcommand`\nSubcommands: `Karma`, `Credits`",case_insensitive=True,invoke_without_command=True)   
-    async def leaderboard(self,ctx):
-        await self.karma_leaderboard(ctx)
+    async def leaderboard(self,ctx,page:int=1):
+        await self.karma_leaderboard(ctx,page)
 
     
     @leaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the server leaderboard according to the credits.\nFormat: `{config.prefix}Leaderboard credits`")
-    async def credits_leaderboard(self,ctx):
+    async def credits_leaderboard(self,ctx,page:int=1):
         def myFunc(e):
             return e['credits']
         
         formated_list = await self.leaderboard_row_formatter()
         formated_list.sort(reverse=True,key=myFunc)
-        #Top 5
-        top5=formated_list[:10]
-        top5_string=""
-        num=1
-        for entry in top5:
+        #Top 10
+        top=formated_list[page*10-10:page*10]
+        top_string=""
+        for entry in top:
+            num=formated_list.index(entry)+1
             try:
                 user = await self.bot.get_user(entry["user_id"])
-                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
+                top_string = top_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
             except:
                 user = await self.bot.fetch_user(entry["user_id"])
-                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
-            num=num+1
+                top_string = top_string + f"`{num}.` " + f" {user.mention} • `{entry['credits']} Credits `" + "\n"
         
-        if len(top5_string) == 0:#is space/blank/None
-            top5_string = "There are no entries in your leaderboard."
+        if len(top_string) == 0:#is space/blank/None
+            top_string = "There are no entries in your leaderboard."
         
-        embed=discord.Embed(title=f"Credits Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
+        embed=discord.Embed(title=f"Credits Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await ctx.reply(embed=embed)
 
     @leaderboard.command(name="Karma",help=f"Shows the server leaderboard according to the karma.\nFormat: `{config.prefix}Leaderboard karma`")
-    async def karma_leaderboard(self,ctx):
+    async def karma_leaderboard(self,ctx,page:int=1):
         def myFunc(e):
             return e['karma']
+
         formated_list = await self.leaderboard_row_formatter()
         formated_list.sort(reverse=True,key=myFunc)
         #Top 5
-        top5=formated_list[:10]
-        top5_string=""
-        num=1
-        for entry in top5:
+        top=formated_list[page*10-10:page*10]
+        top_string=""
+        for entry in top:
             try:
+                num=formated_list.index(entry)+1
                 user = await self.bot.bot_user(entry["user_id"])
-                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
+                top_string = top_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
             except:
                 user = await self.bot.fetch_user(entry["user_id"])
-                top5_string = top5_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
-            num=num+1
+                top_string = top_string + f"`{num}.` " + f" {user.mention} • `{entry['karma']} Karma `" + "\n"
         
-        if top5_string == None:
-            print("no entries")
-            top5_string = "There are no entries in your leaderboard"
+        if len(top_string) == 0 :
+            top_string = "There are no entries in your leaderboard"
         
-        embed=discord.Embed(title=f"Karma Leaderboard",colour=random.choice(colourlist),description=f"{top5_string}")
+        embed=discord.Embed(title=f"Karma Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await ctx.reply(embed=embed)
 

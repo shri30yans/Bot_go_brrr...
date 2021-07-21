@@ -1,3 +1,5 @@
-import os, random
-c=random.choice(os.listdir("D:\\Py Programs\\Discord Python Programs\\Server Bot\\utils")) #change dir name to whatever
-print(os.path.dirname(os.path.abspath(c)))
+import utils.awards as awards
+all_award_names=[]
+for award in list(awards.awards_list.values()):
+    all_award_names.append(award.name.lower())
+    print(all_award_names)

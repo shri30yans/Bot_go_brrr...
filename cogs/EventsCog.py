@@ -56,13 +56,13 @@ class Events(commands.Cog):
           
         if rarity == 'Common':
             questions={
-                "You are in an argument. Quick! Type `No You`.":["no you"],
-                "POV: Someone just replied \"General Kenobi\" to a \"Hello there\". Quick! Type `This is the Way`":["this is the way"],
-                "Someone just sent a rad meme in the chat. Quick! Type `kek` ": ['kek',],
-                "PS5 just came in stock. Quick say `Add to cart`": ['add to cart'],
+                "You are really poor. Quick! Beg for some credits. Type `?beg`.":["?beg"],
+                "Someone asked you for some credits. Quick! Type `no`":["no"],
+                "Someone just roasted you. Quick! Type `Your mom` ": ['your mom',],
+                "Someone just post a funny meme. Quick type `Upvote`.": ['upvote'],
                 "I just died playing Minecraft. Type `F` in the chat": ['f'],
-                "People are lurking in chat. Send this emoji (🕵️) ": ['🕵️'],
-                "POV: You are Tahir. Quick send this emoji in the chat (😹)":['😹'],
+                "Say 'yeet`! ": ['yeet'],
+                "POV: You are Pasta. Say `yaar`.":['yaar'],
             }
             word=random.choice(list(questions))
             # print(word)
@@ -114,7 +114,7 @@ class Events(commands.Cog):
 
 
         elif rarity == 'Rare':
-            questions=["stonks","minecraft","talented mf","ender dragon","diamond armour","ding ding",]
+            questions=["stonks","yaar","lmfao","gaming","bot go brrr","upvote","downvote","amogus"]
             word=random.choice(questions)
             shuffled_words = ""
             word_list=word.split(" ")
@@ -139,9 +139,10 @@ class Events(commands.Cog):
         
         
         elif rarity == 'Epic':
-            questions={"What is the name of the Internet meme consisting of a green anthropomorphic frog with a humanoid body originated in a 2005 comic?":['pepe','pepe the frog',],
-                        "What is the name of the Internet meme of a picture of a Shiba Inu dog that became popular in 2013? ":["doge"],
-                        "Who is the famous Pixar character featured in the two-eyed green spherical monster meme staring awkwardly? ":['mike wazowski'],}
+            questions={"What is the name of the Internet meme of a dinosaur thinking?":['philosoraptor',],
+                        "What is the name of the anti-social and highly-territorial green ogre who loves the solitude of his swamp?":["shrek"],
+                        "What is the name of this small 50 year old with long ears beloging to a popular franchise that took the internet by storm in 2019?":['grogu'],
+                        "What is the name of the humorous pink starfish, who serves as the village idiot in an underwater city.":['patrick'],}
             word=random.choice(list(questions))
 
             sent_msg = await ctx.send(f"""**{rarity} Event!**\n{word} First person to answer wins!""")

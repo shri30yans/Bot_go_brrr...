@@ -3,7 +3,6 @@ from discord.ext import commands,tasks
 import utils.awards as awards
 import config   
 
-awards_list=[awards.Rocket_Dislike,awards.Rocket_Like,awards.Wholesome_Award,awards.Silver_Award,awards.Gold_Award,awards.Platinum_Award,awards.Argentinum_Award,awards.Ternion_Award]
 
 class ImportantFunctions(commands.Cog): 
     def __init__(self, bot):
@@ -26,7 +25,7 @@ class ImportantFunctions(commands.Cog):
                         # create an account   
                         empty_json=json.dumps({})   
                         reactions=json.dumps({"upvote":0,"downvote":0,"star":0}) 
-                        await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given,reactions_received,reactions_given) VALUES ($1,0,0,$2,$3,$4,$5)',user.id,empty_json,empty_json,reactions,reactions)
+                        await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given,reactions_received,reactions_given,badges) VALUES ($1,0,0,$2,$3,$4,$5,$6)',user.id,empty_json,empty_json,reactions,reactions,empty_json)
                 else:
                     return
 
@@ -143,7 +142,7 @@ class ImportantFunctions(commands.Cog):
                         stars_required_for_starboard  = server_info["starboard_stars_required"]
                         
                         all_award_ids=[]
-                        for award in awards_list:
+                        for award in list(awards.awards_list.values()):
                             all_award_ids.append(award.reaction_id)
 
                         if str(emoji) == "⭐" and reaction_count < stars_required_for_starboard:#if reaction is star but reaction count is less than the set limit
@@ -162,7 +161,7 @@ class ImportantFunctions(commands.Cog):
                             reactions_of_post[reaction_name.lower()] = r.count
                     
                         #Embed
-                        reaction_id_string = await self.format_awards_in_order(reactions_of_post=reactions_of_post)
+                        reaction_id_string = await self.formatted_starboard_awards_string(reactions_of_post=reactions_of_post)
                         reaction_id_string = reaction_id_string + channel.mention
                         embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
                         embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
@@ -189,7 +188,7 @@ class ImportantFunctions(commands.Cog):
                             reactions_of_post.update({reaction_name.lower():1})
                         
                         #Embed
-                        reaction_id_string = await self.format_awards_in_order(reactions_of_post=reactions_of_post)
+                        reaction_id_string = await self.formatted_starboard_awards_string(reactions_of_post=reactions_of_post)
                         reaction_id_string = reaction_id_string + channel.mention
                         await StarMessage.edit(content=f"{reaction_id_string}")
                         
@@ -199,10 +198,10 @@ class ImportantFunctions(commands.Cog):
                         await connection.execute("UPDATE server_info SET starboard = $1 WHERE id=$2",starboard_json,channel.guild.id)
                 
     
-    async def format_awards_in_order(self,reactions_of_post):
+    async def formatted_starboard_awards_string(self,reactions_of_post):
         #used to arrange the award and stars in order so that the order in starboard is [ternion,argentinum,platinum,gold....star]
         ordered_reactions_of_post={}
-        for x in awards_list[::-1]:
+        for x in list(awards.awards_list.values())[::-1]:
             try:
                 ordered_reactions_of_post[x.name.lower()]=reactions_of_post[x.name.lower()]
             except:
@@ -213,38 +212,35 @@ class ImportantFunctions(commands.Cog):
         except:
             pass
         reactions_of_post = ordered_reactions_of_post
-        
 
-        all_award_names=[]
-        for award in awards_list:
-            all_award_names.append(award.name.lower())
         reaction_id_string=""
         for r in reactions_of_post:
             if r == "star":
                 reaction_id = "⭐"
-            elif r in all_award_names:
-                award = await self.fetch_award(award_name_or_id=r)
-                if award == None:
-                    print("Not found award")
-                reaction_id = award.reaction_id
             else:
-                print("Not an award or an Star")
+                try:
+                    award = await self.fetch_award(award_name_or_id=r)
+                    if award != None:
+                        reaction_id = award.reaction_id
+                except:
+                    print("Not an award or an Star")
+            
             reaction_id_string = reaction_id_string + f"{reactions_of_post[r]} {reaction_id}   "
 
         return reaction_id_string
     
     
     async def fetch_award(self,award_name_or_id):  
-        for award in awards_list: 
+        for award in list(awards.awards_list.values()): 
             if award_name_or_id.lower() == award.name.lower():#check against names
                 return award
         else:
             
-            for award in awards_list:
+            for award in list(awards.awards_list.values()):
                 if award_name_or_id.lower() == award.reaction_id.lower():#check against name of emojis with ids
                     return award
             else:
-                for award in awards_list:
+                for award in list(awards.awards_list.values()):
                     if award_name_or_id == int(award.reaction_id.split(":")[-1][:-1]):#check against ids/ Numeric Value of the id
                         return award
                 else:
