@@ -58,6 +58,7 @@ class Economy(commands.Cog):
             except:
                 pass                
             
+
         reaction_id_string=""
         for r in ordered_reactions_of_post:
             award = await ImportantFunctions.fetch_award(award_name_or_id=r)
@@ -186,11 +187,7 @@ class Economy(commands.Cog):
     
     @leaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the server leaderboard according to the credits.\nFormat: `{config.prefix}Leaderboard credits`")
     async def credits_leaderboard(self,ctx,page:int=1):
-        def myFunc(e):
-            return e['credits']
-        
-        formated_list = await self.leaderboard_row_formatter()
-        formated_list.sort(reverse=True,key=myFunc)
+        formated_list = await self.get_leaderboard("credits")
         #Top 10
         top=formated_list[page*10-10:page*10]
         top_string=""
@@ -212,11 +209,7 @@ class Economy(commands.Cog):
 
     @leaderboard.command(name="Karma",help=f"Shows the server leaderboard according to the karma.\nFormat: `{config.prefix}Leaderboard karma`")
     async def karma_leaderboard(self,ctx,page:int=1):
-        def myFunc(e):
-            return e['karma']
-
-        formated_list = await self.leaderboard_row_formatter()
-        formated_list.sort(reverse=True,key=myFunc)
+        formated_list = await self.get_leaderboard("karma")
         #Top 5
         top=formated_list[page*10-10:page*10]
         top_string=""
@@ -237,21 +230,22 @@ class Economy(commands.Cog):
         await ctx.reply(embed=embed)
 
     
-    async def leaderboard_row_formatter(self):
+    async def get_leaderboard(self,column):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                all_rows = await connection.fetch("SELECT * FROM info")
-                formated_list=[]
-                elem_dict={}
-                for row in all_rows:
-                    elem_dict["user_id"]=row["user_id"]
-                    elem_dict["credits"]=row["credits"]
-                    elem_dict["karma"]=row["karma"]
-                    formated_list.append(dict(elem_dict))
-                return formated_list
+                if column == "credits":
+                    all_rows = await connection.fetch("SELECT * FROM info ORDER BY credits DESC")
+                elif column== "karma":
+                    all_rows = await connection.fetch("SELECT * FROM info ORDER BY karma DESC")
+                return all_rows
 
    #Reaction listeners for awards have been shifted to Reactions.py
-
+    @commands.command(name="test") 
+    async def test(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                all_rows = await connection.fetch("SELECT * FROM info ORDER BY credits DESC")
+                print(all_rows)
 
 
    #For adding credits for chatting in #main_chat
