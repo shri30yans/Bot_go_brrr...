@@ -12,7 +12,7 @@ class Economy(commands.Cog):
         
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits"], help=f"Shows the Karma, Credits and Awards of a user\nFormat: `{config.prefix}stats'\nAliases: `Account`, `Bal`, `Acc`, `Balance`, `Karma`, `Credits`, `Stats")
+    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits","profile"], help=f"Shows the Karma, Credits and Awards of a user\nFormat: `{config.prefix}stats'\nAliases: `Account`, `Bal`, `Acc`, `Balance`, `Karma`, `Credits`, `Stats`, `Profile`")
     async def bal(self,ctx,user:discord.Member=None):
         user = user or ctx.author
         sent_msg=await ctx.reply(embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
@@ -33,14 +33,14 @@ class Economy(commands.Cog):
 
                     awards_given_j=json.loads(user_account["awards_given"])
                     awards_received_j=json.loads(user_account["awards_received"])
-                    awards_given_str= await self.format_awards_in_order(awards_dict=awards_given_j)
-                    awards_received_str= await self.format_awards_in_order(awards_dict=awards_received_j)
+                    awards_given_str,total_awards_given= await self.format_awards_in_order(awards_dict=awards_given_j)
+                    awards_received_str,total_awards_received= await self.format_awards_in_order(awards_dict=awards_received_j)
 
                     awards_given_str=awards_given_str or "None"
                     awards_received_str= awards_received_str or "None"
 
-                    embed.add_field(name="Awards given:",value=f"{awards_given_str}",inline=False)
-                    embed.add_field(name="Awards received:",value=f"{awards_received_str}",inline=False)
+                    embed.add_field(name="Awards given:",value=f"{awards_given_str}\nTotal awards given: {total_awards_given}",inline=False)
+                    embed.add_field(name="Awards received:",value=f"{awards_received_str}\nTotal awards received: {total_awards_received}",inline=False)
                     # embed.add_field(name="Upvotes given:",value=f"{user_account['karma']} Karma")
                     # embed.add_field(name="Upvotes received:",value=f"{user_account['karma']} Karma")                                             
 
@@ -52,20 +52,22 @@ class Economy(commands.Cog):
         #formats the awards in order of cost
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         ordered_reactions_of_post={}
-        for x in list(awards.awards_list.values()):
+        for x in list(awards.awards_list.values())[::-1]:
             try:
                 ordered_reactions_of_post[x.name.lower()] = awards_dict[x.name]
             except:
                 pass                
             
-
+        total_awards=0        
         reaction_id_string=""
         for r in ordered_reactions_of_post:
             award = await ImportantFunctions.fetch_award(award_name_or_id=r)
+            count=ordered_reactions_of_post[r]
+            total_awards+=count
             reaction_id = award.reaction_id
-            reaction_id_string = reaction_id_string + f"{ordered_reactions_of_post[r]} {reaction_id} ,   "
+            reaction_id_string = reaction_id_string + f"{count} {reaction_id} ,   "
 
-        return reaction_id_string
+        return reaction_id_string,total_awards
 
 
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -80,9 +82,8 @@ class Economy(commands.Cog):
                 user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                 user_account=dict(user_account)
                 embed=discord.Embed(title=f"{user.name}'s Balance",description=f"Your balance: **{user_account['credits']} Credits**")
-                awards_string=""
 
-                for award in list(awards.awards_list.values()):
+                for award in list(awards.awards_list.values())[::-1]:
                     embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{award.cost} credits \n {award.description} \n",inline=False)
 
                 embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")

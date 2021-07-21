@@ -142,7 +142,7 @@ class ImportantFunctions(commands.Cog):
                         stars_required_for_starboard  = server_info["starboard_stars_required"]
                         
                         all_award_ids=[]
-                        for award in list(awards.awards_list.values()):
+                        for award in list(awards.awards_list.values())[::-1]:
                             all_award_ids.append(award.reaction_id)
 
                         if str(emoji) == "⭐" and reaction_count < stars_required_for_starboard:#if reaction is star but reaction count is less than the set limit
@@ -201,7 +201,7 @@ class ImportantFunctions(commands.Cog):
     async def formatted_starboard_awards_string(self,reactions_of_post):
         #used to arrange the award and stars in order so that the order in starboard is [ternion,argentinum,platinum,gold....star]
         ordered_reactions_of_post={}
-        for x in list(awards.awards_list.values())[::-1]:
+        for x in list(awards.awards_list.values())[::-1][::-1]:
             try:
                 ordered_reactions_of_post[x.name.lower()]=reactions_of_post[x.name.lower()]
             except:
@@ -231,16 +231,16 @@ class ImportantFunctions(commands.Cog):
     
     
     async def fetch_award(self,award_name_or_id):  
-        for award in list(awards.awards_list.values()): 
+        for award in list(awards.awards_list.values())[::-1]: 
             if award_name_or_id.lower() == award.name.lower():#check against names
                 return award
         else:
             
-            for award in list(awards.awards_list.values()):
+            for award in list(awards.awards_list.values())[::-1]:
                 if award_name_or_id.lower() == award.reaction_id.lower():#check against name of emojis with ids
                     return award
             else:
-                for award in list(awards.awards_list.values()):
+                for award in list(awards.awards_list.values())[::-1]:
                     if award_name_or_id == int(award.reaction_id.split(":")[-1][:-1]):#check against ids/ Numeric Value of the id
                         return award
                 else:

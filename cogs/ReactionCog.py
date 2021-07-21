@@ -76,7 +76,7 @@ class ReactionCog(commands.Cog):
 
             
             #awards
-            for award in list(awards.awards_list.values()):
+            for award in list(awards.awards_list.values())[::-1]:
                 if str(emoji) == award.reaction_id:
                     async with self.bot.pool.acquire() as connection:
                         async with connection.transaction():

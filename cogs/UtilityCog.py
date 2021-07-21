@@ -21,8 +21,7 @@ class Utility(commands.Cog):
     #     await ctx.send(embed=embed)
     
     
-    #@commands.cooldown(1, 3, commands.BucketType.user)
-    
+    @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \n {config.prefix}Info \nAliases: serverstats ')
     async def info(self,ctx):
         embed=discord.Embed(title="Bot Info",color = random.choice(colourlist),timestamp=ctx.message.created_at)
@@ -344,7 +343,7 @@ class Utility(commands.Cog):
     #     await channel.send(f"Congratulations! {winner_list} won {prize}!")
     
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.group(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"',require_var_positional=True)#require_var_positional=True makes sure input is not empty
     async def poll(self,ctx,*arguments):
         number_emojis=[
@@ -488,7 +487,7 @@ class Utility(commands.Cog):
    
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Mute", help=f'Mutes a user \n \"{config.prefix}Mute @User 5m\" or \"{config.prefix} mute @User @User 10m\". Time can be entered in (s|m|h|d), Default time is 10 mins.')
     async def mute(self,ctx,members: commands.Greedy[discord.Member],time:str="5m"):
             warned_names=""
