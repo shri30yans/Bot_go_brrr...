@@ -90,7 +90,6 @@ class Fun(commands.Cog,name="Productivity or some shit"):
         if message == None:
             message = ". . ." #set the message if message is None
         else:
-            print(message)
             role_check = re.search("<@&.*>$",message)#regex
             if "@everyone" in message :
                 message=message.replace("@everyone","everyone")
@@ -101,8 +100,6 @@ class Fun(commands.Cog,name="Productivity or some shit"):
                 #role_id=message.replace("<@&","").replace(">","")
             else:
                 message=message
-
-            print(message)
         async def convert(time): #let's start convert the time provided
             pos = ['s', 'm', 'h', 'd'] #valid units
             time_dict = {"s": 1, "m": 60, "h": 3600, "d": 3600*24} #attribute for each unit
@@ -121,7 +118,7 @@ class Fun(commands.Cog,name="Productivity or some shit"):
             return val * time_dict[unit] #get the value of the time * the provided unit
         
         converted_time = await convert(time) #idk
-        if not converted_time:#making sure it is not None
+        if converted_time:#making sure it is not None
             time_format = "" #let's start make the str more sweet
             ttt = time[-1]
             if ttt == "s":
