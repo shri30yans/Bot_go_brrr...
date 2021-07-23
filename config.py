@@ -14,7 +14,7 @@ APPROVED_SERVERS=[748786284373475358,]
 #BLACKLIST = []
 #List of Cogs to run on startup;
 STARTUP_COGS = [
-    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.WheelCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku",#"utils.ErrorHandler"
+    "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.WheelCog","cogs.ImportantFunctions","cogs.StarboardCog","cogs.OwnerCog","cogs.ReactionCog","jishaku","utils.ErrorHandler"
     ]
 
 #Channels and Roles

@@ -325,7 +325,7 @@ class Utility(commands.Cog):
 
     # @commands.has_permissions(manage_messages=True)
     # #@commands.cooldown(1, 10, commands.BucketType.user)
-    # @commands.group(name="Giveaway", help=f'Reroll a giveaway. \n \"{config.prefix}giveaway giveaway_message_id\"')
+    # @giveaway_msg.group(name="reroll", help=f'Reroll a giveaway. \n \"{config.prefix}reroll giveaway_message_id\"')
     # async def reroll_giveaway(self,ctx,giveaway_msg_id):
     #     giveaway_msg = await channel.get_message(giveaway_msg_id)
     #     users = await giveaway_msg.reactions[0].users().flatten()

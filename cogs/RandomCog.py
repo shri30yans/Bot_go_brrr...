@@ -121,23 +121,24 @@ class Fun(commands.Cog,name="Productivity or some shit"):
             return val * time_dict[unit] #get the value of the time * the provided unit
         
         converted_time = await convert(time) #idk
+        if not converted_time:#making sure it is not None
+            time_format = "" #let's start make the str more sweet
+            ttt = time[-1]
+            if ttt == "s":
+                time_format = "second(s)"
+            elif ttt == "m":
+                time_format = "minute(s)"
+            elif ttt == "h":
+                time_format = "hour(s)"
+            elif ttt == "d":
+                time_format = "day(s)"
 
-        time_format = "" #let's start make the str more sweet
-        ttt = time[-1]
-        if ttt == "s":
-            time_format = "second(s)"
-        elif ttt == "m":
-            time_format = "minute(s)"
-        elif ttt == "h":
-            time_format = "hour(s)"
-        elif ttt == "d":
-            time_format = "day(s)"
+            final_time = f"{time[:-1]} " + time_format #make the str adding the number (1) + our time_format based on the Unit (s)
 
-        final_time = f"{time[:-1]} " + time_format #make the str adding the number (1) + our time_format based on the Unit (s)
+            await ctx.reply(f"Alright {ctx.author.mention}, in {final_time}: {message}") #send this if all is good
+            await asyncio.sleep(converted_time) #wait for time provided (number)
+            await ctx.send(f"{ctx.author.mention}, **{final_time}** ago: {message}\n{ctx.message.jump_url}") #send this when asyncio.sleep() has done
 
-        await ctx.reply(f"Alright {ctx.author.mention}, in {final_time}: {message}") #send this if all is good
-        await asyncio.sleep(converted_time) #wait for time provided (number)
-        await ctx.send(f"{ctx.author.mention}, **{final_time}** ago: {message}\n{ctx.message.jump_url}") #send this when asyncio.sleep() has done
 
 
 
