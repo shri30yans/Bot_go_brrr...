@@ -159,6 +159,8 @@ class Economy(commands.Cog):
     async def give(self,ctx,user_mentioned:discord.Member,amt:int):
         ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author
+        guild=self.bot.get_guild(config.APPROVED_SERVERS[0])
+        member=guild.get_member(user_mentioned.id)
         if amt<=0:
             await ctx.reply(f"You can't give zero or negative credits, dum-dum")
         elif user==user_mentioned:
@@ -166,7 +168,7 @@ class Economy(commands.Cog):
         elif user_mentioned.bot:
             await ctx.reply(f"Bots don't have accounts dum dum.")
         #checks if the person you are giving it to has a boost role.
-        elif any([role.id in [config.wheel_credit_boost_role_id,] for role in user_mentioned.roles]):
+        elif any([role.id in [config.wheel_credit_boost_role_id,] for role in member.roles]):
             await ctx.reply(f"The person you are giving the credits to has a Booster role. Try again later.")
         else:
                 await ImportantFunctions.create_account(user)

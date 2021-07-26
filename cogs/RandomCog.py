@@ -142,5 +142,8 @@ class Fun(commands.Cog,name="Productivity or some shit"):
 
 
 
+
+
+
 def setup(bot):
     bot.add_cog(Fun(bot))

@@ -38,7 +38,7 @@ class ImportantFunctions(commands.Cog):
                 else: 
                     await self.create_account(user)
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
-                    amt = await self.check_for_boosts(user,amt)
+                    amt = await self.check_for_boosts(user,amt,type="karma")
                     await connection.execute("UPDATE info SET karma = $1 WHERE user_id=$2",user_account["karma"]+amt,user.id)
 
     async def add_credits(self,user,amt):
@@ -52,13 +52,18 @@ class ImportantFunctions(commands.Cog):
                     user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user.id)
                     # boost=0
                     # amt=int(amt+boost/100*amt) 
-                    amt = await self.check_for_boosts(user,amt)
+                    amt = await self.check_for_boosts(user,amt,type="credits")
                     await connection.execute("UPDATE info SET credits = $1 WHERE user_id=$2",user_account["credits"]+amt,user.id)
     
-    async def check_for_boosts(self,user,amt):
+    async def check_for_boosts(self,user,amt,type):
+        guild=self.bot.get_guild(config.APPROVED_SERVERS[0])
+        member=guild.get_member(user.id)
         if amt < 0: #if negative
             return amt
-        if any([role.id in [config.wheel_karma_boost_role_id,config.wheel_credit_boost_role_id] for role in user.roles]):
+        elif any([role.id in [config.wheel_karma_boost_role_id] for role in member.roles]) and type == "karma" :
+            amt=amt*2
+            return amt
+        elif any([role.id in [config.wheel_credit_boost_role_id] for role in member.roles]) and type == "credits":
             amt=amt*2
             return amt
         else:
