@@ -615,7 +615,6 @@ class Utility(commands.Cog):
                 embed.add_field(name=":speaker:  | Unmute command executed",value=f"**{warned_names}** was unmuted,")
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")    
             await ctx.send(embed=embed)
-        
 
     async def text_input_function(self,ctx,title:str,text:str):
         question_embed=await ctx.send(embed=discord.Embed(title =title,description=text,color = random.choice(colourlist),timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name} "))
@@ -632,6 +631,8 @@ class Utility(commands.Cog):
                 return await self.text_input_function(ctx,title,text)
             else:
                 return str(text.content)
+
+
     
     def time_format_function(self,time):
         time_inputted = time

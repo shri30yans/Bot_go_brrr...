@@ -243,12 +243,6 @@ class Economy(commands.Cog):
                 return all_rows
 
    #Reaction listeners for awards have been shifted to Reactions.py
-    @commands.command(name="test") 
-    async def test(self,ctx):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                all_rows = await connection.fetch("SELECT * FROM info ORDER BY credits DESC")
-                print(all_rows)
 
 
    #For adding credits for chatting in #main_chat
