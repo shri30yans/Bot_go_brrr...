@@ -62,7 +62,7 @@ class ReactionCog(commands.Cog):
 
                 if score >= score_needed_to_pin:
                     await message.pin(reason="Got upvoted.")
-                    asyncio.sleep(2)
+                    await asyncio.sleep(1)
                     messages = await channel.history(limit=5).flatten() 
                     for m in messages:
                         if m.type is discord.MessageType.pins_add and m.author == self.bot.user:
