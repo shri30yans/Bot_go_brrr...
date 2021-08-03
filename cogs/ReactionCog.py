@@ -59,10 +59,11 @@ class ReactionCog(commands.Cog):
             #if any post has 10 or more upvotes, award that posts author 100 credits
             if str(emoji) == config.upvote_reaction and message.channel.id == config.meme_channel_id :  
                 score_needed_to_pin = (await ImportantFunctions.get_settings(channel.guild.id))["meme_score_required_to_pin"]
-                messages = await channel.history(limit=5).flatten() 
 
                 if score >= score_needed_to_pin:
                     await message.pin(reason="Got upvoted.")
+                    asyncio.sleep(2)
+                    messages = await channel.history(limit=5).flatten() 
                     for m in messages:
                         if m.type is discord.MessageType.pins_add and m.author == self.bot.user:
                             await m.delete()
