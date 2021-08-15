@@ -20,44 +20,44 @@ class CommandErrorHandler(commands.Cog):
         #print(error,type(error))
         
         async def CooldownFunction(ctx):
-            user=self.bot.get_user(ctx.author.id)
-            owner_check = await self.bot.is_owner(ctx.author)
-            if owner_check:    
-                await ctx.reinvoke()
-            #elif ctx.guild.id in [748786284373475358,748754737695948860,774113408378863666]:
-                #await ctx.reinvoke()
-            else:
-                async def convert(seconds):
-                    days = seconds // (3600 *24)
-                    seconds %= (3600*24)
-                    hours = seconds // 3600
-                    seconds %= 3600
-                    minutes = seconds // 60
-                    seconds %= 60
-                    string = ""
-                    d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
-                    revised_d={}
-                    string=""
-                    for unit in list(d):
-                        if d[unit] != 0:
-                            revised_d[unit] = d[unit]
-                    
-                    for unit in list(revised_d):
-                        string += f"{revised_d[unit]} {unit}"
-                        if len(revised_d) > 1:
-                            if list(revised_d)[-2] == unit:
-                                string += " and "
-                            elif list(revised_d)[-1] == unit:
-                                pass
-                            else:
-                                string += ", "
+            # user=self.bot.get_user(ctx.author.id)
+            # owner_check = await self.bot.is_owner(ctx.author)
+            # if owner_check:    
+            #     await ctx.reinvoke()
+            # #elif ctx.guild.id in [748786284373475358,748754737695948860,774113408378863666]:
+            #     #await ctx.reinvoke()
+            # else:
+            async def convert(seconds):
+                days = seconds // (3600 *24)
+                seconds %= (3600*24)
+                hours = seconds // 3600
+                seconds %= 3600
+                minutes = seconds // 60
+                seconds %= 60
+                string = ""
+                d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+                revised_d={}
+                string=""
+                for unit in list(d):
+                    if d[unit] != 0:
+                        revised_d[unit] = d[unit]
+                
+                for unit in list(revised_d):
+                    string += f"{revised_d[unit]} {unit}"
+                    if len(revised_d) > 1:
+                        if list(revised_d)[-2] == unit:
+                            string += " and "
+                        elif list(revised_d)[-1] == unit:
+                            pass
+                        else:
+                            string += ", "
 
-                    return string
+                return string
 
-                retry_after=await convert(int(error.retry_after))
-                embed=discord.Embed(title="⚠️ | Command on Cooldown",color = random.choice(colourlist))
-                embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=f"Please wait before using this command again. You can use this command in **{retry_after}** again.", inline=False)
-                await ctx.send(embed=embed)
+            retry_after=await convert(int(error.retry_after))
+            embed=discord.Embed(title="⚠️ | Command on Cooldown",color = random.choice(colourlist))
+            embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=f"Please wait before using this command again. You can use this command in **{retry_after}** again.", inline=False)
+            await ctx.send(embed=embed)
 
         if isinstance(error, commands.errors.MissingRequiredArgument):
             embed=discord.Embed(title="⚠️ | Missing Argument",description="Oops...You missed an argument.",color = random.choice(colourlist))

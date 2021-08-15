@@ -72,15 +72,12 @@ async def get_last_robbed_from(ctx,user,delay):
         retry_after=delay-seconds_elapsed
         
         if retry_after <= 0: #Delay - Time elapsed will give less than 0 if the time elapsed since last command is greater than 0
-            print("<0")
             await set_cooldown_to_current(user=user,key=key)
             return True
         else:
-            print("false")
             return False
 
     else:
-        print("else")
         await set_cooldown_to_current(user=user,key=key)
         return True
 

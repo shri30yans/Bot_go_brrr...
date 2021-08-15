@@ -60,3 +60,5 @@
 #             num = float(x[:-1]) * num_map.get(x[-1].upper(), 1)
 #     return int(num)
 # print(convert_str_to_number("1,0,0k"))
+
+print(list([1]))

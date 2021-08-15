@@ -223,30 +223,52 @@ class Economy(commands.Cog):
         else:
             has_not_been_robbed_in_last_10_seconds=await checks.get_last_robbed_from(ctx,user=user_robbed,delay=600)
             if has_not_been_robbed_in_last_10_seconds:
-                options=["fail","caught","success","nothing"]
-                choice=random.choices(options,weights=(30,20,35,20),k=1)[0]
+                options=["fail","caught","nothing","smallloot","loot","bigloot","biggestloot"]
+                choice=random.choices(options,weights=(30,20,30,15,10,5,1),k=1)[0]
                 if choice =="fail":
                     amt = int(random.randint(100,300))
                     await ImportantFunctions.add_credits(user=user_robbing,amt=-amt)    
                     await ctx.reply(f"You failed lmao. You lost {amt} credits.") 
                 
                 elif choice == "caught":
-                    percentage=random.choice(list(range(1,5))+ list(10)) /100
+                    percentage=random.choice(list(range(3,5))+ list([10])) /100
                     amt = percentage * user_robbing_info["credits"]
                     await ImportantFunctions.add_credits(user=user_robbing,amt=-amt)    
                     await ctx.reply(f"You got caught lmao. You paid {user_robbed.display_name} **{amt}** credits. ded xd") 
 
-
-                elif choice == "success":
-                    percentage=random.choice(list(range(2,8)) + list(range(10,12))) /100
-                    amt = int(percentage * user_robbing_info["credits"])
-                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
-                    await ctx.reply(f"{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. {int(percentage*100)}% of their credits. Just insane.") 
-
                 elif choice == "nothing":
                     options = [f"lol you got nothing. ggwp"]
                     await ctx.reply(random.choice(options)) 
+
+                elif choice == "smallloot":
+                    percentage=random.choice(list(range(1,2)))/100
+                    amt = int(percentage * user_robbing_info["credits"])
+                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
+                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
+                    await ctx.reply(f"{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. lol") 
+                
+                
+                elif choice == "loot":
+                    percentage=random.choice(list(range(2,3)) + list(range(4,5)))/100
+                    amt = int(percentage * user_robbing_info["credits"])
+                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
+                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
+                    await ctx.reply(f"{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. Nice!") 
+                
+                elif choice == "bigloot":
+                    percentage=random.choice(list(range(5,8)) + list(range(10,12))) /100
+                    amt = int(percentage * user_robbing_info["credits"])
+                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
+                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
+                    await ctx.reply(f"**BLING BLING!**{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. GG!") 
+                
+                elif choice == "biggestloot":
+                    percentage=random.choice(list(range(8,12)) + list(range(15,18))) /100
+                    amt = int(percentage * user_robbing_info["credits"])
+                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
+                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
+                    await ctx.reply(f"**WHOA YOU HIT THE JACKPOT**{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. {int(percentage*100)}% of their whole credits. Just insane.") 
+
             
             else:
                 await ctx.reply(f"{user_robbed.display_name} has been robbed in the past 10 minutes. Give it a rest.") 

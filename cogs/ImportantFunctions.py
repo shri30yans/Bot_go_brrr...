@@ -231,12 +231,10 @@ class ImportantFunctions(commands.Cog):
                             if str(r.emoji) == "⭐":
                                 reactions_of_post["star"] = r.count
 
-                        print("reactions_of_post",reactions_of_post)
                     
                         #Embed
                         reaction_id_string = await self.formatted_starboard_awards_string(reactions_of_post=reactions_of_post)
                         reaction_id_string = reaction_id_string + channel.mention
-                        print("reaction_id_string",reaction_id_string)
 
                         embed=discord.Embed(color = channel.guild.me.colour,timestamp=message.created_at,description=message.content)
                         embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")

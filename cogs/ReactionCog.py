@@ -198,7 +198,7 @@ class ReactionCog(commands.Cog):
         meme_channel=self.bot.get_channel(config.meme_channel_id)
         dank_memes_channel=self.bot.get_channel(config.dank_meme_channel_id)
         messages = await dank_memes_channel.history(limit=20).flatten() 
-        print(messages)
+
         for x in messages:
             try:
                 footer=x.embeds[0].footer
