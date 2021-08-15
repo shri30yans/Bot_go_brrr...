@@ -1,6 +1,7 @@
 import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap,re
 from discord.ext import commands,tasks
 import config
+import utils.checks as checks
 
 colourlist=config.embed_colours
     
@@ -8,6 +9,8 @@ class Fun(commands.Cog,name="Productivity or some shit"):
     def __init__(self, bot):
         self.bot = bot    
     
+    @checks.server_is_approved()
+    @commands.guild_only()
     @commands.bot_has_permissions(manage_roles=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Concentrate",aliases=["concentratationmode","studytime","failinginexams","sendhelp"], help=f'Removes access to all channels for a specified time period. \nFormat: `{config.prefix}Concentratation mode 5m`\n Time can be entered in (s|m|h|d), Default time is 10 mins.\nAliases:`"ConcentratationMode"`, `"StudyTime"`, `"FailinginExams"`,`"sendhelp"`')
@@ -49,41 +52,10 @@ class Fun(commands.Cog,name="Productivity or some shit"):
             except: 
                 await ctx.send("Failed to remove concentration mode!")
 
-    #Listeners
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        if message.author == self.bot.user:
-            return
 
-        elif message.channel.id==config.suggestions_channel_id:
-            if message.content.startswith("//"):
-                return
-            else:
-                await message.add_reaction(config.upvote_reaction)
-                await message.add_reaction(config.downvote_reaction)
 
-        elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
-
-    #When a message in Starboard gets deleted, delete that message from the Database
-    @commands.Cog.listener()
-    async def on_raw_message_delete(self,payload): 
-        channel=self.bot.get_channel(payload.channel_id)
-        if channel.guild.id in config.APPROVED_SERVERS:#if that server is approved/that server has the settings
-            if channel.id == config.starboard_channel_id:#if the message was deleted in the starboard channel
-                async with self.bot.pool.acquire() as connection:
-                    async with connection.transaction(): 
-                        server_info = await connection.fetchrow("SELECT * FROM server_info WHERE id=$1",channel.guild.id)
-                        starboard=json.loads(server_info["starboard"]) #load the json content of the starboard column
-                        starboard_post_list=starboard["starboard_posts"] #fetch all the posts in the starboard
-                        post=None
-                        for x in starboard_post_list:
-                            if payload.message_id == x["star_message_id"]:
-                                starboard_post_list.remove(x)
-                            starboard_json=json.dumps(starboard)
-                            await connection.execute("UPDATE server_info SET starboard = $1 WHERE id=$2",starboard_json,channel.guild.id)
-
+    
+    @checks.server_is_approved()
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.command(name="Remind",aliases=['reminder', 'remindme'], help=f'Sets up a reminder that will remind you after a given a time.\nFormat: `{config.prefix}remind time reason`\nAliases: DP, Avatar')
     async def remind(self, ctx, time, *, message=None):

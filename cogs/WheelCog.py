@@ -19,12 +19,11 @@ class Wheel(commands.Cog):
         self.bot = bot
 
     @commands.cooldown(1,300, commands.BucketType.user)
-    #@commands.is_owner()
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get exciting prizes or perhaps a mute or two.\nFormat: `{config.prefix}spin`\nAliases: `stw`,`wheel')
     async def wheel(self,ctx):
-        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Muted","Credits_Boost","Karma_Boost","Server_Perms","Add_Emoji",]#"Celebrity""Mute_Others",
-        random_wheel_outcome=random.choices(wheel_outcomes,weights=(15,15,10,10,15,10,10,10,5,5,),k=1)[0]
-        #random_wheel_outcome="Mute_Others"
+        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Credits_Boost","Karma_Boost"]#"Celebrity""Mute_Others",#Server_Perms"Muted","Add_Emoji",
+        random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,15,15,15,10,10),k=1)[0]
+        random_wheel_outcome="Credits_Boost"
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
@@ -161,9 +160,10 @@ class Wheel(commands.Cog):
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
             
-            await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
+            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+            await ImportantFunctions.edit_badges(user=user,badge_name="Double Credits Badge",action="add")
             await asyncio.sleep(int(60*30))
-            await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_credit_boost_role_id,role_name="2x Credits Boost (Spin the Wheel)",description="Credits Boost")
+            await ImportantFunctions.edit_badges(user=user,badge_name="Double Credits Badge",action="remove")
 
         elif random_wheel_outcome == "Karma_Boost":
             user=ctx.author 
@@ -175,9 +175,10 @@ class Wheel(commands.Cog):
             embed.set_image(url=f"attachment://{random_picture}")
             await ctx.send(embed=embed,file=image)
             
-            await self.role_management(ctx,user=ctx.author,type="add",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
+            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+            await ImportantFunctions.edit_badges(user=user,badge_name="Double Karma Badge",action="add")
             await asyncio.sleep(int(60*30))
-            await self.role_management(ctx,user=ctx.author,type="remove",role_id=config.wheel_karma_boost_role_id,role_name="2x Karma Boost (Spin the Wheel)",description="Karma Boost")
+            await ImportantFunctions.edit_badges(user=user,badge_name="Double Karma Badge",action="remove")
         
         
         elif random_wheel_outcome == "Mute_Others":

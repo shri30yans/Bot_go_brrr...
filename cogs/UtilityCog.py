@@ -1,6 +1,7 @@
-import os,sys,discord,platform,random,aiohttp,json,time,asyncio,textwrap,re
-from discord.ext import commands,tasks
+import os,discord,platform,random,json,asyncio,re
+from discord.ext import commands
 import config
+import utils.checks as checks
 
 colourlist=config.embed_colours
 
@@ -22,7 +23,7 @@ class Utility(commands.Cog):
     
     
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \n {config.prefix}Info \nAliases: serverstats ')
+    @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \n {config.prefix}Info \nAliases: `serverstats` ')
     async def info(self,ctx):
         embed=discord.Embed(title="Bot Info",color = random.choice(colourlist),timestamp=ctx.message.created_at)
         embed.add_field(name="Created by:",value=f"Shri30yans",inline=False)
@@ -51,8 +52,9 @@ class Utility(commands.Cog):
         embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await message.edit(embed=embed)
     
+    @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats \nFormat: {config.prefix}stats \nAliases: serverstats, server ')
+    @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats \nFormat: {config.prefix}stats \nAliases: `serverstats`, `server` ')
     async def stats(self,ctx):
             #f-strings
             guild_owner=str(ctx.guild.owner)
@@ -83,9 +85,10 @@ class Utility(commands.Cog):
             embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
             await ctx.reply(embed=embed)
     
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    @commands.command(name="Delete",aliases=['del', 'clear'], help=f'Deletes messages \nFormat: `{config.prefix}delete <number_of _messages>` \n Aliases: clear, del')
+    @commands.command(name="Delete",aliases=['del', 'clear'], help=f'Deletes messages \nFormat: `{config.prefix}delete <number_of _messages>` \n Aliases: `clear`, `del`')
     async def delete(self,ctx,num:int):
         
         if num>=100:
@@ -104,8 +107,9 @@ class Utility(commands.Cog):
             await ctx.send(embed=embed,delete_after=4)
     
 
+    
     @commands.cooldown(1, 5, commands.BucketType.user)
-    @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user \nFormat: `{config.prefix}whois @User`\nAliases: userinfo')
+    @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user \nFormat: `{config.prefix}whois @User`\nAliases: `userinfo`')
     async def whois(self,ctx,user:discord.Member=None):
         if (user == None):
             user_mention= ctx.author
@@ -115,7 +119,7 @@ class Utility(commands.Cog):
         embed.add_field(name="Status:",value=f"{user_mention.raw_status.capitalize()}")
         joined_on_time=self.time_format_function(user_mention.joined_at)
         embed.add_field(name="Joined server at:",value=f"{joined_on_time}")
-        embed.add_field(name="Nickname:",value=f"{user_mention.nick}")
+        embed.add_field(name="Nickname:",value=f"{str(user_mention.nick)}")
         
         roles_mention_form=[]
         for role in user_mention.roles:
@@ -137,7 +141,7 @@ class Utility(commands.Cog):
         await ctx.reply(embed=embed)
     
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="PFP",aliases=['dp', 'avatar','av'], help=f'Shows the avatar of a user \nFormat: `{config.prefix}pfp @User`\nAliases: DP, Avatar ')
+    @commands.command(name="PFP",aliases=['dp', 'avatar','av'], help=f'Shows the avatar of a user \nFormat: `{config.prefix}pfp @User`\nAliases: `DP`, `Avatar`')
     async def pfp(self,ctx,user:discord.Member=None):
         if (user == None):
             user_mention= ctx.author
@@ -235,8 +239,8 @@ class Utility(commands.Cog):
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name}")    
             await ctx.send(embed=embed)
            
-    @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="Kick", help=f'Kicks a user \n \"{config.prefix}Kick @User <reason>\" or \"{config.prefix}Kick @User @User <reason>\"')
     async def kick(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
@@ -267,6 +271,7 @@ class Utility(commands.Cog):
                 embed.add_field(name=":boot: | Kick command Executed",value=f" \"**{warned_names}**\"was kicked for \"**{reason}**\".")
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")    
             await ctx.reply(embed=embed)
+    
     
     @commands.has_permissions(manage_messages=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
@@ -343,6 +348,8 @@ class Utility(commands.Cog):
     #     await giveaway_msg.edit(embed=embed)
     #     await channel.send(f"Congratulations! {winner_list} won {prize}!")
     
+    @checks.server_is_approved()
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
     @commands.group(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"',require_var_positional=True)#require_var_positional=True makes sure input is not empty
@@ -486,6 +493,7 @@ class Utility(commands.Cog):
         return bars_string,percent
 
    
+    @checks.server_is_approved()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
@@ -551,7 +559,8 @@ class Utility(commands.Cog):
 
                 except : 
                     await ctx.send("Failed to unmute!")
-    
+   
+    @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -583,6 +592,7 @@ class Utility(commands.Cog):
 
 
 
+    @checks.server_is_approved()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -616,6 +626,8 @@ class Utility(commands.Cog):
                 embed.add_field(name=":speaker:  | Unmute command executed",value=f"**{warned_names}** was unmuted,")
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")    
             await ctx.send(embed=embed)
+
+
 
     async def text_input_function(self,ctx,title:str,text:str):
         question_embed=await ctx.send(embed=discord.Embed(title =title,description=text,color = random.choice(colourlist),timestamp=ctx.message.created_at).set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name} "))

@@ -1,6 +1,6 @@
-import os, sys, discord, platform, random, aiohttp, json, time, asyncio,traceback,asyncpg
+import os, sys, discord, platform, random, asyncio,asyncpg
+from utils.ErrorHandler import MaintenanceMode, NotApprovedServer
 from discord.ext import commands,tasks
-#from discord.ext.commands.cooldowns import BucketType
 from utils.help import EmbedHelpCommand
 import config #our config.py
 if not os.path.isfile("config.py"):
@@ -52,6 +52,20 @@ for extension in config.STARTUP_COGS:
 			print(f"Failed to load extension {extension}\n{exception}")
 
 
+@bot.check
+async def owner_only_mode(ctx):
+    if config.maintenance_mode:
+        owner_check=await bot.is_owner(ctx.author)
+        if owner_check:
+            return True
+        else:
+            raise MaintenanceMode(user=ctx.author)
+            
+    else:
+        return True
+
+
+ 
 
 @bot.event
 async def on_ready():

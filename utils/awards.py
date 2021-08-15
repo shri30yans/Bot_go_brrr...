@@ -1,9 +1,10 @@
 import random
 import config
 class Award:
-    def __init__(self,name:str,reaction_id:str,karma_given_to_receiver:int,karma_given_to_giver:int,credits_given_to_receiver,description:str,starboard_post:bool,cost:int):
+    def __init__(self,name:str,reaction_id:str,karma_given_to_receiver:int,karma_given_to_giver:int,credits_given_to_receiver,description:str,starboard_post:bool,cost:int,animated_reaction_id=None):
         self.name=name
         self.reaction_id= reaction_id
+        self.animated_reaction_id=animated_reaction_id
         self.karma_given_to_receiver=karma_given_to_receiver
         self.karma_given_to_giver=karma_given_to_giver
         self.description=description
@@ -40,14 +41,14 @@ awards_list={"Wholesome_Award":Award(name="Wholesome",reaction_id=config.reddit_
                     credits_given_to_receiver=0,
                     description="Just a Silver award",
                     starboard_post=False,
-                    cost=60),
+                    cost=100),
 
 "Gold_Award":Award(name="Gold",reaction_id=config.reddit_award_gold,
                 karma_given_to_receiver=random.randint(20,50),karma_given_to_giver=random.randint(20,35),
                 credits_given_to_receiver=0,
                 description="For posts you think are worth gilding.",
                 starboard_post=False,
-                cost=100),
+                cost=200),
 
 "Platinum_Award":Award(name="Platinum",reaction_id=config.reddit_award_platinum,
                     karma_given_to_receiver=random.randint(50,80),
@@ -55,9 +56,10 @@ awards_list={"Wholesome_Award":Award(name="Wholesome",reaction_id=config.reddit_
                     credits_given_to_receiver=20,
                     description="An Award for a good post.\n (awards the reciever coins)",
                     starboard_post=False,
-                    cost=200),
+                    cost=500),
 
 "Argentinum_Award":Award(name="Argentinum",reaction_id=config.reddit_award_argentinum,
+                    animated_reaction_id=config.reddit_award_argentinum_animated,
                     karma_given_to_receiver=random.randint(200,300),karma_given_to_giver=random.randint(70,100),
                     credits_given_to_receiver=random.randint(200,250),
                     description="Latin for distinguished, it’s for those who deserve outsized recognition.\n(Posts to starboard and awards the reciever coins)",
@@ -65,6 +67,7 @@ awards_list={"Wholesome_Award":Award(name="Wholesome",reaction_id=config.reddit_
                     cost=1000),
 
 "Ternion_Award":Award(name="Ternion",reaction_id=config.reddit_award_ternion,
+                animated_reaction_id= config.reddit_award_ternion_animated,
                 karma_given_to_receiver=random.randint(300,500),
                 karma_given_to_giver=random.randint(100,150),
                 credits_given_to_receiver=random.randint(400,500),

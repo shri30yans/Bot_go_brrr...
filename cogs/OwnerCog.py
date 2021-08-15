@@ -7,6 +7,17 @@ class OwnerCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
+    @commands.is_owner()
+    @commands.command(name="stuff",help=f"stuff")
+    async def stuff(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                no_polls='{}'
+                await connection.execute("UPDATE info SET cooldown = $1",no_polls)
+                embed = discord.Embed(title="stuff done.",description=f"yes you read that right")
+                await ctx.send(embed=embed)
+
+
     #=============================================
     #Add
     #=============================================
@@ -203,7 +214,7 @@ class OwnerCog(commands.Cog):
                 await ctx.send(embed=embed)
 
     @commands.is_owner()
-    @settings.command(name="Meme_score_to_pin",aliases=["score","score_to_pin","meme_score"],help=f"Change the meme score required to pin it.\nFormat: `{config.prefix}settings meme_score_to_pin meme_score_required`\nAliases: score, score_to_pin, meme_score")
+    @settings.command(name="meme_score_to_pin",aliases=["score","score_to_pin","meme_score"],help=f"Change the meme score required to pin it.\nFormat: `{config.prefix}settings meme_score_to_pin meme_score_required`\nAliases: score, score_to_pin, meme_score")
     async def settings_change_meme_score_to_pin(self,ctx,amt:int):
         server=ctx.guild
         async with self.bot.pool.acquire() as connection:
