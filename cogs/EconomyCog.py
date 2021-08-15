@@ -441,7 +441,7 @@ class Economy(commands.Cog):
     @gloablleaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the global leaderboard according to the credits.\nFormat: `{config.prefix}GlobalLeaderboard credits`\nAliases: `credit`, `creds`, `cred`")
     async def credits_globalleaderboard(self,ctx,page:int=1):
         sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
-        top = await self.get_leaderboard("credits",offset=page*10)
+        top = await self.get_leaderboard("credits",offset=page*10-10)
         top_string=""
         for entry in top:
             num=top.index(entry)+1
@@ -462,7 +462,7 @@ class Economy(commands.Cog):
     @gloablleaderboard.command(name="Karma",help=f"Shows the global leaderboard according to the karma.\nFormat: `{config.prefix}GlobalLeaderboard karma`")
     async def karma_globalleaderboard(self,ctx,page:int=1):
         sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
-        top = await self.get_leaderboard("karma",offset=page*10)
+        top = await self.get_leaderboard("karma",offset=page*10-10)
         top_string=""
         for entry in top:
             try:
@@ -488,7 +488,7 @@ class Economy(commands.Cog):
                     if column == "credits":
                         all_rows = await connection.fetch("SELECT user_id, credits FROM info ORDER BY credits DESC LIMIT 10 OFFSET $1",offset)
                     elif column== "karma":
-                        all_rows = await connection.fetch("SELECT user_id, karma FROM info ORDER BY karma DESC LIMIT 10 OFFSET $1 ",offset)
+                        all_rows = await connection.fetch("SELECT user_id, karma FROM info ORDER BY karma DESC LIMIT 10 OFFSET $1",offset)
                     return all_rows
                 else:
                     if column == "credits":
