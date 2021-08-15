@@ -77,7 +77,7 @@ wheel_celebrity_role_id=862547216636182529
 #to run the events
 #run_event=True
 run_event=True
-maintenance_mode=True #locks all commands to owner only
+maintenance_mode=False #locks all commands to owner only
 
 
 embed_colours=[ 0xFFFF00,#yellow
