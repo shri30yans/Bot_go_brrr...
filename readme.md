@@ -1,4 +1,4 @@
-# Server Bot
+# Bot go brrr...
 A bot made for specific server needs.
 ### Functions:
 
