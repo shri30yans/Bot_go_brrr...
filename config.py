@@ -82,7 +82,7 @@ guild_leave_update_channel_id=878520393118408704
 
 #to run the events
 #run_event=True
-run_event=False
+run_event=True
 maintenance_mode=False  #locks all commands to owner only
 
 
