@@ -191,9 +191,8 @@ class Events(commands.Cog):
             await ctx.send("You should never see this message")
         
         try:
-            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-            await ImportantFunctions.create_account(user=user)
-            await ImportantFunctions.add_credits(user=user,amt=amt)
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.add_credits(user=user,amt=amt)
         except:
             pass
 
@@ -210,36 +209,35 @@ class Events(commands.Cog):
         await ctx.send(embed=embed)
 
     
-    @commands.Cog.listener(name="on_message")
-    async def random_credit_reaction(self,message):
-        if message.guild.id in config.APPROVED_SERVERS:
-            user=message.author
-            if user.bot:
-                return
-            else:    
-                #For random reactions that give you credits
-                outcomes=[True,False]
-                outcome=random.choices(outcomes,weights=(1,499),k=1)[0]
-                if outcome == True:
-                    await self.credit_reaction(message)
+    # @commands.Cog.listener(name="on_message")
+    # async def random_credit_reaction(self,message):
+    #     if message.guild.id in config.APPROVED_SERVERS:
+    #         user=message.author
+    #         if user.bot:
+    #             return
+    #         else:    
+    #             #For random reactions that give you credits
+    #             outcomes=[True,False]
+    #             outcome=random.choices(outcomes,weights=(1,499),k=1)[0]
+    #             if outcome == True:
+    #                 await self.credit_reaction(message)
 
             
-    async def credit_reaction(self,message):
-        await message.add_reaction(config.credits_emoji)
+    # async def credit_reaction(self,message):
+    #     await message.add_reaction(config.credits_emoji)
 
-        def check(reaction, user):
-            return str(reaction.emoji) in [config.credits_emoji,] and user != self.bot.user
+    #     def check(reaction, user):
+    #         return str(reaction.emoji) in [config.credits_emoji,] and user != self.bot.user
 
-        try:
-            reaction,user = await self.bot.wait_for('reaction_add', check=check, timeout=30)
-        except asyncio.TimeoutError:
-            await message.remove_reaction(reaction.emoji,self.bot.user)
-        else:
-            amt=random.choice(list(range(100,300))+list(range(975,1000)))
-            await message.channel.send(f"{user.mention} wins {amt} credits for reacting to the Credit Emoji first.")
-            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-            await ImportantFunctions.create_account(user=user)
-            await ImportantFunctions.add_credits(user=user,amt=amt)
+    #     try:
+    #         reaction,user = await self.bot.wait_for('reaction_add', check=check, timeout=30)
+    #     except asyncio.TimeoutError:
+    #         await message.remove_reaction(reaction.emoji,self.bot.user)
+    #     else:
+    #         amt=random.choice(list(range(100,300))+list(range(975,1000)))
+    #         await message.channel.send(f"{user.mention} wins {amt} credits for reacting to the Credit Emoji first.")
+    #         UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+    #         await UserDatabaseFunctions.add_credits(user=user,amt=amt)
 
            
 

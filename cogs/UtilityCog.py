@@ -1,13 +1,18 @@
 import os,discord,platform,random,json,asyncio,re
+from discord.enums import Status
 from discord.ext import commands
+import utils.awards as awards
 import config
-import utils.checks as checks
+import core.checks as checks
+from datetime import datetime
+import time
 
 colourlist=config.embed_colours
 
-class Utility(commands.Cog): 
+class Utility(commands.Cog,name="Utility",description="Utilty functions"): 
     def __init__(self, bot):
         self.bot = bot
+        self.bot.launch_time = datetime.utcnow()
 
     # @commands.cooldown(1, 3, commands.BucketType.user)
     # @commands.command(name="Invite", help='Sends Invite link for bot \n sw invite ')
@@ -20,14 +25,31 @@ class Utility(commands.Cog):
     #     author_avatar=ctx.author.avatar_url
     #     embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
     #     await ctx.send(embed=embed)
+
+
+
+
+
+
+    @commands.cooldown(1,20, commands.BucketType.user)
+    @commands.command(name="Prefix",aliases=["prefixes"],help=f"Get the server prefix")
+    async def show_prefix(self,ctx):
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        prefix = await ImportantFunctions.get_server_prefixes_string(ctx.guild.id)
+        embed=discord.Embed(title="Prefix",description="A new prefix can be set by using the command `newprefix`",color = random.choice(colourlist))
+        embed.add_field(name=f"Current server prefixes:",value=f"{prefix}")
+        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
+        await ctx.reply(embed=embed)
     
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \n {config.prefix}Info \nAliases: `serverstats` ')
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.command(name="Info",aliases=['botinfo'], help=f'Returns bot information \nFormat: `{config.default_prefixes[0]}Info` \nAliases: `serverstats` ')
     async def info(self,ctx):
         embed=discord.Embed(title="Bot Info",color = random.choice(colourlist),timestamp=ctx.message.created_at)
         embed.add_field(name="Created by:",value=f"Shri30yans",inline=False)
-        embed.add_field(name="Prefix",value=f"{config.prefix}",inline=False)
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        prefix = await ImportantFunctions.get_server_prefixes_string(ctx.guild.id)
+        embed.add_field(name="Prefix",value=f"{prefix}",inline=False)
         embed.add_field(name="Servers:",value=f"{str(len(self.bot.guilds))}",inline=False)
         embed.add_field(name="Users:",value=f"{str(len(self.bot.users) + 1)}",inline=False)
         embed.add_field(name="Logged in as:",value=f"{self.bot.user.name}",inline=False)
@@ -39,100 +61,120 @@ class Utility(commands.Cog):
         embed.set_thumbnail(url=str(self.bot.user.avatar_url)) 
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await ctx.reply(embed=embed)
+
+    @commands.cooldown(1,10, commands.BucketType.user)
+    @commands.command(name="Uptime",help=f"Shows the amount of time the bot has been up.")
+    async def uptime(self,ctx):
+        async def convert(seconds):
+                days = seconds // (3600 *24)
+                seconds %= (3600*24)
+                hours = seconds // 3600
+                seconds %= 3600
+                minutes = seconds // 60
+                seconds %= 60
+                string = ""
+                d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+                revised_d={}
+                string=""
+                for unit in list(d):
+                    if d[unit] != 0:
+                        revised_d[unit] = d[unit]
+                
+                for unit in list(revised_d):
+                    string += f"{revised_d[unit]} {unit}"
+                    if len(revised_d) > 1:
+                        if list(revised_d)[-2] == unit:
+                            string += " and "
+                        elif list(revised_d)[-1] == unit:
+                            pass
+                        else:
+                            string += ", "
+
+                return string
+        delta_uptime = datetime.utcnow() - self.bot.launch_time
+        string = await convert(int(delta_uptime.total_seconds()))
+        await ctx.reply(f"{self.bot.user.name} has been up for {string}")
         
 
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="Ping", help=f'Tells the Ping of a server \n{config.prefix}ping')
+    #@commands.cooldown(1,10, commands.BucketType.user)
+    @commands.command(name="Ping", help=f'Tells the Ping of a server')
     async def ping(self,ctx):
         """ Pong! """
-        message = await ctx.reply(embed=discord.Embed(title="Ping",description=":Pong!  :ping_pong:",color = random.choice(colourlist),timestamp=ctx.message.created_at))
-        ping = (message.created_at.timestamp() - ctx.message.created_at.timestamp()) * 1000
-        embed=discord.Embed(title="Ping",description=f'Pong!  :ping_pong:  \nBot latency: {int(ping)}ms\nWebsocket latency: {round(self.bot.latency * 1000)}ms',color = random.choice(colourlist),timestamp=ctx.message.created_at)
+        start = time.perf_counter()
+        message = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}  Pinging",description="Pinging...",color = random.choice(colourlist),timestamp=ctx.message.created_at))
+        end = time.perf_counter()
+        typing_ping = (end - start) * 1000
+        
+        start = time.perf_counter()
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.fetchrow("SELECT starboard FROM server_info WHERE id=$1",ctx.guild.id)
+        end = time.perf_counter()
+        database_ping = (end - start) * 1000
+
+        embed=discord.Embed(title="Ping",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+        embed.add_field(name="Typing",value=f"```{int(typing_ping)}ms```",inline=True)
+        embed.add_field(name="Websocket",value=f"```{round(self.bot.latency * 1000)}ms```",inline=True)
+        embed.add_field(name="Database",value=f"```{round(database_ping)}ms```",inline=True)
         embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await message.edit(embed=embed)
     
     @commands.guild_only()
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats \nFormat: {config.prefix}stats \nAliases: `serverstats`, `server` ')
+    @commands.cooldown(1,10, commands.BucketType.user)
+    @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats')
     async def stats(self,ctx):
-            #f-strings
-            guild_owner=str(ctx.guild.owner)
-            embed=discord.Embed(title="Server Stats",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            embed.add_field(name="Name",value=f"{ctx.guild.name}",inline=False)
-            if (ctx.message.author.id == ctx.guild.owner_id):
-                embed.add_field(name="Owner",value="You are the owner of this server.",inline=False)
-            else:
-                embed.add_field(name="Owner",value=f"{guild_owner}, is the owner of this server.")   
+            embed=discord.Embed(title=f"{ctx.guild.name}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
+            embed.add_field(name="**Information:**",
+                            value=f"\n**Name** : `{ctx.guild.name}`\n**Region** : `{str(ctx.guild.region).capitalize()}`\n**ID** : `{ctx.guild.id}`\n**Owner** : `{str(ctx.guild.owner)}`",inline=False)
             
             #Member calculator
-            no_of_members=0
+            members_offline = 0
+            members_online= 0
+            members_idle=0
+            members_dnd=0
+
             no_of_bots=0
             for member in ctx.guild.members:
                 if member.bot:
                     no_of_bots=no_of_bots+1
                 else:
-                    no_of_members=no_of_members+1
+                    if str(member.status) == "online":
+                        members_online+=1
+                    elif str(member.status) == "dnd":
+                        members_dnd+=1
+                    elif str(member.status) == "idle":
+                        members_idle+=1
+                    elif str(member.status) == "offline": 
+                        members_offline+=1
 
-            embed.add_field(name="Region",value=f"{str(ctx.guild.region).capitalize() }",inline=False)
-            embed.add_field(name="Members",value=f"Members in server: {no_of_members}")
-            embed.add_field(name="Bots",value=f"Bots in server: {no_of_bots}",inline=False)
-            embed.add_field(name="Roles",value=f"Number of roles: {len(ctx.guild.roles)}")
-            created_at_time=self.time_format_function(ctx.guild.created_at)
-            embed.add_field(name="Creation date",value=f"{created_at_time}",inline=False) 
+                    
+                    created_at_time=self.time_format_function(ctx.guild.created_at)
+            total_members= members_online+ members_offline + members_idle + members_dnd
+
+            embed.add_field(name="**Statistics:**",
+            value=f"**Members** : ``` 😀 {total_members}     Total members\n 🟢 {members_online}      Online \n 🔴 {members_dnd}      Do not disturb \n 🟠 {members_idle}      Idle \n ⚫ {members_offline}     Offline \n 🤖 {no_of_bots}     Bots```\n**Roles** : `{len(ctx.guild.roles)}`\n**Created** : `{created_at_time}`",inline=False)
             embed.set_thumbnail(url=str(ctx.guild.icon_url)) 
-            author_avatar=ctx.author.avatar_url
-            embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
+            embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
             await ctx.reply(embed=embed)
     
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_messages=True)
-    @commands.command(name="Delete",aliases=['del', 'clear'], help=f'Deletes messages \nFormat: `{config.prefix}delete <number_of _messages>` \n Aliases: `clear`, `del`')
-    async def delete(self,ctx,num:int):
-        
-        if num>=100:
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            embed.add_field(name="Too many messages deleted.",value=f"You can delete a maximum of 100 messages at one go to prevent excessive deleting. ") 
-            author_avatar=ctx.author.avatar_url
-            embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
-            await ctx.reply(embed=embed,delete_after=4)
-
-        else:
-            await ctx.channel.purge(limit=num+1,bulk=True)
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            embed.add_field(name="Deleted",value=f"Deleted {num} message(s)") 
-            author_avatar=ctx.author.avatar_url
-            embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
-            await ctx.send(embed=embed,delete_after=4)
-    
-
-    
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user \nFormat: `{config.prefix}whois @User`\nAliases: `userinfo`')
+    @commands.cooldown(1,10, commands.BucketType.user)
+    @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user')
     async def whois(self,ctx,user:discord.Member=None):
-        if (user == None):
-            user_mention= ctx.author
-        else:
-            user_mention=user
+        user_mention = user or ctx.author
         embed=discord.Embed(title = f"{user_mention.name}",color =random.choice(colourlist), timestamp=ctx.message.created_at)
-        embed.add_field(name="Status:",value=f"{user_mention.raw_status.capitalize()}")
+        embed.add_field(name="Status:",value=f"`{user_mention.raw_status.capitalize()}`")
         joined_on_time=self.time_format_function(user_mention.joined_at)
-        embed.add_field(name="Joined server at:",value=f"{joined_on_time}")
-        embed.add_field(name="Nickname:",value=f"{str(user_mention.nick)}")
-        
-        roles_mention_form=[]
-        for role in user_mention.roles:
-            roles_mention_form.append(role.mention)
-        roles_mention_form.pop(0)
-        roles_mention_form.reverse()
-        roles_mention_string =  ' '.join(roles_mention_form)
-        embed.add_field(name="Roles:",value=f"{roles_mention_string}")
+        embed.add_field(name="Joined server at:",value=f"`{joined_on_time}`")
+        embed.add_field(name="Nickname:",value=f"`{str(user_mention.nick)}`")
+        if user_mention.is_on_mobile():
+            device = "📱 Mobile"
+        else:
+            device = "💻 Desktop"
+        embed.add_field(name="Device:",value=f"`{device}`")
         made_on_time=self.time_format_function(user_mention.created_at)
-        embed.add_field(name="Account made on:",value=f"{made_on_time}")
-        embed.add_field(name="User ID:",value=f"{user_mention.id}")
-        #embed.add_field(name="",value=f"{user_mention.}")
-        #embed.add_field(name="",value=f"{user_mention.}")
+        embed.add_field(name="Account made on:",value=f"`{made_on_time}`")
+        embed.add_field(name="User ID:",value=f"`{user_mention.id}`")
         #embed.add_field(name="",value=f"{user_mention.}")
         embed.set_thumbnail(url=str(user_mention.avatar_url)) 
 
@@ -140,8 +182,8 @@ class Utility(commands.Cog):
         embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await ctx.reply(embed=embed)
     
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="PFP",aliases=['dp', 'avatar','av'], help=f'Shows the avatar of a user \nFormat: `{config.prefix}pfp @User`\nAliases: `DP`, `Avatar`')
+    @commands.cooldown(1,5, commands.BucketType.user)
+    @commands.command(name="Avatar",aliases=['dp', 'pfp','av'], help=f'Shows the avatar of a user')
     async def pfp(self,ctx,user:discord.Member=None):
         if (user == None):
             user_mention= ctx.author
@@ -152,186 +194,68 @@ class Utility(commands.Cog):
         author_avatar=ctx.author.avatar_url
         embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await ctx.send(embed=embed)    
-            
-    '''@commands.group(name="settings", help='control bot settings',invoke_without_command=True,case_insensitive=True)
-    async def settings(self,ctx):
-        embed=discord.Embed(color = random.choice(colourlist))
-        embed.add_field(name="No Setting specified",value=f"Enter a setting, dumbass")
-        embed.set_footer(text="| {self.bot.user.name} |")
-        await ctx.send(embed=embed)'''
+     
+          
     
-    @commands.has_permissions(manage_messages=True)
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Warn", help=f'Warns a user to stop doing a certain activity \n \"{config.prefix}Warn @User <reason>\" or \"{config.prefix}Warn @User @User <reason>\"')
-    async def warn(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
-            warned_names=""
-            disabled_dm=""
-            for mbr in members:
-                
-                if mbr == ctx.author: 
-                    pass
-                
-                elif mbr.bot: 
-                    pass
-                
-                elif mbr.top_role < ctx.author.top_role or ctx.author==ctx.guild.owner:
-                    embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                    embed.add_field(name="<:warn:789487083802460200> | Warning",value=f"You have been warned for \"**{reason}**\" in \"**{ctx.guild.name}**\". Repeated violation of rules could lead to a ban. Please ensure such behaviour is not repeated again.") 
+    # @commands.has_permissions(manage_messages=True)
+    # #@commands.cooldown(1, 10, commands.BucketType.user)
+    # @commands.group(name="Giveaway", help=f'Creates a giveaway',invoke_without_command=True)
+    # async def giveaway(self,ctx):
+    #     channel = await self.text_input_function(ctx,title="Which channel do you want your giveaway to be in?",text="Mention the channel in which the giveaway would be created.")
+    #     channel=await commands.TextChannelConverter().convert(ctx,channel)
+    #     prize = await self.text_input_function(ctx,title="What is the prize for the Giveaway?",text="Enter what is the prize.")
+    #     no_of_winners = int(await self.text_input_function(ctx,title="How many winners do you want?",text="Enter a number. Negative numbers and Zero is not allowed."))
+    #     if no_of_winners < 0 :
+    #         await ctx.reply("You can't have a negative winner, dude.")
+    #     elif no_of_winners == 0 :
+    #         await ctx.reply("No winner? You need to have atleast 1 winner, dumbo.")
+    #     time = await self.text_input_function(ctx,title="How long will the giveaway last?",text="Enter the time")
+    #     pos = ["s","m","h","d"]
+    #     time_dict = {"s" : 1, "m" : 60, "h" : 3600, "d": 3600*24}
+    #     unit = time[-1]
+    #     if unit not in pos:
+    #         await ctx.reply(f"You didn't answer with a proper unit. Use (s|m|h|d) next time!")
+    #         return
+    #     try:
+    #         val = int(time[:-1])
+    #     except:
+    #         await ctx.reply(f"The time can only be an integer. Please enter an integer next time.")
+    #         return
 
-                    author_avatar=ctx.author.avatar_url
-                    embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ") 
-                    try:
-                        await mbr.send(embed=embed)
-                        warned_names=warned_names+mbr.name+", "
-                    except:
-                        disabled_dm=disabled_dm+mbr.name+", "
-
-
-                else: pass
-            
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            if warned_names=="":
-                if disabled_dm != "":
-                    embed.add_field(name="<:warn:789487083802460200> | Warn Command not Executed",value=f"\"**{disabled_dm}**\" has either blocked the bot or has disabled DM's.")
-                else:
-                    embed.add_field(name="<:warn:789487083802460200> | Warn Command not Executed",value=f"Nobody was warned.This could be the cause of :\n • Mentioned user is not found.\n • Mentioned user is are above/equal to your role.\n • Mentioned User is a bot\n • You mentioned yourself (in that case you need to go get your brain checked up).")
-            else:
-                if disabled_dm=="":
-                    embed.add_field(name="<:warn:789487083802460200> | Warn Command Executed",value=f"Warned \"**{warned_names}**\" for \"**{reason}**\".")
-                else:
-                    embed.add_field(name="<:warn:789487083802460200> | Warn Command Executed",value=f"Warned \"**{warned_names}**\" for \"**{reason}**\".")
-            embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")    
-            await ctx.reply(embed=embed)
-        
-    @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Ban", help=f'Bans a user \n\"{config.prefix}Ban @User <reason>\" or \"{config.prefix}Ban @User @User <reason>\"')
-    async def ban(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
-            warned_names=""
-            for mbr in members:
-                if mbr == ctx.author: 
-                    pass
-                
-                elif mbr.top_role < ctx.author.top_role or ctx.author==ctx.guild.owner:
-                    embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                    embed.add_field(name="<a:YB_Wumpus_Ban:781419747878633492> | Banned",value=f"You have been banned for \"**{reason}**\" in \"**{ctx.guild.name}**\".") 
-                    author_avatar=ctx.author.avatar_url
-                    embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ") 
-                    
-                    try:
-                        await mbr.send(embed=embed)
-                    except:
-                        pass
-
-                    try:
-                        await ctx.guild.ban(mbr)
-                    except:
-                        await ctx.send("Failed to Ban!")
-                
-                else:pass
-            
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            if warned_names=="":
-                embed.add_field(name="<a:YB_Wumpus_Ban:781419747878633492> | Ban command not Executed",value=f"Nobody was banned.This could be the cause of :\n • Mentioned user is not found.\n • Mentioned user is are above/equal to your role.\n • You mentioned yourself (in that case you need to go get your brain checked up).\n**Make sure the user you are trying to kick is below my highest role.**")
-            else:
-                embed.add_field(name="<a:YB_Wumpus_Ban:781419747878633492> | Banned command Executed",value=f" \"**{warned_names}**\"was banned for \"**{reason}**\".")
-            embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name}")    
-            await ctx.send(embed=embed)
-           
-    @commands.has_permissions(kick_members=True)
-    @commands.bot_has_permissions(kick_members=True)
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Kick", help=f'Kicks a user \n \"{config.prefix}Kick @User <reason>\" or \"{config.prefix}Kick @User @User <reason>\"')
-    async def kick(self,ctx, members: commands.Greedy[discord.Member], *, reason='violation of rules'):
-            warned_names=""
-            for mbr in members:
-                
-                if mbr == ctx.author: pass
-                
-                elif mbr.top_role < ctx.author.top_role or ctx.author==ctx.guild.owner:
-                        embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                        embed.add_field(name=":boot: | Kicked",value=f"You have been kicked from \"**{ctx.guild.name}**\" for \"**{reason}**\".") 
-                        author_avatar=ctx.author.avatar_url
-                        embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name}") 
-                        
-                        try:await mbr.send(embed=embed)
-                        except: pass
-                        
-                        try : await mbr.kick(reason=reason)
-                        except : await ctx.send("Failed to Kick!")
-                        warned_names=warned_names+mbr.name+", "
-
-                else: pass
-            
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            if warned_names=="":
-                embed.add_field(name=":boot: | Kick command not Executed",value=f"Nobody was kicked.This could be the cause of :\n • Mentioned user is not found.\n • Mentioned user is are above/equal to your role.\n • You mentioned yourself (in that case you need to go get your brain checked up). \n **Make sure the user you are trying to kick is below my highest role.**")
-            else:
-                embed.add_field(name=":boot: | Kick command Executed",value=f" \"**{warned_names}**\"was kicked for \"**{reason}**\".")
-            embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")    
-            await ctx.reply(embed=embed)
-    
-    
-    @commands.has_permissions(manage_messages=True)
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.group(name="Giveaway", help=f'Creates a giveaway \n \"{config.prefix}giveaway\"',invoke_without_command=True)
-    async def giveaway(self,ctx):
-        channel = await self.text_input_function(ctx,title="Which channel do you want your giveaway to be in?",text="Mention the channel in which the giveaway would be created.")
-        channel=await commands.TextChannelConverter().convert(ctx,channel)
-        prize = await self.text_input_function(ctx,title="What is the prize for the Giveaway?",text="Enter what is the prize.")
-        no_of_winners = int(await self.text_input_function(ctx,title="How many winners do you want?",text="Enter a number. Negative numbers and Zero is not allowed."))
-        if no_of_winners < 0 :
-            await ctx.reply("You can't have a negative winner, dude.")
-        elif no_of_winners == 0 :
-            await ctx.reply("No winner? You need to have atleast 1 winner, dumbo.")
-        time = await self.text_input_function(ctx,title="How long will the giveaway last?",text="Enter the time")
-        pos = ["s","m","h","d"]
-        time_dict = {"s" : 1, "m" : 60, "h" : 3600, "d": 3600*24}
-        unit = time[-1]
-        if unit not in pos:
-            await ctx.reply(f"You didn't answer with a proper unit. Use (s|m|h|d) next time!")
-            return
-        try:
-            val = int(time[:-1])
-        except:
-            await ctx.reply(f"The time can only be an integer. Please enter an integer next time.")
-            return
-
-        time_secs= val * time_dict[unit]
-        #print(channel)
-        #giveaway_msg = await channel.send(f"{prize} is being given away for {time}")
-        embed=discord.Embed(title=f":gift: |  Giveaway!",description=f"{prize}",color = 0xFF0000)
-        if no_of_winners == 1:
-            embed.add_field(name="React with :tada: to enter!",value=f"{no_of_winners} winner")
-        elif no_of_winners > 1:
-            embed.add_field(name="React with :tada: to enter!",value=f"{no_of_winners} winners")
-        embed.set_footer(text=f"Ends in {time} • {self.bot.user.name} ")    
-        giveaway_msg = await channel.send(embed=embed)
-        await giveaway_msg.add_reaction("\U0001f389")
-        await asyncio.sleep(int(time_secs))
-        # print(giveaway_msg.reactions)
-        # winner=random.choice(giveaway_msg.reactions)
-        # await ctx.send(f"{winner.user.mention} won the giveaway")
-        new_msg = await channel.get_message(giveaway_msg.id)
-        giveaway_msg = new_msg
-        users = await giveaway_msg.reactions[0].users().flatten()
-        users.pop(users.index(self.bot.user))
-        if no_of_winners > len(users):
-            no_of_winners = len(users)
-        winner = random.sample(users,k=no_of_winners)
-        winner_list=""
-        for user in winner:
-            winner_list= winner_list + user.mention
-        embed=discord.Embed(title=f":tada: |  Giveaway ended.",description=f"{prize}",color = 0xFF0000)
-        embed.add_field(name=f":trophy: Winner: ",value=f"{winner_list} won {prize}!")
-        embed.set_footer(text=f"Ended • {self.bot.user.name} ")    
-        await giveaway_msg.edit(embed=embed)
-        await channel.send(f"Congratulations! {winner_list} won {prize}!")
+    #     time_secs= val * time_dict[unit]
+    #     #print(channel)
+    #     #giveaway_msg = await channel.send(f"{prize} is being given away for {time}")
+    #     embed=discord.Embed(title=f":gift: |  Giveaway!",description=f"{prize}",color = 0xFF0000)
+    #     if no_of_winners == 1:
+    #         embed.add_field(name="React with :tada: to enter!",value=f"{no_of_winners} winner")
+    #     elif no_of_winners > 1:
+    #         embed.add_field(name="React with :tada: to enter!",value=f"{no_of_winners} winners")
+    #     embed.set_footer(text=f"Ends in {time} • {self.bot.user.name} ")    
+    #     giveaway_msg = await channel.send(embed=embed)
+    #     await giveaway_msg.add_reaction("\U0001f389")
+    #     await asyncio.sleep(int(time_secs))
+    #     # print(giveaway_msg.reactions)
+    #     # winner=random.choice(giveaway_msg.reactions)
+    #     # await ctx.send(f"{winner.user.mention} won the giveaway")
+    #     new_msg = await channel.get_message(giveaway_msg.id)
+    #     giveaway_msg = new_msg
+    #     users = await giveaway_msg.reactions[0].users().flatten()
+    #     users.pop(users.index(self.bot.user))
+    #     if no_of_winners > len(users):
+    #         no_of_winners = len(users)
+    #     winner = random.sample(users,k=no_of_winners)
+    #     winner_list=""
+    #     for user in winner:
+    #         winner_list= winner_list + user.mention
+    #     embed=discord.Embed(title=f":tada: |  Giveaway ended.",description=f"{prize}",color = 0xFF0000)
+    #     embed.add_field(name=f":trophy: Winner: ",value=f"{winner_list} won {prize}!")
+    #     embed.set_footer(text=f"Ended • {self.bot.user.name} ")    
+    #     await giveaway_msg.edit(embed=embed)
+    #     await channel.send(f"Congratulations! {winner_list} won {prize}!")
 
     # @commands.has_permissions(manage_messages=True)
     # #@commands.cooldown(1, 10, commands.BucketType.user)
-    # @giveaway_msg.group(name="reroll", help=f'Reroll a giveaway. \n \"{config.prefix}reroll giveaway_message_id\"')
+    # @giveaway_msg.group(name="reroll", help=f'Reroll a giveaway. \n \"{config.default_prefixes[0]}reroll giveaway_message_id\"')
     # async def reroll_giveaway(self,ctx,giveaway_msg_id):
     #     giveaway_msg = await channel.get_message(giveaway_msg_id)
     #     users = await giveaway_msg.reactions[0].users().flatten()
@@ -352,7 +276,7 @@ class Utility(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.group(name="Poll", help=f'Creates a poll \n \"{config.prefix}poll [Question] Option1,Option2,Option3\"',require_var_positional=True)#require_var_positional=True makes sure input is not empty
+    @commands.group(name="Poll", help=f'Creates a poll.\nArguments need to be in the format: \n`[Question] Option_1, Option_2, Option_3`',require_var_positional=True)#require_var_positional=True makes sure input is not empty
     async def poll(self,ctx,*arguments):
         number_emojis=[
                     "1\N{variation selector-16}\N{combining enclosing keycap}",
@@ -367,19 +291,27 @@ class Utility(commands.Cog):
                     "\N{keycap ten}",]
 
         response =  ' '.join(arguments)
-        result = re.search('\[(.*)\]', response) #regex to find string between [ ]
+        result = re.search('\[(.*)\]', response) #regex to find string between [ ]        
+        if result is None:
+            await ctx.send("You didn't mention a question. Format: `[Question] Option_1, Option_2, Option_3`")
+            return
+        
         question = result.group(1)
         options = response.replace(f"[{question}]","").split(",")
         
         if len(options) > 10:
-            await ctx.send("You inputted too many options. Maximum options is 10.")
+            await ctx.send("You inputted too many options. Maximum number of options is 10.")
         
         elif len(options) <= 1:
-            await ctx.send("You inputted too less options. Minimum options is 2.")
+            await ctx.send("You inputted too less options. Minimum number of options is 2.")
+        
+        elif len(question.replace(" ","")) <= 0:
+            await ctx.send("You didn't mention a question. Format: `[Question] Option_1, Option_2, Option_3`")
+            return
 
 
         #Proper outcome. There is a question and 1-10 Options
-        elif question !=None:
+        elif question is not None:
             embed=discord.Embed(title=f"{question.capitalize()}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
             
             optionnum=0
@@ -450,15 +382,35 @@ class Utility(commands.Cog):
                     "9\N{variation selector-16}\N{combining enclosing keycap}",
                     "\N{keycap ten}",]
 
-            # reaction_count=0
-            # for reaction in PollMessage.reactions:
-            #     reacted_users = await reaction.users().flatten()
-            #     if user in reacted_users and str(reaction.emoji) in number_emojis:
-            #         reaction_count+=1
-            # print(reaction_count)
-            # if reaction_count >1:
-            #     await user.send("You can only react to one option. Please uncheck your current choice then select another option.")
-            #     await PollMessage.remove_reaction(emoji, user)
+            reaction_count_of_user=0
+            for reaction in PollMessage.reactions:
+                reacted_users = await reaction.users().flatten()
+                if user in reacted_users and str(reaction.emoji) in number_emojis:
+                    reaction_count_of_user+=1
+            
+
+            async def update_poll_bar():
+                reactions_count_dict={}
+                total_reactions=0
+                
+                for r in PollMessage.reactions:
+                    if r.me and str(r.emoji) in number_emojis :
+                        reactions_count_dict[str(r.emoji)] = r.count-1
+                        total_reactions+=r.count-1  
+
+                embed=PollMessage.embeds[0]
+                embed_fields=embed.fields
+                for x in embed_fields:
+                    count=reactions_count_dict[x.name[0:3]]
+
+                    bar_string, percent=self.bar_generator(count=count,total=total_reactions)                
+                    embed.set_field_at(embed_fields.index(x),name=f"{x.name}", value=f"`{bar_string}` | {percent}% | ({count})", inline=False)
+                await PollMessage.edit(embed=embed)
+
+            if reaction_count_of_user > 1:
+                pass
+            else:
+                await update_poll_bar()
 
 
             # if type_of_event == "reaction_add":          
@@ -467,21 +419,11 @@ class Utility(commands.Cog):
             #             print("del",str(reaction.emoji),str(emoji))
             #             await PollMessage.remove_reaction(reaction.emoji, user)
 
-            reactions_count_dict={}
-            total_reactions=0
-            for r in PollMessage.reactions:
-                if r.me and str(r.emoji) in number_emojis :
-                    reactions_count_dict[str(r.emoji)] = r.count-1
-                    total_reactions+=r.count-1  
+           
 
 
-            embed=PollMessage.embeds[0]
-            embed_fields=embed.fields
-            for x in embed_fields:
-                count=reactions_count_dict[x.name[0:3]]
-                bar_string, percent=self.bar_generator(count=count,total=total_reactions)                
-                embed.set_field_at(embed_fields.index(x),name=f"{x.name}", value=f"`{bar_string}` | {percent}% | ({count})", inline=False)
-            await PollMessage.edit(embed=embed)
+
+            
 
     def bar_generator(self,count,total):
         if total == 0 :#prevent zero division error
@@ -493,139 +435,8 @@ class Utility(commands.Cog):
         return bars_string,percent
 
    
-    @checks.server_is_approved()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    #@commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Mute", help=f'Mutes a user \n \"{config.prefix}Mute @User 5m\" or \"{config.prefix} mute @User @User 10m\". Time can be entered in (s|m|h|d), Default time is 10 mins.')
-    async def mute(self,ctx,members: commands.Greedy[discord.Member],time:str="5m"):
-            warned_names=""
-            pos = ["s","m","h","d"]
-            time_dict = {"s" : 1, "m" : 60, "h" : 3600, "d": 3600*24}
-            unit = time[-1]
-            if unit not in pos:
-                await ctx.send(f"You didn't answer with a proper unit. Use (s|m|h|d) next time!")
-                return
-            try:
-                val = int(time[:-1])
-            except:
-                await ctx.send(f"The time can only be an integer. Please enter an integer next time.")
-                return
-            time_secs= val * time_dict[unit]
-            
-            role = discord.utils.get(ctx.guild.roles, id=config.muted_role_id)
-            if role == None:
-                role = discord.utils.get(ctx.guild.roles, name="Muted")
-                if role == None:
-                    await ctx.send("The muted role was not found.")
-                    return
-            #role = discord.utils.get(ctx.guild.roles, name="Muted")
-            
-            for mbr in members:
-                
-                if mbr == ctx.author: pass
-                
-                elif mbr.top_role < ctx.author.top_role or ctx.author==ctx.guild.owner:
-                    
-                    embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-                    embed.add_field(name=":mute: | Muted",value=f"You have been muted from \"**{ctx.guild.name}**\" for \"**{time}**\".") 
-                    author_avatar=ctx.author.avatar_url
-                    embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ") 
-                    
-                    try:await mbr.send(embed=embed)
-                    except: 
-                        pass
-                        #print("Cound not send Dm")
-                    
-                    try: 
-                        await mbr.add_roles(role)
-                        warned_names=warned_names+mbr.mention+", "
-                    except : 
-                        await ctx.send("Failed to mute!")
-                else: pass
-            
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            if warned_names=="":
-                embed.add_field(name=":mute: | Mute command not executed",value=f"Nobody was muted.This could be the cause of :\n • Mentioned user is not found.\n • Mentioned user is are above/equal to your role.\n • You mentioned yourself \n **Make sure the mentioned user and the mute role is below my highest role.**")
-            else:
-                embed.add_field(name=":mute: | Mute command executed",value=f"**{warned_names}** was muted for **{time}**!")
-            embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} •{self.bot.user.name} ")    
-            await ctx.send(embed=embed)
-
-            await asyncio.sleep(int(time_secs))
-            for mbr in members:
-                try : 
-                    await mbr.remove_roles(role)
-
-                except : 
-                    await ctx.send("Failed to unmute!")
    
-    @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Createmuterole", help=f'Mutes a user \n \"{config.prefix}Mute @User 5m\" or \"{config.prefix} mute @User @User 10m\". Time can be entered in (s|m|h|d), Default time is 10 mins.')
-    async def createmuterole(self,ctx):
-        embed=discord.Embed(title='Creating Muted role',description="Creating the role...")
-        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")   
-        message=await ctx.send(embed=embed)
-        mute_role = await ctx.guild.create_role(name="Muted", reason="Muted role")
-        embed=discord.Embed(title='Creating Muted role',description="Setting permissions...")
-        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")   
-        await message.edit(embed=embed)
-        for channel in ctx.guild.channels:
-            await channel.set_permissions(mute_role, send_messages=False)
-        embed=discord.Embed(title='Creating Muted role',description=f"Created a muted role: {mute_role.mention}")
-        embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")   
-        await message.edit(embed=embed)
-
-
-        # mute_role = await ctx.guild.create_role(name="No Emojis", reason="Spin the Wheel")
-        # await message.edit(embed=embed)
-        # for channel in ctx.guild.channels:
-        #     await channel.set_permissions(mute_role, add_reactions=False, use_external_emojis=False)
-        # embed=discord.Embed(title='Creating role',description=f"Created a role: {mute_role.mention}")
-        # embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")   
-        # await message.edit(embed=embed)
-
-
-
-
-
-    @checks.server_is_approved()
-    @commands.has_permissions(manage_roles=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
-    @commands.command(name="Unmute", help=f'Unmutes a user \n \"{config.prefix}Unmute @User 5m\" or \"{config.prefix}unmute @User @User 10m\".')
-    async def unmute(self,ctx,members: commands.Greedy[discord.Member]):
-            warned_names=""
-            role = discord.utils.get(ctx.guild.roles, id=config.muted_role_id)
-            if role == None:
-                role = discord.utils.get(ctx.guild.roles, name="Muted")
-                if role == None:
-                    embed = discord.Embed(title=f"Muted role not found.",description=f"Name your muted role \"Muted\". ")
-                    await ctx.send(embed=embed)
-                    return  
-
-            for mbr in members:
-                
-                if mbr == ctx.author: pass
-                
-                elif mbr.top_role < ctx.author.top_role or ctx.author==ctx.guild.owner:                  
-                    try : 
-                        await mbr.remove_roles(role)
-                        warned_names=warned_names+mbr.mention+", "
-                    except : 
-                        await ctx.send("Failed to unmute!")
-                else: pass
-            
-            embed=discord.Embed(color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            if warned_names=="":
-                embed.add_field(name=":speaker:  | Unmute command not executed",value=f"Nobody was unmuted. This could be the cause of :\n • Mentioned user is not found.\n • Mentioned user is are above/equal to your role.\n • You mentioned yourself. \n **Make sure the mentioned user and the mute role is below my highest role.**")
-            else:
-                embed.add_field(name=":speaker:  | Unmute command executed",value=f"**{warned_names}** was unmuted,")
-            embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")    
-            await ctx.send(embed=embed)
+   
 
 
 

@@ -1,33 +1,33 @@
-from discord.errors import InvalidArgument
-import utils.checks as checks
-import json
-import random
-import config
-import discord
+import core.checks as checks
+import json,asyncio,random,os,discord
 import utils.awards as awards
 import utils.badges as badges
 from discord.ext import commands
+import config
+
+
 
 colourlist=config.embed_colours
 
-class Economy(commands.Cog): 
+class Economy(commands.Cog,name="Economy",description="Economy functions"): 
     def __init__(self, bot):
         self.bot = bot
         self.messages_count_dict={}
         
 
-    @commands.cooldown(1,20, commands.BucketType.user)
-    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits","profile"], help=f"Shows the Karma, Credits and Awards of a user\nFormat: `{config.prefix}stats'\nAliases: `Account`, `Bal`, `Acc`, `Balance`, `Karma`, `Credits`, `Stats`, `Profile`")
+    @commands.cooldown(1,10, commands.BucketType.user)
+    @commands.command(name="Stats",aliases=["account","bal","acc","balance","karma","credits","profile"], help=f"Shows the Karma, Credits and Awards of a user")
     async def bal(self,ctx,user:discord.Member=None):
         user = user or ctx.author
-        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}    {user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database..."))
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        await ImportantFunctions.check_if_badges_need_to_be_given(user)
+        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}    {user.name}'s Balance",description=f"Fetching {user.name}'s inventory from the database...",colour = random.choice(colourlist)))
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+        await UserDatabaseFunctions.check_if_badges_need_to_be_given(user)
+        
         if user.bot:
             await ctx.reply(f"{user.name} is a bot. Bots don't have accounts.")
         else:
-            user_account=await ImportantFunctions.get_user_info(user)
-            embed=discord.Embed(title=f"{user.name}'s Balance")
+            user_account=await UserDatabaseFunctions.get_user_info(user)
+            embed=discord.Embed(title=f"{user.name}'s Balance",colour = random.choice(colourlist))
             badges = await self.format_in_order(to_format=json.loads(user_account["badges"])["badges"],type="badge")
             embed.add_field(name="Badges:",value=f"{badges}",inline=False)
             embed.add_field(name="Balance:",value=f"{'{:,}'.format(user_account['credits'])} Credits",inline=True)
@@ -71,8 +71,6 @@ class Economy(commands.Cog):
             return reaction_id_string,total_awards
 
         async def format_badges_in_order(self,badges_list):
-            #formats the awards in order of cost
-            #ImportantFunctions = self.bot.get_cog('ImportantFunctions')
             if len(badges_list) > 0:
                 all_badges = list(badges.badges_list.values())[::-1]
                 ordered_reactions_of_post = list(badges.badges_list.values())[::-1]  
@@ -96,12 +94,12 @@ class Economy(commands.Cog):
             
         
     @commands.cooldown(1,30, commands.BucketType.user)
-    @commands.command(name="Awards",aliases=["award,awardlist"], help=f"Shows list of all the awards with their description, cost and other details\nFormat: `?awards'\nAliases: `awardlist`, `award`")
+    @commands.command(name="Awards",aliases=["awardlist"], help=f"Shows list of all the awards with their description, cost and other details")
     async def award_list(self,ctx):
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         user=ctx.author
-        user_account=await ImportantFunctions.get_user_info(user)
-        embed=discord.Embed(title=f"Awards",description=f"Your balance: **{user_account['credits']} Credits**")
+        credits=await UserDatabaseFunctions.get_user_credits(user)
+        embed=discord.Embed(title=f"Awards",description=f"Your balance: **{credits} Credits**")
 
         for award in list(awards.awards_list.values()):
             embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{'{:,}'.format(award.cost)} credits \n {award.description} \n",inline=False)
@@ -110,12 +108,12 @@ class Economy(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.cooldown(1,30, commands.BucketType.user)
-    @commands.command(name="Badges",aliases=["badge,badgelist"], help=f"Shows list of all the badges with their description, cost and other details\nFormat: `?badges'\nAliases: `badges`, `badgelist`")
+    @commands.command(name="Badges",aliases=["badge,badgelist"], help=f"Shows list of all the badges with their description, cost and other details.")
     async def badge_list(self,ctx):
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         user=ctx.author
-        user_account=await ImportantFunctions.get_user_info(user)
-        embed=discord.Embed(title=f"Badges",description=f"Your balance: **{user_account['credits']} Credits**")
+        credits=await UserDatabaseFunctions.get_user_credits(user)
+        embed=discord.Embed(title=f"Badges",description=f"Your balance: **{credits} Credits**")
 
         embed.add_field(name="**Credits based**",value="**These badges can be bought in exchange of credits.**")
         for badge in list(badges.badges_list.values()):
@@ -136,13 +134,95 @@ class Economy(commands.Cog):
         await ctx.reply(embed=embed)
 
     
+    @commands.guild_only()
+    @commands.cooldown(1,5, commands.BucketType.user)
+    @commands.command(name="Award", help=f'Award a post')
+    async def award(self,ctx,message:discord.Message=None):
+        user_giving = ctx.author
+        try:
+            #This will only work if the command has been invoked
+            await ctx.message.delete()
+
+            if ctx.message.reference is None and message is None:
+                embed = discord.Embed(title="Award",colour = random.choice(colourlist))
+                embed.add_field(name="You didn't mention a message.",value="To award a post:\n   - React with `🏆` to a message\n   - Use this command as a reply to the post you would like to award",)
+                await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+                return
+            
+            elif ctx.message.reference:
+                channel = self.bot.get_channel(ctx.message.reference.channel_id)
+                message = await channel.fetch_message(ctx.message.reference.message_id)
+        
+        except:
+            pass
+
+        
+        user_recieving=message.author
+
+        if user_recieving.bot:
+            embed = discord.Embed(title="Award",description=f"{user_giving.mention} you can't award bots.",colour = random.choice(colourlist))
+            await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+            return
+        if user_recieving == user_giving:
+            embed = discord.Embed(title="Award",description = f"{user_giving.mention} you can't award yourself.",colour = random.choice(colourlist))
+            await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+            return
+        
+       
+        embed = discord.Embed(title=f"Award",colour = random.choice(colourlist))
+        embed.add_field(name=f"{user_giving.name} react with the award you would like to give {user_recieving.name}",value=f"An award **cannot** be revoked once given. This action is irreversible.\nChoose a reaction if you would like to award this [post]({message.jump_url}).\n Select `❌` if you would like to cancel the award.")
+        award_message = await ctx.channel.send(embed = embed)
+        
+        award_reaction_ids=[]
+        for award in list(awards.awards_list.values()):
+            await award_message.add_reaction(award.reaction_id)
+            award_reaction_ids.append(award.reaction_id)
+        await award_message.add_reaction('❌')
+        
+        def check_if_award(award_reaction,award_user):
+            return (str(award_reaction.emoji) in award_reaction_ids or str(award_reaction.emoji) in ['❌']) and user_giving == award_user
+
+        try:
+            award_reaction,award_user = await self.bot.wait_for('reaction_add',check=check_if_award, timeout=60)#pylint: disable=unused-argument 
+            #disables the confirm_user unusesd argument error
+
+        except asyncio.TimeoutError:
+            await award_message.delete()
+
+        else:
+            if str(award_reaction) in ['❌']:
+                await award_message.delete()
+
+
+            else:
+                #It is an Award Reaction
+                ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+
+                award = await ImportantFunctions.fetch_award(str(award_reaction.emoji))
+                embed = discord.Embed(title=f"{message.author.name} received a {award.name} Award!",description=f"{user_giving.mention} liked {message.author.mention}'s [post]({message.jump_url}) so much that they gave it the {award.name} award.",color = 0xFFD700)
+                embed.set_thumbnail(url=str(award_reaction.emoji.url))
+                embed.set_footer(icon_url= user_giving.avatar_url,text=f"Given by {user_giving.name} • {self.bot.user.name} ")
+                
+                await award_message.clear_reactions()
+                await award_message.edit(embed=embed)
+
+                #post to starboard 
+                #has a check to see if Award posts to starboard                                  
+                #await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user_giving,emoji=award_reaction.emoji,reaction_name=award.name,reaction_type="add")
+                await UserDatabaseFunctions.add_karma(user=user_recieving,amt=award.karma_given_to_receiver)
+                await UserDatabaseFunctions.add_karma(user=user_giving,amt=award.karma_given_to_giver)
+                
+                await UserDatabaseFunctions.add_credits(user=user_giving,amt = -award.cost)
+                await UserDatabaseFunctions.add_credits(user=user_recieving,amt = award.credits_given_to_receiver)
+
+                await UserDatabaseFunctions.add_awards(user_recieving=user_recieving,user_giving=user_giving,award_name=award.name)
+
     
     #@commands.cooldown(1,10, commands.BucketType.user)
-    @commands.command(name="Buy", help='Buy a badge\nFormat: `?buy item_name`')
+    @commands.command(name="Buy", help='Buy a badge')
     async def buy_badge(self,ctx,*,item_name):
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
         user=ctx.author 
-        await ImportantFunctions.create_account(user)
         
         async def check_if_item_exists(item_name):
             for x in list(badges.badges_list.values()):
@@ -155,12 +235,13 @@ class Economy(commands.Cog):
         
         if item:
             if item.cost is not None:
-                user_account=await ImportantFunctions.get_user_info(user)
-                if user_account["credits"] < item.cost:
+                UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+                credits = await UserDatabaseFunctions.get_user_credits(user)
+                if credits < item.cost:
                     await ctx.reply(f"You don't have enough credits to buy `{item.name}`.")
                 else:
-                    await ImportantFunctions.add_credits(user,-item.cost)
-                    check = await ImportantFunctions.edit_badges(badge_name=item.name,user=user,action="add")
+                    await UserDatabaseFunctions.add_credits(user,-item.cost)
+                    check = await UserDatabaseFunctions.edit_badges(badge_name=item.name,user=user,action="add")
                     if check:    
                         await ctx.reply(content=f"You paid {item.cost} credits and bought `{item.name}`.")    
                     else:
@@ -173,9 +254,11 @@ class Economy(commands.Cog):
 
 
     @commands.cooldown(1, 60, commands.BucketType.user)
-    @commands.command(name="Beg", help='Beg for cash\nFormat: `?beg`')
+    @commands.command(name="Beg", help='Beg for cash')
     async def beg(self,ctx):
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        '''Gives the user a little credits'''
+
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         user=ctx.author 
         options=["credits","nothing"]
         choice=random.choices(options,weights=(80,20),k=1)[0]
@@ -183,7 +266,7 @@ class Economy(commands.Cog):
             amt = random.randint(1,20)
             beg_options=[f"Someone gave you {amt} credits.",f"Awh you begging? Take {amt} credits.",f"You begged and got {amt} credits.",f"Lmao sad guy. Take {amt} credits."]
             await ctx.reply(random.choice(beg_options))
-            await ImportantFunctions.add_credits(user=ctx.message.author,amt=amt)
+            await UserDatabaseFunctions.add_credits(user=user,amt=amt)
         elif choice == "nothing":
             beg_options=[f"no",f"*\"Sorry no money for you.\"*",f"imagine begging lol","Even your comrades said no","Nah I gave away all my money","credit.exe cannot afford your begging","donate.exe has stopped working","I ain't made of money. go away","You know how people say they got your back? Well I don't. Go away."]
             await ctx.reply(random.choice(beg_options))
@@ -191,20 +274,14 @@ class Economy(commands.Cog):
 
     
     @commands.cooldown(1,600, commands.BucketType.user)
-    @commands.command(name="Rob",aliases=["steal"], help='Rob other\'s credits\nFormat: `?rob @User`\nAlias: `steal`"')
+    @commands.command(name="Rob",aliases=["steal"], help='Rob other\'s credits')
     async def rob(self,ctx,user_robbed:discord.Member):
+        '''Rob another user for upto 18% of their inventory
+            If the robbery fails the theif pays money'''
 
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         user_robbing=ctx.author
-        try:# this only fails if any of the users is a bot
-            user_robbing_info= await ImportantFunctions.get_user_info(user=user_robbing)
-            user_robbed_info= await ImportantFunctions.get_user_info(user=user_robbed)
-        except:
-            pass
-
-        user_robbing_credits_required = 500
-        user_robbed_credits_required = 750
-        
+       
         if user_robbed.bot:
             await ctx.reply(f"You can't rob from bots. lol")
             ctx.command.reset_cooldown(ctx)
@@ -213,72 +290,187 @@ class Economy(commands.Cog):
             await ctx.reply("Robbing yourself? huh you must be a some different kind of nuts.")
             ctx.command.reset_cooldown(ctx)
         
-        elif user_robbing_info["credits"] < user_robbing_credits_required:
-            await ctx.reply(f"You need at least {user_robbing_credits_required} credits to rob others.")
-            ctx.command.reset_cooldown(ctx)
-       
-        elif user_robbed_info["credits"] < user_robbed_credits_required:
-            await ctx.reply(f"leave the poor folk alone. They have less than {user_robbed_credits_required} credits. sad guy")
-            ctx.command.reset_cooldown(ctx)
         else:
-            has_not_been_robbed_in_last_10_seconds=await checks.get_last_robbed_from(ctx,user=user_robbed,delay=600)
-            if has_not_been_robbed_in_last_10_seconds:
-                options=["fail","caught","nothing","smallloot","loot","bigloot","biggestloot"]
-                choice=random.choices(options,weights=(30,20,30,15,10,5,1),k=1)[0]
-                if choice =="fail":
-                    amt = int(random.randint(100,300))
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=-amt)    
-                    await ctx.reply(f"You failed lmao. You lost {amt} credits.") 
-                
-                elif choice == "caught":
-                    percentage=random.choice(list(range(3,5))+ list([10])) /100
-                    amt = percentage * user_robbing_info["credits"]
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=-amt)    
-                    await ctx.reply(f"You got caught lmao. You paid {user_robbed.display_name} **{amt}** credits. ded xd") 
 
-                elif choice == "nothing":
-                    options = [f"lol you got nothing. ggwp"]
-                    await ctx.reply(random.choice(options)) 
+            user_robbing_credits = await UserDatabaseFunctions.get_user_credits(user=user_robbing)
+            user_robbed_credits = await UserDatabaseFunctions.get_user_credits(user=user_robbed)
+            
+            user_robbing_credits_required = 500
+            user_robbed_credits_required = 750
+            
+            if user_robbing_credits < user_robbing_credits_required:
+                await ctx.reply(f"You need at least {user_robbing_credits_required} credits to rob others.")
+                ctx.command.reset_cooldown(ctx)
+       
+            elif user_robbed_credits < user_robbed_credits_required:
+                await ctx.reply(f"Leave the poor folk alone. They have less than {user_robbed_credits_required} credits. sad guy")
+                ctx.command.reset_cooldown(ctx)
+            else:
+                has_not_been_robbed_in_last_10_seconds=await checks.get_last_robbed_from(ctx,user=user_robbed,delay=600)
+                if has_not_been_robbed_in_last_10_seconds:
+                    options=["fail","caught","nothing","smallloot","loot","bigloot","biggestloot"]
+                    choice=random.choices(options,weights=(30,20,30,15,10,5,1),k=1)[0]
+                    if choice =="fail":
+                        amt = int(random.randint(100,300))
+                        await UserDatabaseFunctions.give(user_giving=user_robbing,user_taking=user_robbed,amt=amt)
+                        await ctx.reply(f"You failed lmao. You lost {amt} credits to {user_robbed.name}.") 
+                    
+                    elif choice == "caught":
+                        percentage=random.choice(list(range(3,5))+ list([10])) /100
+                        amt = int(percentage * user_robbing_credits)
+                        await UserDatabaseFunctions.give(user_giving=user_robbing,user_taking=user_robbed,amt=amt)
+                        await ctx.reply(f"You got caught lmao. You paid {user_robbed.name} **{amt}** credits. ded xd") 
 
-                elif choice == "smallloot":
-                    percentage=random.choice(list(range(1,2)))/100
-                    amt = int(percentage * user_robbing_info["credits"])
-                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
-                    await ctx.reply(f"{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. lol") 
-                
-                
-                elif choice == "loot":
-                    percentage=random.choice(list(range(2,3)) + list(range(4,5)))/100
-                    amt = int(percentage * user_robbing_info["credits"])
-                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
-                    await ctx.reply(f"{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. Nice!") 
-                
-                elif choice == "bigloot":
-                    percentage=random.choice(list(range(5,8)) + list(range(10,12))) /100
-                    amt = int(percentage * user_robbing_info["credits"])
-                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
-                    await ctx.reply(f"**BLING BLING!**{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. GG!") 
-                
-                elif choice == "biggestloot":
-                    percentage=random.choice(list(range(8,12)) + list(range(15,18))) /100
-                    amt = int(percentage * user_robbing_info["credits"])
-                    await ImportantFunctions.add_credits(user=user_robbed,amt=-amt)   
-                    await ImportantFunctions.add_credits(user=user_robbing,amt=amt)  
-                    await ctx.reply(f"**WHOA YOU HIT THE JACKPOT**{user_robbing.display_name} stole **{amt} credits** from {user_robbed.display_name}. {int(percentage*100)}% of their whole credits. Just insane.") 
+                    elif choice == "nothing":
+                        options = [f"lol you got nothing. ggwp"]
+                        await ctx.reply(random.choice(options)) 
+
+                    elif choice == "smallloot":
+                        percentage=random.choice(list(range(1,2)))/100
+                        amt = int(percentage * user_robbing_credits) 
+                        await UserDatabaseFunctions.give(user_giving=user_robbed,user_taking=user_robbing,amt=amt)
+                    
+                    elif choice == "loot":
+                        percentage=random.choice(list(range(2,3)) + list(range(4,5)))/100
+                        amt = int(percentage * user_robbing_credits)
+                        await UserDatabaseFunctions.give(user_giving=user_robbed,user_taking=user_robbing,amt=amt)
+                        await ctx.reply(f"{user_robbing.name} stole **{amt} credits** from {user_robbed.name}. Nice!") 
+                    
+                    elif choice == "bigloot":
+                        percentage=random.choice(list(range(5,8)) + list(range(10,12))) /100
+                        amt = int(percentage * user_robbing_credits)
+                        await UserDatabaseFunctions.give(user_giving=user_robbed,user_taking=user_robbing,amt=amt)
+                        await ctx.reply(f"**BLING BLING!**{user_robbing.name} stole **{amt} credits** from {user_robbed.name}. GG!") 
+                    
+                    elif choice == "biggestloot":
+                        percentage=random.choice(list(range(8,12)) + list(range(15,18))) /100
+                        amt = int(percentage * user_robbing_credits)
+                        await UserDatabaseFunctions.give(user_giving=user_robbed,user_taking=user_robbing,amt=amt)
+                        await ctx.reply(f"**WHOA YOU HIT THE JACKPOT**{user_robbing.name} stole **{amt} credits** from {user_robbed.name}. {int(percentage*100)}% of their whole credits. Just insane.") 
 
             
-            else:
-                await ctx.reply(f"{user_robbed.display_name} has been robbed in the past 10 minutes. Give it a rest.") 
-                ctx.command.reset_cooldown(ctx)
+                else:
+                    await ctx.reply(f"{user_robbed.name} has been robbed in the past 10 minutes. Give it a rest.") 
+                    ctx.command.reset_cooldown(ctx)
+    
+    @commands.cooldown(1,300, commands.BucketType.user)
+    @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get free karma or maybe even lose a couple of hundred credits.')
+    async def wheel(self,ctx):
+        '''Spin the Wheel of Fortume for a chance to get free credits and karma'''
+        images_dir="Images/Wheel_of_fortune"
+        wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Credits_Boost","Karma_Boost"]
+        random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,15,15,15,10,10),k=1)[0]
+         
+        if random_wheel_outcome == "Free_Credits":
+            user=ctx.author 
+            numbers=list(range(1,200))+list(range(490,500))
+            amt=random.choice(numbers)
+            
+            options=[f"You committed Tax Fraud and got {amt} credits!",f"The mafia decided to give you some dough. You got {amt} credits",f"It's your Birthday! You got {amt} credits.",f"Here is a GET OUT OF JAIL CARD. Collect {amt} as you go."]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
+            random_picture=random.choice(os.listdir(f"{images_dir}/Free_Credits/")) 
+            path=f"{images_dir}/Free_Credits/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+           
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.add_credits(user=user,amt=amt)
 
+        elif random_wheel_outcome == "Free_Karma":
+            user=ctx.author 
+            numbers=list(range(1,20))
+            amt=random.choice(numbers)
+            
+            options=[f"God messed up the balance sheet and you get {amt} Karma!",f"You got free {amt} karma for breathing. Yay!",f"You got {amt} free Karma.",]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
+            
+            random_picture=random.choice(os.listdir(f"{images_dir}/Free_Karma/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+            
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.add_karma(user=user,amt=amt)
+        
+        elif random_wheel_outcome == "Deduct_Credits":
+            user=ctx.author 
+            numbers=list(range(1,200))+list(range(490,500))
+            amt=random.choice(numbers)
+            
+            options=[f"The IRS raided your house. You lost {amt} credits.",f"You lost {amt} credits!",f"You got a GO TO JAIL CARD and paid {amt} credits for bail.",]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
+            random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Credits/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+            
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.add_credits(user=user,amt=-(amt))
+        
+        elif random_wheel_outcome == "Deduct_Karma":
+            user=ctx.author 
+            numbers=list(range(1,20))
+            amt=random.choice(numbers)
+            
+            options=[f"You posted a shit meme and lost {amt} Karma.",f"You lost {amt} Karma for fun.",f"Karma? Who needs that? You lost {amt} karma.",]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
+            
+            random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Karma/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+            
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.add_karma(user=user,amt=-(amt))
+       
+        elif random_wheel_outcome == "Credits_Boost":
+            user=ctx.author 
+            options=[f"You get a Credit boost!\nAny Credits you earn in the next 30 minutes are doubled!"]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=random.choice(colourlist))
+            random_picture=random.choice(os.listdir(f"{images_dir}/Credits_Boost/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+            
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Credits Badge",action="add")
+            await asyncio.sleep(int(60*30))
+            await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Credits Badge",action="remove")
+
+        elif random_wheel_outcome == "Karma_Boost":
+            user=ctx.author 
+            options=[f"You get a Karma boost!\nAny Karma you earn in the next 30 minutes are doubled!"]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=random.choice(colourlist))
+            random_picture=random.choice(os.listdir(f"{images_dir}/Karma_Boost/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
+            
+            UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+            await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Karma Badge",action="add")
+            await asyncio.sleep(int(60*30))
+            await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Karma Badge",action="remove")
+        
+        elif random_wheel_outcome == "Nothing":
+            user=ctx.author 
+            numbers=list(range(1,200))+list(range(400,500))+list(range(2000,2050))
+            amt=random.choice(numbers)
+            
+            options=[f"You win nothing lol.","You get absolutely nothing. Congrats!","Here you go. Have a nothing !"]
+            embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
+            random_picture=random.choice(os.listdir(f"{images_dir}/Nothing/")) 
+            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
+            image = discord.File(path, filename=random_picture)
+            embed.set_image(url=f"attachment://{random_picture}")
+            await ctx.reply(embed=embed,file=image)
 
         
-
-
-            
 
     # @commands.cooldown(1,20, commands.BucketType.user)
     # @commands.command(name="Gamble", help='Gamble away your money')
@@ -321,48 +513,22 @@ class Economy(commands.Cog):
     #                     await ImportantFunctions.add_credits(user=user,amt=total_earned)
     
 
-    @checks.CustomCooldown(key="last_daily_command",delay=24*60*60)
-    @commands.command(name="Daily", help='Get some bonus coins everyday.\nFormat: `?Daily`')
-    async def daily_credits(self,ctx):
-        user=ctx.author
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        amt = 50
-        await ctx.reply(f"**{amt} credits** were added to your account.")   
-        await ImportantFunctions.add_credits(user=user,amt=amt) 
-    
-    @checks.CustomCooldown(key="last_weekly_command",delay=24*60*60*7)
-    @commands.command(name="Weekly", help='Get some bonus coins every week.\nFormat: `?Weekly`')
-    async def weekly_credits(self,ctx):
-        user=ctx.author
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        amt = 500
-        await ctx.reply(f"**{amt} credits** were added to your account.")   
-        await ImportantFunctions.add_credits(user=user,amt=amt)
-    
-    @checks.CustomCooldown(key="last_monthly_command",delay=24*60*60*30)
-    @commands.command(name="Monthly", help='Get some bonus coins every month.\nFormat: `?Monthly`')
-    async def monthly_credits(self,ctx):
-        user=ctx.author
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        amt = 2000
-        await ctx.reply(f"**{amt} credits** were added to your account.")   
-        await ImportantFunctions.add_credits(user=user,amt=amt)
-    
+ 
     
 
     @commands.cooldown(1,30, commands.BucketType.user)
-    @commands.command(name="Give",aliases=["pay"], help='Give your credits to others\nFormat: `?Give @user amount_to_give`\nAlias: `pay`')
+    @commands.command(name="Give",aliases=["pay"], help='Give your credits to others. Boost badges are not applicable for this command')
     async def give(self,ctx,user_mentioned:discord.Member,amt:str):
+        '''Allows a user to give their money to another person'''
         user=ctx.author
-        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-        user_account = await ImportantFunctions.get_user_info(user)
-        await ImportantFunctions.create_account(user_mentioned)
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+        credits = await UserDatabaseFunctions.get_user_credits(user)
 
         try:
             amt=int(amt)
         except:
             if amt.lower() == "all":
-                amt=user_account["credits"]
+                amt=credits
 
             elif any(letter in amt.lower() for letter in ["k","m","b"]):
                 def convert_str_to_number(x):
@@ -378,9 +544,7 @@ class Economy(commands.Cog):
                 amt=convert_str_to_number(amt)
             
             else:
-                raise InvalidArgument()
-
-        #badge = await ImportantFunctions.check_if_has_badge(user=user_mentioned,badge_name="Double Credits Badge")
+                raise discord.errors.InvalidArgument()
         
         if amt<=0:
             await ctx.reply(f"You can't give zero or negative credits, dum-dum")
@@ -394,28 +558,54 @@ class Economy(commands.Cog):
             await ctx.reply(f"Bots don't have accounts dum dum.")
             ctx.command.reset_cooldown(ctx)
         
-        elif amt > user_account["credits"]:
+        elif amt > credits:
             await ctx.reply(f"You can't give what you don't have.")
             ctx.command.reset_cooldown(ctx)
         
-        #checks if the person you are giving it to has a boost role.
-        elif await ImportantFunctions.check_if_has_badge(user=user_mentioned,badge_name="Double Credits Badge"):
-            await ctx.reply(f"The person you are giving the credits to has a Boosted badge. Try again later.")
-            ctx.command.reset_cooldown(ctx)
         
         else:
-            await ImportantFunctions.add_credits(user=user,amt=-amt)   
-            await ImportantFunctions.add_credits(user=user_mentioned,amt=amt)  
-            await ctx.reply(f"{user.mention} gave {user_mentioned.mention}, **{amt} credits**.")     
+            await UserDatabaseFunctions.give(user_giving=user,user_taking=user_mentioned,amt=amt,boost_check=False)
+            await ctx.reply(f"{user.name} gave {user_mentioned.name}, **{amt} credits**.")     
+
+    @checks.CustomCooldown(key="last_daily_command",delay=24*60*60)
+    @commands.command(name="Daily", help='Get some bonus coins everyday.')
+    async def daily_credits(self,ctx):
+        '''Daily check in reward'''
+        user=ctx.author
+        amt = 50
+        await ctx.reply(f"**{amt} credits** were added to your account.")   
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+        await UserDatabaseFunctions.add_credits(user=user,amt=amt)
+    
+    @checks.CustomCooldown(key="last_weekly_command",delay=24*60*60*7)
+    @commands.command(name="Weekly", help='Get some bonus coins every week.')
+    async def weekly_credits(self,ctx):
+        '''Weekly check in reward'''
+        user=ctx.author
+        amt = 500
+        await ctx.reply(f"**{amt} credits** were added to your account.")   
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+        await UserDatabaseFunctions.add_credits(user=user,amt=amt)
+    
+    @checks.CustomCooldown(key="last_monthly_command",delay=24*60*60*30)
+    @commands.command(name="Monthly", help='Get some bonus coins every month.')
+    async def monthly_credits(self,ctx):
+        '''Monthly check in reward'''
+        user=ctx.author
+        amt = 2000
+        await ctx.reply(f"**{amt} credits** were added to your account.")   
+        UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
+        await UserDatabaseFunctions.add_credits(user=user,amt=amt)
+    
 
     @commands.guild_only()
-    @commands.group(name="Leaderboard",aliases=["lb","lboard"],help=f"Shows the server leaderboard\nFormat: `{config.prefix}Leaderboard subcommand`\nSubcommands: `Karma`, `Credits`\nAliases: `lb`, `lboard`",case_insensitive=True,invoke_without_command=True)   
+    @commands.group(name="Leaderboard",aliases=["lb","lboard"],help=f"Shows the server leaderboard",case_insensitive=True,invoke_without_command=True)   
     async def leaderboard(self,ctx,page:int=1):
         await self.karma_leaderboard(ctx,page)
  
-    @leaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the server leaderboard according to the credits.\nFormat: `{config.prefix}Leaderboard credits`\nAliases: `credit`, `creds`, `cred`")
+    @leaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the server leaderboard according to the credits.")
     async def credits_leaderboard(self,ctx,page:int=1,globallb=False):
-        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
+        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard...",colour = random.choice(colourlist)))
         formated_list = await self.get_leaderboard("credits")
         top=formated_list[page*10-10:page*10]
         top_string=""
@@ -429,13 +619,13 @@ class Economy(commands.Cog):
         if len(top_string) == 0:#is space/blank/None
             top_string = "There are no entries in your leaderboard."
         
-        embed=discord.Embed(title=f"Credits Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
+        embed=discord.Embed(title=f"Credits Leaderboard",description=f"{top_string}",colour = random.choice(colourlist))
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await sent_msg.edit(embed=embed)
 
-    @leaderboard.command(name="Karma",help=f"Shows the server leaderboard according to the karma.\nFormat: `{config.prefix}Leaderboard karma`")
+    @leaderboard.command(name="Karma",help=f"Shows the server leaderboard according to the karma.")
     async def karma_leaderboard(self,ctx,page:int=1):
-        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
+        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard...",colour = random.choice(colourlist)))
         formated_list = await self.get_leaderboard("karma")
         top=formated_list[page*10-10:page*10]
         top_string=""
@@ -448,21 +638,21 @@ class Economy(commands.Cog):
         if len(top_string) == 0 :
             top_string = "There are no entries in your leaderboard"
         
-        embed=discord.Embed(title=f"Karma Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
+        embed=discord.Embed(title=f"Karma Leaderboard",description=f"{top_string}",colour = random.choice(colourlist))
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await sent_msg.edit(embed=embed)
 
     
     
     @commands.guild_only()
-    @commands.group(name="GlobalLeaderboard",aliases=["glb","gleaderboard","glboard"],help=f"Shows the global leaderboard\nFormat: `{config.prefix}Leaderboard subcommand`\nSubcommands: `Karma`, `Credits`\nAliases: `glb`, `glboard`, `gleaderboard`",case_insensitive=True,invoke_without_command=True)   
+    @commands.group(name="GlobalLeaderboard",aliases=["glb","gleaderboard","glboard"],help=f"Shows the global leaderboard",case_insensitive=True,invoke_without_command=True)   
     async def gloablleaderboard(self,ctx,page:int=1):
         await self.karma_globalleaderboard(ctx,page)
 
     
-    @gloablleaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the global leaderboard according to the credits.\nFormat: `{config.prefix}GlobalLeaderboard credits`\nAliases: `credit`, `creds`, `cred`")
+    @gloablleaderboard.command(name="Credits",aliases=["credit","creds","cred"],help=f"Shows the global leaderboard according to the credits.")
     async def credits_globalleaderboard(self,ctx,page:int=1):
-        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
+        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Global Leaderboard",description=f"Fetching the server leaderboard...",colour = random.choice(colourlist)))
         top = await self.get_leaderboard("credits",offset=page*10-10)
         top_string=""
         for entry in top:
@@ -477,13 +667,13 @@ class Economy(commands.Cog):
         if len(top_string) == 0:#is space/blank/None
             top_string = "There are no entries in your leaderboard."
         
-        embed=discord.Embed(title=f"Credits Global Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
+        embed=discord.Embed(title=f"Credits Global Leaderboard",description=f"{top_string}",colour=random.choice(colourlist))
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await sent_msg.edit(embed=embed)
 
-    @gloablleaderboard.command(name="Karma",help=f"Shows the global leaderboard according to the karma.\nFormat: `{config.prefix}GlobalLeaderboard karma`")
+    @gloablleaderboard.command(name="Karma",help=f"Shows the global leaderboard according to the karma.\nFormat: `{config.default_prefixes[0]}GlobalLeaderboard karma`")
     async def karma_globalleaderboard(self,ctx,page:int=1):
-        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Server Leaderboard",description=f"Fetching the server leaderboard..."))
+        sent_msg = await ctx.reply(embed=discord.Embed(title=f"{config.loading_reaction}   Global Leaderboard",description=f"Fetching the server leaderboard...",colour = random.choice(colourlist)))
         top = await self.get_leaderboard("karma",offset=page*10-10)
         top_string=""
         for entry in top:
@@ -498,7 +688,7 @@ class Economy(commands.Cog):
         if len(top_string) == 0 :
             top_string = "There are no entries in your leaderboard"
         
-        embed=discord.Embed(title=f"Karma Global Leaderboard",colour=random.choice(colourlist),description=f"{top_string}")
+        embed=discord.Embed(title=f"Karma Global Leaderboard",description=f"{top_string}",colour = random.choice(colourlist))
         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")
         await sent_msg.edit(embed=embed)
 
@@ -519,40 +709,7 @@ class Economy(commands.Cog):
                         all_rows = await connection.fetch("SELECT user_id, karma FROM info ORDER BY karma DESC")
                     return all_rows
 
-   #For adding credits for chatting in #main_chat
-    @commands.Cog.listener(name="on_message")
-    async def add_credits_for_sending_messages(self,message):
-        if message.guild.id in config.APPROVED_SERVERS:#if that server is approved/that server has the settings
-            user=message.author
-            if user.bot:
-                return
-            if message.channel.id != config.main_chat_id:
-                return
-            messages = await message.channel.history(limit=5).flatten() 
-            #if previous message is also written by same person
-            count=0
-            for msg in messages:
-                if msg.author == message.author:
-                    count += 1
-            if count >= 3:
-                return
-
-            else:    
-                if str(user.id) in self.messages_count_dict:
-                    if self.messages_count_dict[str(user.id)] >= 5:
-                        self.messages_count_dict[str(user.id)] = 0 #reset messages
-                        #Add credits
-                        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
-                        amt=5
-                        await ImportantFunctions.create_account(user)
-                        await ImportantFunctions.add_credits(user=user,amt=amt)
-                    
-                    else:
-                        self.messages_count_dict[str(user.id)] += 1
-                    
-                else:
-                    self.messages_count_dict[str(user.id)] = 1
-            
+  
    
 
 

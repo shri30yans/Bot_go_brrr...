@@ -59,7 +59,6 @@ awards_list={"Wholesome_Award":Award(name="Wholesome",reaction_id=config.reddit_
                     cost=500),
 
 "Argentinum_Award":Award(name="Argentinum",reaction_id=config.reddit_award_argentinum,
-                    animated_reaction_id=config.reddit_award_argentinum_animated,
                     karma_given_to_receiver=random.randint(200,300),karma_given_to_giver=random.randint(70,100),
                     credits_given_to_receiver=random.randint(200,250),
                     description="Latin for distinguished, it’s for those who deserve outsized recognition.\n(Posts to starboard and awards the reciever coins)",
@@ -67,7 +66,6 @@ awards_list={"Wholesome_Award":Award(name="Wholesome",reaction_id=config.reddit_
                     cost=1000),
 
 "Ternion_Award":Award(name="Ternion",reaction_id=config.reddit_award_ternion,
-                animated_reaction_id= config.reddit_award_ternion_animated,
                 karma_given_to_receiver=random.randint(300,500),
                 karma_given_to_giver=random.randint(100,150),
                 credits_given_to_receiver=random.randint(400,500),

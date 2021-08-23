@@ -20,56 +20,100 @@ class EmbedHelpCommand(commands.HelpCommand):
     # Set the embed colour here
 
     def get_ending_note(self):
-        return 'Use {0}{1} [command] for more info on a command.'.format(self.clean_prefix, self.invoked_with)
+        return f'Usage format: <required> [optional]\nUse {self.clean_prefix}{self.invoked_with} [command] for more info on a command.'
+    
+    def get_bot_help_ending_note(self):
+        return f'Use {self.clean_prefix}{self.invoked_with} [category] for more info on a category.'
 
     def get_command_signature(self, command):
-        return '{0.qualified_name} {0.signature}'.format(command)
+        return f'{command.qualified_name} {command.signature}'
+
+    # def get_format_info(self):
+    #     return f'```diff\n- Usage format: <required> [optional]\n- Don\'t type these brackets to use the command.\n+ {self.clean_prefix}help [command] - get information on a command\n+ {self.clean_prefix}help [category] - get information on a category```'
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='Bot Commands', colour=random.choice(colourlist))
-        description = self.context.bot.description
-        if description:
-            embed.description = description
-
-        for cog, commands in mapping.items():
-            name = 'No Category' if cog is None else cog.qualified_name
+        embed = discord.Embed(title='**Bot Commands**',description="[Invite Link](https://ptb.discord.com/api/oauth2/authorize?client_id=800371434785865789&permissions=1543896182&scope=bot) | [Support Server](https://discord.gg/cDk6pZYQWC) | [Source](https://github.com/shri30yans/Bot_go_brrr...) ",colour=random.choice(colourlist))
+        #embed.add_field(name=f"How to get help", value=f"{self.get_format_info()}",inline=True)
+        for cog,commands in mapping.items():
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                value = '\u2002'.join(c.name for c in commands)
-                if cog and cog.description:
-                    value = '{0}\n{1}'.format(cog.description, value)
+                if cog is None:
+                    pass 
+                else:
+                    name = f"{config.cog_emojis[cog.qualified_name.lower()]} {cog.qualified_name}\n" if cog.qualified_name.lower() in config.cog_emojis else f"{cog.qualified_name}\n"
+                    value = f"`{self.clean_prefix}{self.invoked_with} {cog.qualified_name}`"
+                    
+                    if cog and cog.description:
+                        value = f'{cog.description}\n{value}'
+                    
+                    embed.add_field(name=f"{name}", value=f"{value}\u200b",inline=True)
+            
+                    
+        embed.set_image(url=config.help_animation_link)
+        embed.set_footer(text=self.get_bot_help_ending_note())
+        await self.get_destination().send(embed=embed)
+        
 
-                embed.add_field(name=name, value=value)
 
+        # for cog, commands in mapping.items():
+        #     name = 'No Category' if cog is None else cog.qualified_name
+        #     filtered = await self.filter_commands(commands, sort=True)
+        #     if filtered:
+        #         value = '\u2002'.join(c.name for c in commands)
+        #         if cog and cog.description:
+        #             value = f'{cog.description}\n{value}'
+        #         if name.lower() in config.cog_emojis:
+        #             embed.add_field(name=f"{config.cog_emojis[name.lower()]} {name} [{len(filtered)}]", value=value)
+        #         else:
+        #             embed.add_field(name=f"{name} [{len(filtered)}]", value=value)
+
+
+    async def send_command_help(self,command):
+        embed = discord.Embed(title=f"**{command} help**",description=command.help,colour=random.choice(colourlist))
+        #embed.add_field(name=", value=f"{command.help}", inline=False)
+        
+        
+        embed.add_field(name="Format", value=f"`{self.clean_prefix}{self.get_command_signature(command)}`", inline=False)
+        aliases = command.aliases
+        
+        if aliases:
+            embed.add_field(name="Aliases", value=', '.join([f'`{alias.capitalize()}`' for alias in aliases]), inline=False)
+        
+        embed.set_thumbnail(url=str(self.context.bot.user.avatar_url)) 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
+   
+
     async def send_cog_help(self, cog):
-        embed = discord.Embed(title='{0.qualified_name} Commands'.format(cog), colour=random.choice(colourlist))
+        name = f"{config.cog_emojis[cog.qualified_name.lower()]} {cog.qualified_name}\n" if cog.qualified_name.lower() in config.cog_emojis else f"{cog.qualified_name}\n"
+        embed = discord.Embed(title=f'**{name} Commands**', colour=random.choice(colourlist))
         if cog.description:
             embed.description = cog.description
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
         for command in filtered:
-            embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '...', inline=False)
+            embed.add_field(name=command, value=f"{command.short_doc or '...'}\n`{self.clean_prefix}{self.get_command_signature(command)}`", inline=True)
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group):
-        embed = discord.Embed(title=group.qualified_name, colour=random.choice(colourlist))
+        embed = discord.Embed(title=f"**{group.qualified_name}**", colour=random.choice(colourlist))
+        
         if group.help:
             embed.description = group.help
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
             for command in filtered:
-                embed.add_field(name=self.get_command_signature(command), value=command.short_doc or '...', inline=False)
+                embed.add_field(name=command, value=f"{command.short_doc or '...'}\n`{self.clean_prefix}{self.get_command_signature(command)}`", inline=False)
+
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
 
-    # This makes it so it uses the function above
-    # Less work for us to do since they're both similar.
-    # If you want to make regular command help look different then override it
-    send_command_help = send_group_help
+
+
+  
+

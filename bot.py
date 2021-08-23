@@ -3,11 +3,21 @@ from utils.ErrorHandler import MaintenanceMode, NotApprovedServer
 from discord.ext import commands,tasks
 from utils.help import EmbedHelpCommand
 import config #our config.py
+import json
 if not os.path.isfile("config.py"):
 	sys.exit("'config.py' not found! Please add it and try again.")
 else:
 	import config
 colourlist=config.embed_colours
+
+async def get_prefix(bot, message):
+    ImportantFunctions = bot.get_cog('ImportantFunctions')
+    prefix = await ImportantFunctions.get_server_prefixes_string(message.guild.id)
+    if prefix:
+        return commands.when_mentioned_or(prefix)(bot,message) 
+    else:
+        return commands.when_mentioned_or(config.default_prefixes[0])(bot,message)
+
 
 
 
@@ -15,21 +25,22 @@ colourlist=config.embed_colours
 intents = discord.Intents.default()
 intents.members = True
 intents.presences = True
-bot = commands.Bot(command_prefix=commands.when_mentioned_or(config.prefix),case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+bot = commands.Bot(command_prefix=get_prefix,strip_after_prefix=True,case_insensitive = True,intents = intents,help_command=EmbedHelpCommand())
+bot.Info_Table={}
+bot.server_prefixes={}
+
+
 TOKEN = config.TOKEN
 
 @tasks.loop(minutes=15)
 async def status_update():
     await bot.wait_until_ready()
-    list_of_statuses=[ #discord.Activity(type = discord.ActivityType.playing, name = f'with your Mom'),
+    list_of_statuses=[
                         discord.Activity(type = discord.ActivityType.watching, name = f'Shri30yans Gaming'),
-                        #discord.Activity(type = discord.ActivityType.competing, name = f'the race to gain Karma'),
                         discord.Activity(type = discord.ActivityType.watching, name = f"How to get a PS5?"),
-                        #discord.Activity(type = discord.ActivityType.playing, name = f"minesweeper"),
-                        #discord.Activity(type = discord.ActivityType.listening, name = f"\"Seagulls\", 10 Hour Version"),
                         discord.Activity(type = discord.ActivityType.playing, name = f"Send help"),
                         discord.Activity(type = discord.ActivityType.watching, name = f"Bots go Brrrr..."),
-                        discord.Activity(type = discord.ActivityType.watching, name = f"Cyberpunk on my toaster"),
+                        discord.Activity(type = discord.ActivityType.playing, name = f"Cyberpunk on my toaster"),
 
                         ]
 
@@ -59,11 +70,10 @@ async def owner_only_mode(ctx):
         if owner_check:
             return True
         else:
-            raise MaintenanceMode(user=ctx.author)
+            raise MaintenanceMode()
             
     else:
         return True
-
 
  
 
@@ -87,6 +97,10 @@ class DATABASE_FORMAT:
 
 DATABASE_DETAILS= DATABASE_FORMAT()
 
-asyncpgloop = asyncio.get_event_loop()
-bot.pool = asyncpgloop.run_until_complete(asyncpg.create_pool(database=DATABASE_DETAILS.database,user=DATABASE_DETAILS.user,password=DATABASE_DETAILS.password,host=DATABASE_DETAILS.host,port=DATABASE_DETAILS.port))      
+async def connection_pool():
+    bot.pool = await asyncpg.create_pool(database=DATABASE_DETAILS.database,user=DATABASE_DETAILS.user,password=DATABASE_DETAILS.password,host=DATABASE_DETAILS.host,port=DATABASE_DETAILS.port,max_inactive_connection_lifetime=5)
+    #bot.pool = await asyncpg.create_pool(database=DATABASE_DETAILS.database,user=DATABASE_DETAILS.user,password=DATABASE_DETAILS.password,host=DATABASE_DETAILS.host,port=DATABASE_DETAILS.port)
+    
+bot.loop.run_until_complete(connection_pool())   
+
 bot.run(TOKEN)

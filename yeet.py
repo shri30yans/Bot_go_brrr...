@@ -1,151 +1,176 @@
+# import discord
+# import datetime
+# import contextlib
+# from discord.ext import commands
 
-# @client.command()
-# async def apply(ctx, parameters):
-#   thankyou_application=f'''{ctx.author.mention}**Thank you for Applying!**
 
-# `We will contact you when you are accepted!`'''
+# bot = commands.Bot("hey pika ")
 
-#   application_log_channel=client.get_channel(875569220648316968)
+# class HelpEmbed(discord.Embed): # Our embed with some preset attributes to avoid setting it multiple times
+#     def __init__(self, **kwargs):
+#         super().__init__(**kwargs)
+#         self.timestamp = datetime.datetime.utcnow()
+#         text = "Use help [command] or help [category] for more information | <> is required | [] is optional"
+#         self.set_footer(text=text)
+#         self.color = discord.Color.blurple()
 
-#   warn = '''**Before taking the quiz challenge:**
 
-# *Note that Type our answers in a single message.*'''
-
-#   programmer=['Can you script in python? If so, rate from 1-10 how good you are at python.', 'Do you have any experience in programming, nuking, or raiding in Discord?', 'Write a python script that auto join a Discord account when the the username and password is inputed. Show me proof. Hint: import requests and maybe urllib. (Points will be deducted if there is an error.)', 'Write a python script that sends a message to a Discord webhook. Show me video proof.', 'Do you know how to use Google Form, Google Sheets, Google Slide, Google Doc, and the corresponding APIs for them? List them here.']
-
-#   antiscam_police=['Do you swear not to abuse your power?', 'What would you do if someone (a friend of the owner) started being rude to you (or others) / tried to raid the server?', 'Do you know how to stop a raid or nuke?', 'What if Heromaex(admin) starts to abuse his power and kick/ban everyone, what would you do?', 'If someone were to ask you for a special role, what would you do?', 'If someone try to bribe you in order to have mod access to the server, what would you do?']
-
-#   assignment_manager=['Are you loyal to the group? If so, prove it.', 'What will you do as an Assignment Manager?', 'What experiences do you have as a leader?', 'Do you know anything about Discord raiding and nuking?', 'What if someone tries to bribe you to gain access to the server? What would you do?', 'Do you know how to use Google Form, Google Sheets, Google Slide, and Google Doc?']
-#   if ctx.message.channel.id == 875355578317275206:
-#     if parameters.lower() == 'info':
-#       apply_embed=discord.Embed(title='Apply Commands', description='Pick whatever rank you wish to apply for and run its commands, you will be challenged with a quiz to see if you pass or not. Goodluck!', color=0x2ecc71)
-#       apply_embed.add_field(name='Assignment Manager', value='Type in the following command: `.apply am`', inline=True)
-#       apply_embed.add_field(name='Anti-Scam Police', value='Type in the following command: `.apply asp`', inline=True)
-#       apply_embed.add_field(name='Programmer', value='Type in the following command: `.apply p`', inline=True)
-#       apply_embed.set_footer()
-#       await ctx.send(embed=apply_embed)
-#     elif parameters.lower() == 'help':
-#       await ctx.send('If you wish to apply for a spot in our organization, then fill in your information here to join the Wait list. **Here is the link to Application Form:** https://forms.gle/ew36qawvtatTPiBF9')
-#     elif parameters.lower() == 'am':
-#       warn_am_msg = await ctx.send(warn)
-#       asyncio.sleep(15)
-#       await warn_am_msg.delete()
-#       asyncio.sleep(2)
-#       await ctx.author.send(assignment_manager[0])
-      
-#     def DMChannel_check(m):
-#         if ctx.message.guild==None:
-#             return m.author == ctx.message.author and m.channel == discord.DMChannel
+# class MyHelp(commands.HelpCommand):
+#     def __init__(self):
+#         super().__init__( # create our class with some aliases and cooldown
+#             command_attrs={
+#                 "help": "The help command for the bot",
+#                 "cooldown": commands.Cooldown(1, 3.0, commands.BucketType.user),
+#                 "aliases": ['commands']
+#             }
+#         )
     
-#     await ctx.author.send(assignment_manager[0])
-#     try:
-#         msg = await client.wait_for('message', timeout=240, check=DMChannel_check)
-#     except:
-#         print("error")
-#     else:
-#         print(msg.content)
+#     async def send(self, **kwargs):
+#         """a short cut to sending to get_destination"""
+#         await self.get_destination().send(**kwargs)
+
+#     async def send_bot_help(self, mapping):
+#         """triggers when a `<prefix>help` is called"""
+#         ctx = self.context
+#         embed = HelpEmbed(title=f"{ctx.me.display_name} Help")
+#         embed.set_thumbnail(url=ctx.me.avatar_url)
+#         usable = 0 
+
+#         for cog, commands in mapping.items(): #iterating through our mapping of cog: commands
+#             if filtered_commands := await self.filter_commands(commands): 
+#                 # if no commands are usable in this category, we don't want to display it
+#                 amount_commands = len(filtered_commands)
+#                 usable += amount_commands
+#                 if cog: # getting attributes dependent on if a cog exists or not
+#                     name = cog.qualified_name
+#                     description = cog.description or "No description"
+#                 else:
+#                     name = "No Category"
+#                     description = "Commands with no category"
+
+#                 embed.add_field(name=f"{name} Category [{amount_commands}]", value=description)
+
+#         embed.description = f"{len(bot.commands)} commands | {usable} usable" 
+
+#         await self.send(embed=embed)
+
+#     async def send_command_help(self, command):
+#         """triggers when a `<prefix>help <command>` is called"""
+#         signature = self.get_command_signature(command) # get_command_signature gets the signature of a command in <required> [optional]
+#         embed = HelpEmbed(title=signature, description=command.help or "No help found...")
+
+#         if cog := command.cog:
+#             embed.add_field(name="Category", value=cog.qualified_name)
+
+#         can_run = "No"
+#         # command.can_run to test if the cog is usable
+#         with contextlib.suppress(commands.CommandError):
+#             if await command.can_run(self.context):
+#                 can_run = "Yes"
+            
+#         embed.add_field(name="Usable", value=can_run)
+
+#         if command._buckets and (cooldown := command._buckets._cooldown): # use of internals to get the cooldown of the command
+#             embed.add_field(
+#                 name="Cooldown",
+#                 value=f"{cooldown.rate} per {cooldown.per:.0f} seconds",
+#             )
+
+#         await self.send(embed=embed)
+
+#     async def send_help_embed(self, title, description, commands): # a helper function to add commands to an embed
+#         embed = HelpEmbed(title=title, description=description or "No help found...")
+
+#         if filtered_commands := await self.filter_commands(commands):
+#             for command in filtered_commands:
+#                 embed.add_field(name=self.get_command_signature(command), value=command.help or "No help found...")
+           
+#         await self.send(embed=embed)
+
+#     async def send_group_help(self, group):
+#         """triggers when a `<prefix>help <group>` is called"""
+#         title = self.get_command_signature(group)
+#         await self.send_help_embed(title, group.help, group.commands)
+
+#     async def send_cog_help(self, cog):
+#         """triggers when a `<prefix>help <cog>` is called"""
+#         title = cog.qualified_name or "No"
+#         await self.send_help_embed(f'{title} Category', cog.description, cog.get_commands())
         
-#     await ctx.author.send(assignment_manager[1])
-#     try:
-#         msg = await client.wait_for('message', timeout=240, check=DMChannel_check)
-#     except:
-#         print("error")
-#     else:
-#         print(msg.content)
-    
-#     await ctx.author.send(assignment_manager[2])
-#     am_msg_3 = await client.wait_for('message', timeout=300, check=DMChannel_check)
-#     print(am_msg_3)
-    
-#     await ctx.send(assignment_manager[3])
-#     am_msg_4 = await client.wait_for('message', timeout=60, check=DMChannel_check)
-    
-#     await ctx.send(assignment_manager[4])
-#     am_msg_5 = await client.wait_for('message', timeout=360, check=DMChannel_check)
-    
-#     await ctx.send(assignment_manager[5])
-#     am_msg_6 = await client.wait_for('message', timeout=60, check=DMChannel_check)
-    
-#     await ctx.send(thankyou_application)
 
-#     apply_am_embed=discord.Embed(title='Application for Assignment Manager', description=f'''User: {ctx.author.mention}''', color=0x7289da)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[0]}', value=f'A: {am_msg.content}', inline=False)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[1]}', value=f'A: {am_msg_2.content}', inline=False)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[2]}', value=f'A: {am_msg_3.content}', inline=False)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[3]}', value=f'A: {am_msg_4.content}', inline=False)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[4]}', value=f'A: {am_msg_5.content}', inline=False)
-#     apply_am_embed.add_field(name=f'Q: {assignment_manager[5]}', value=f'A: {am_msg_6.content}', inline=False)
-#     await application_log_channel.send(embed=apply_am_embed)
-#         elif parameters.lower() == 'asp':
-#       warn_asp_msg = await ctx.send(warn)
-#       time.sleep(15)
-#       await warn_asp_msg.delete()
-#       time.sleep(2)
-#       await ctx.send(antiscam_police[0])
-#       def asp(m):
-#         return m.author == ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg = await client.wait_for('message', timeout=60, check=asp)
-#       await ctx.send(antiscam_police[1])
-#       def asp_2(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg_2 = await client.wait_for('message', timeout=300, check=asp_2)
-#       await ctx.send(antiscam_police[2])
-#       def asp_3(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg_3 = await client.wait_for('message', timeout=60, check=asp_3)
-#       await ctx.send(antiscam_police[3])
-#       def asp_4(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg_4 = await client.wait_for('message', timeout=300, check=asp_4)
-#       await ctx.send(antiscam_police[4])
-#       def asp_5(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg_5 = await client.wait_for('message', timeout=240, check=asp_5)
-#       await ctx.send(antiscam_police[5])
-#       def asp_6(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       asp_msg_6 = await client.wait_for('message', timeout=360, check=asp_6)
-#       await ctx.send(thankyou_application)
-#       apply_asp_embed=discord.Embed(title='Application for Anti-Scam Police', description=f'''User: {ctx.author.mention}''', color=0x7289da)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[0]}', value=f'A: {asp_msg.content}', inline=False)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[1]}', value=f'A: {asp_msg_2.content}', inline=False)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[2]}', value=f'A: {asp_msg_3.content}', inline=False)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[3]}', value=f'A: {asp_msg_4.content}', inline=False)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[4]}', value=f'A: {asp_msg_5.content}', inline=False)
-#       apply_asp_embed.add_field(name=f'Q: {antiscam_police[5]}', value=f'A: {asp_msg_6.content}', inline=False)
-#       await application_log_channel.send(embed=apply_asp_embed)
-#     elif parameters.lower() == 'p':
-#       warn_p_msg = await ctx.send()
-#       time.sleep(15)
-#       await warn_p_msg.delete()
-#       time.sleep(2)
-#       await ctx.send(programmer[0])
-#       def p(m):
-#         return m.author == ctx.message.author and m.channel == ctx.message.channel
-#       p_msg = await client.wait_for('message', timeout=60, check=p)
-#       await ctx.send(programmer[1])
-#       def p_2(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       p_msg_2 = await client.wait_for('message', timeout=300, check=p_2)
-#       await ctx.send(programmer[2])
-#       def p_3(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel and m.attachments
-#       p_msg_3 = await client.wait_for('message', timeout=60, check=p_3)
-#       await ctx.send(programmer[3])
-#       def p_4(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel and m.attachments
-#       p_msg_4 = await client.wait_for('message', timeout=300, check=p_4)
-#       await ctx.send(programmer[4])
-#       def p_5(m):
-#         return m.author==ctx.message.author and m.channel == ctx.message.channel
-#       p_msg_5 = await client.wait_for('message', timeout=240, check=p_5)
-#       await ctx.send(thankyou_application)
-#       apply_p_embed=discord.Embed(title='Application for Programmer', description=f'''User: {ctx.author.mention}''', color=0x7289da)
-#       apply_p_embed.add_field(name=f'Q: {programmer[0]}', value=f'A: {p_msg.content}', inline=False)
-#       apply_p_embed.add_field(name=f'Q: {programmer[1]}', value=f'A: {p_msg_2.content}', inline=False)
-#       apply_p_embed.add_field(name=f'Q: {programmer[2]}', value=f'A: {p_msg_3.attachments}', inline=False)
-#       apply_p_embed.add_field(name=f'Q: {programmer[3]}', value=f'A: {p_msg_4.attachments}', inline=False)
-#       apply_p_embed.add_field(name=f'Q: {programmer[4]}', value=f'A: {p_msg_5.content}', inline=False)
-#       await application_log_channel.send(embed=apply_p_embed)
-#   else:
-#     await ctx.send('You are not allowed to use this command in this channel!')
+# bot.help_command = MyHelp()
+
+  
+import json
+from types import MappingProxyType
+
+import discord
+from discord.ext import commands
+
+
+# Here's a link to the original source https://gist.github.com/StudioMFTechnologies/ad41bfd32b2379ccffe90b0e34128b8b. This has been eddited
+
+
+class Help(commands.Cog, name="Help"):
+    """The help command!"""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(pass_context=True)
+    async def help(self, ctx, *, command=None):
+        """Gets all category and commands of mine."""
+        prefix = self.bot.command_prefix  # If you are using a bot with customizable prefixes, change the prefix here.
+        try:
+            if command is None:
+                """Command listing.  What more?"""
+                halp = discord.Embed(color=discord.Color.dark_blue())
+                halp.set_author(name="All commands", icon_url=self.bot.user.avatar_url)
+                mp = MappingProxyType(self.bot.cogs)
+                for x in self.bot.cogs:
+                    if x.lower() == "help":
+                        continue
+                    cog_info = mp[x]
+                    all_commands = []
+                    for y in cog_info.walk_commands():
+                        all_commands.append(f"`{y.name}`")
+                    halp.add_field(name=x, value=", ".join(all_commands), inline=False)
+                halp.set_footer(text=f"To find out more about a command please do: {prefix}help <command name>")
+                await ctx.send(embed=halp)
+            else:
+                """Command listing within a category."""
+                found = False
+                for x in self.bot.walk_commands():
+                    if x.name.lower() == command.lower():
+                        params = []
+                        paramsDict = list(x.clean_params.items())
+                        for i in range(len(x.clean_params)):
+                            if str(paramsDict[i][1])[-5:] == "=None":
+                                params.append(f"[{str(paramsDict[i][0])}]")
+                            else:
+                                params.append(f"<{str(paramsDict[i][0])}>")
+                        aliases = []
+                        for alias in x.aliases:
+                            aliases.append(f"`{alias}`")
+                        halp = discord.Embed(color=discord.Color.dark_blue())
+                        halp.set_author(name=f"{prefix}{x.name} info", icon_url=self.bot.user.avatar_url)
+                        halp.add_field(name="Description:", value=x.help, inline=False)
+                        halp.add_field(name="Usage:", value=f"`{prefix}{x.name} {' '.join(params)}`", inline=False)
+                        if aliases:
+                            halp.add_field(name="Aliases", value=', '.join(aliases), inline=False)
+                        await ctx.send(embed=halp)
+                        return
+                if not found:
+                    """Reminds you if that category doesn't exist."""
+                    halp = discord.Embed(title='Error!', description=f'Command `{command}` was not found.',
+                                         color=discord.Color.red())
+                    await ctx.send(embed=halp)
+                else:
+                    # await ctx.message.add_reaction(emoji='✔️')
+                    pass
+        except ValueError:
+            await ctx.send("Excuse me, I can't send embeds.")
+
+
+def setup(bot):
+    bot.add_cog(Help(bot))
