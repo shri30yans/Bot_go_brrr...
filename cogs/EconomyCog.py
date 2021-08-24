@@ -357,7 +357,7 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get free karma or maybe even lose a couple of hundred credits.')
     async def wheel(self,ctx):
         '''Spin the Wheel of Fortume for a chance to get free credits and karma'''
-        images_dir="Images/Wheel_of_fortune"
+        images_dir="images/Wheel_of_fortune"
         wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Credits_Boost","Karma_Boost"]
         random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,15,15,15,10,10),k=1)[0]
          
