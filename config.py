@@ -13,7 +13,6 @@ default_prefixes=["lol"]
 APPROVED_SERVERS=[748786284373475358,]
 #BLACKLIST = []
 #List of Cogs to run on startup;
-help_animation_link="https://media.giphy.com/media/jGPb050sylyTulVFOi/giphy.gif"
 STARTUP_COGS = [
     "cogs.UtilityCog","cogs.EventsCog","cogs.EconomyCog","cogs.RandomCog","cogs.ModerationCog","cogs.ReactionCog","cogs.SettingsCog","cogs.StarboardCog","cogs.OwnerCog","core.ImportantFunctions","core.StarboardFunctions","core.UserDatabaseFunctions","jishaku","utils.ErrorHandler"
     ]
@@ -65,8 +64,6 @@ cog_emojis={"utility":"<:utility:878323140793630770>",
 
 meme_score_needed_to_pin=7
 
-
-#Emojis
 credits_emoji="<:credit:873523287760699412>"
 
 
@@ -78,10 +75,19 @@ moderator_role_id=748786284385796121
 guild_join_update_channel_id=878520341109039105
 guild_leave_update_channel_id=878520393118408704
 
+#images
+spin_the_wheel_images={ "Free_Credits":["https://i.imgur.com/Xx3W9QO.jpg"],
+                        "Deduct_Credits":["https://i.imgur.com/oNBioRL.gif"],
+                        "Free_Karma":["https://i.imgur.com/yvZC5MZ.jpg","https://i.imgur.com/SibjIPI.gif"],
+                        "Deduct_Karma":["https://i.imgur.com/8Nq6YET.jpg"],
+                        "Karma_Boost":["https://i.imgur.com/MShIfx2.gif"],
+                        "Credits_Boost":["https://i.imgur.com/lVXZksi.jpg"],
+                        "Nothing":["https://i.imgur.com/ODqbz84.jpg"],
+}
+help_animation_link="https://media.giphy.com/media/jGPb050sylyTulVFOi/giphy.gif"
 
 
 #to run the events
-#run_event=True
 run_event=True
 maintenance_mode=False  #locks all commands to owner only
 

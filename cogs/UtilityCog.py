@@ -65,35 +65,12 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
     @commands.cooldown(1,10, commands.BucketType.user)
     @commands.command(name="Uptime",help=f"Shows the amount of time the bot has been up.")
     async def uptime(self,ctx):
-        async def convert(seconds):
-                days = seconds // (3600 *24)
-                seconds %= (3600*24)
-                hours = seconds // 3600
-                seconds %= 3600
-                minutes = seconds // 60
-                seconds %= 60
-                string = ""
-                d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
-                revised_d={}
-                string=""
-                for unit in list(d):
-                    if d[unit] != 0:
-                        revised_d[unit] = d[unit]
-                
-                for unit in list(revised_d):
-                    string += f"{revised_d[unit]} {unit}"
-                    if len(revised_d) > 1:
-                        if list(revised_d)[-2] == unit:
-                            string += " and "
-                        elif list(revised_d)[-1] == unit:
-                            pass
-                        else:
-                            string += ", "
-
-                return string
-        delta_uptime = datetime.utcnow() - self.bot.launch_time
-        string = await convert(int(delta_uptime.total_seconds()))
-        await ctx.reply(f"{self.bot.user.name} has been up for {string}")
+        time =await self.find_time_difference(self.bot.launch_time)
+        
+        # delta_uptime = datetime.utcnow() - self.bot.launch_time
+        # string = await self.convert(int(delta_uptime.total_seconds()))
+        #await ctx.reply(f"{self.bot.user.name} has been up for {string}")
+        await ctx.reply(time)
         
 
     
@@ -149,7 +126,7 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
                         members_offline+=1
 
                     
-                    created_at_time=self.time_format_function(ctx.guild.created_at)
+                    created_at_time=await self.time_format_function(ctx.guild.created_at)
             total_members= members_online+ members_offline + members_idle + members_dnd
 
             embed.add_field(name="**Statistics:**",
@@ -164,7 +141,7 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
         user_mention = user or ctx.author
         embed=discord.Embed(title = f"{user_mention.name}",color =random.choice(colourlist), timestamp=ctx.message.created_at)
         embed.add_field(name="Status:",value=f"`{user_mention.raw_status.capitalize()}`")
-        joined_on_time=self.time_format_function(user_mention.joined_at)
+        joined_on_time=await self.time_format_function(user_mention.joined_at)
         embed.add_field(name="Joined server at:",value=f"`{joined_on_time}`")
         embed.add_field(name="Nickname:",value=f"`{str(user_mention.nick)}`")
         if user_mention.is_on_mobile():
@@ -172,7 +149,9 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
         else:
             device = "💻 Desktop"
         embed.add_field(name="Device:",value=f"`{device}`")
-        made_on_time=self.time_format_function(user_mention.created_at)
+
+        made_on_time=await self.time_format_function(user_mention.created_at)
+        time_ago=await self.find_time_difference(user_mention.created_at)
         embed.add_field(name="Account made on:",value=f"`{made_on_time}`")
         embed.add_field(name="User ID:",value=f"`{user_mention.id}`")
         #embed.add_field(name="",value=f"{user_mention.}")
@@ -193,7 +172,41 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
         embed.set_image(url=user_mention.avatar_url)
         author_avatar=ctx.author.avatar_url
         embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
-        await ctx.send(embed=embed)    
+        await ctx.send(embed=embed)  
+
+    async def find_time_difference(self,datetime_object):
+        difference = datetime.utcnow() - datetime_object
+        return difference
+
+        # string = await self.convert(int(delta_uptime.total_seconds()))
+        # async def convert(seconds):
+        #     days = seconds // (3600 *24)
+        #     seconds %= (3600*24)
+        #     hours = seconds // 3600
+        #     seconds %= 3600
+        #     minutes = seconds // 60
+        #     seconds %= 60
+        #     string = ""
+        #     d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+        #     revised_d={}
+        #     string=""
+        #     for unit in list(d):
+        #         if d[unit] != 0:
+        #             revised_d[unit] = d[unit]
+            
+        #     for unit in list(revised_d):
+        #         string += f"{revised_d[unit]} {unit}"
+        #         if len(revised_d) > 1:
+        #             if list(revised_d)[-2] == unit:
+        #                 string += " and "
+        #             elif list(revised_d)[-1] == unit:
+        #                 pass
+        #             else:
+        #                 string += ", "
+        #     if string == "":
+        #         string = "1 second"
+
+        #     return string  
      
           
     
@@ -458,12 +471,8 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
 
 
     
-    def time_format_function(self,time):
+    async def time_format_function(self,time):
         time_inputted = time
-        time_inputted.strftime("%Y")
-        time_inputted.strftime("%m")
-        time_inputted.strftime("%d")
-        time_inputted.strftime("%H:%M:%S")
         output_time = time_inputted.strftime("%d/%m/%Y (D/M/Y), %H:%M:%S")
         return output_time
            

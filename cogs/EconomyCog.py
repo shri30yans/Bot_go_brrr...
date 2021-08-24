@@ -357,9 +357,13 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
     @commands.command(name="Spin",aliases=["stw","wheel"], help=f'Spin the wheel of fortune to get free karma or maybe even lose a couple of hundred credits.')
     async def wheel(self,ctx):
         '''Spin the Wheel of Fortume for a chance to get free credits and karma'''
-        images_dir="images/Wheel_of_fortune"
         wheel_outcomes=["Nothing","Free_Credits","Free_Karma","Deduct_Karma","Deduct_Credits","Credits_Boost","Karma_Boost"]
         random_wheel_outcome=random.choices(wheel_outcomes,weights=(20,15,15,15,15,10,10),k=1)[0]
+
+        async def get_image_url(key):
+            images_list= config.spin_the_wheel_images[key]
+            image_url = random.choice(images_list)
+            return image_url
          
         if random_wheel_outcome == "Free_Credits":
             user=ctx.author 
@@ -368,11 +372,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             
             options=[f"You committed Tax Fraud and got {amt} credits!",f"The mafia decided to give you some dough. You got {amt} credits",f"It's your Birthday! You got {amt} credits.",f"Here is a GET OUT OF JAIL CARD. Collect {amt} as you go."]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
-            random_picture=random.choice(os.listdir(f"{images_dir}/Free_Credits/")) 
-            path=f"{images_dir}/Free_Credits/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
            
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.add_credits(user=user,amt=amt)
@@ -385,11 +387,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             options=[f"God messed up the balance sheet and you get {amt} Karma!",f"You got free {amt} karma for breathing. Yay!",f"You got {amt} free Karma.",]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
             
-            random_picture=random.choice(os.listdir(f"{images_dir}/Free_Karma/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
             
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.add_karma(user=user,amt=amt)
@@ -401,11 +401,10 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             
             options=[f"The IRS raided your house. You lost {amt} credits.",f"You lost {amt} credits!",f"You got a GO TO JAIL CARD and paid {amt} credits for bail.",]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
-            random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Credits/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
             
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.add_credits(user=user,amt=-(amt))
@@ -418,11 +417,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             options=[f"You posted a shit meme and lost {amt} Karma.",f"You lost {amt} Karma for fun.",f"Karma? Who needs that? You lost {amt} karma.",]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
             
-            random_picture=random.choice(os.listdir(f"{images_dir}/Deduct_Karma/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
             
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.add_karma(user=user,amt=-(amt))
@@ -431,11 +428,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             user=ctx.author 
             options=[f"You get a Credit boost!\nAny Credits you earn in the next 30 minutes are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=random.choice(colourlist))
-            random_picture=random.choice(os.listdir(f"{images_dir}/Credits_Boost/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
             
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Credits Badge",action="add")
@@ -446,11 +441,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             user=ctx.author 
             options=[f"You get a Karma boost!\nAny Karma you earn in the next 30 minutes are doubled!"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune!",description=f"{random.choice(options)}",colour=random.choice(colourlist))
-            random_picture=random.choice(os.listdir(f"{images_dir}/Karma_Boost/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
             
             UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
             await UserDatabaseFunctions.edit_badges(user=user,badge_name="Double Karma Badge",action="add")
@@ -464,12 +457,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             
             options=[f"You win nothing lol.","You get absolutely nothing. Congrats!","Here you go. Have a nothing !"]
             embed=discord.Embed(title=f"{ctx.author.name} has spinned the Wheel of Fortune",description=random.choice(options),colour=random.choice(colourlist))
-            random_picture=random.choice(os.listdir(f"{images_dir}/Nothing/")) 
-            path=f"{images_dir}/{random_wheel_outcome}/{random_picture}"
-            image = discord.File(path, filename=random_picture)
-            embed.set_image(url=f"attachment://{random_picture}")
-            await ctx.reply(embed=embed,file=image)
-
+            random_picture= await get_image_url(random_wheel_outcome)
+            embed.set_image(url=random_picture)
+            await ctx.reply(embed=embed)
         
 
     # @commands.cooldown(1,20, commands.BucketType.user)

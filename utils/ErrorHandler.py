@@ -35,21 +35,20 @@ class CommandErrorHandler(commands.Cog):
         #         return False
         
         async def CooldownFunction(ctx):
-            async def convert(seconds):
-                days = seconds // (3600 *24)
-                seconds %= (3600*24)
-                hours = seconds // 3600
-                seconds %= 3600
-                minutes = seconds // 60
-                seconds %= 60
-                string = ""
+            def convert(seconds):
+                
+                days, seconds = divmod(seconds, 86400)
+                hours, seconds = divmod(seconds, 3600)
+                minutes, seconds = divmod(seconds, 60)
                 d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+                
                 revised_d={}
                 string=""
                 for unit in list(d):
                     if d[unit] != 0:
                         revised_d[unit] = d[unit]
                 
+                #Units and conjuctions
                 for unit in list(revised_d):
                     string += f"{revised_d[unit]} {unit}"
                     if len(revised_d) > 1:
@@ -59,10 +58,11 @@ class CommandErrorHandler(commands.Cog):
                             pass
                         else:
                             string += ", "
-
+                if string == "":
+                    string = "1 second"
                 return string
 
-            retry_after=await convert(int(error.retry_after))
+            retry_after= convert(int(error.retry_after))
             embed=discord.Embed(title="⚠️ | Command on Cooldown",color = random.choice(colourlist))
             embed.add_field(name="Slow down there, Romeo :rose: :race_car:", value=f"Please wait before using {ctx.command} command again.\nYou can use this command in **{retry_after}** again.", inline=False)
             embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
