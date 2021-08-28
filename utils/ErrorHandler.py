@@ -1,4 +1,5 @@
 import discord,random,traceback,sys,asyncio
+import datetime
 from discord.ext import commands
 import config 
 colourlist=config.embed_colours
@@ -36,11 +37,13 @@ class CommandErrorHandler(commands.Cog):
         
         async def CooldownFunction(ctx):
             def convert(seconds):
-                
-                days, seconds = divmod(seconds, 86400)
-                hours, seconds = divmod(seconds, 3600)
-                minutes, seconds = divmod(seconds, 60)
-                d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+                td = datetime.timedelta(seconds=seconds)
+                years,remainder = divmod(td.days,365)   
+                months,days = divmod(remainder,30)
+                hours, remainder = divmod(td.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)        
+                d={"years":years,"months":months,"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+                #print(d)
                 
                 revised_d={}
                 string=""

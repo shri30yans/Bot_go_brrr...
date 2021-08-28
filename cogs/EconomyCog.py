@@ -206,18 +206,26 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
                 
                 await award_message.clear_reactions()
                 await award_message.edit(embed=embed)
-
                 #post to starboard 
                 #has a check to see if Award posts to starboard                                  
                 #await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user_giving,emoji=award_reaction.emoji,reaction_name=award.name,reaction_type="add")
+
+            async def add_award(user_recieving,user_giving,award):
                 await UserDatabaseFunctions.add_karma(user=user_recieving,amt=award.karma_given_to_receiver)
                 await UserDatabaseFunctions.add_karma(user=user_giving,amt=award.karma_given_to_giver)
-                
+
                 await UserDatabaseFunctions.add_credits(user=user_giving,amt = -award.cost)
                 await UserDatabaseFunctions.add_credits(user=user_recieving,amt = award.credits_given_to_receiver)
 
                 await UserDatabaseFunctions.add_awards(user_recieving=user_recieving,user_giving=user_giving,award_name=award.name)
+                
+                ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                await ImportantFunctions.update_logs(type="award",user_id=user_recieving.id,related_user_id=user_giving.id,guild_id = ctx.guild.id,message_id = message.id,channel_id = channel.id,award_name = award.name)
 
+
+               
+            await add_award(user_recieving,user_giving,award)
+            
     
     #@commands.cooldown(1,10, commands.BucketType.user)
     @commands.command(name="Buy", help='Buy a badge')
@@ -347,6 +355,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
                         amt = int(percentage * user_robbing_credits)
                         await UserDatabaseFunctions.give(user_giving=user_robbed,user_taking=user_robbing,amt=amt)
                         await ctx.reply(f"**WHOA YOU HIT THE JACKPOT**{user_robbing.name} stole **{amt} credits** from {user_robbed.name}. {int(percentage*100)}% of their whole credits. Just insane.") 
+                    
+                    ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                    await ImportantFunctions.update_logs(type="rob",user_id=user_robbed.id,related_user_id=user_robbing.id,amt=amt,guild_id = ctx.guild.id)
 
             
                 else:
@@ -519,6 +530,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
         except:
             if amt.lower() == "all":
                 amt=credits
+            
+            elif amt.lower() == "half":
+                amt = credits / 2
 
             elif any(letter in amt.lower() for letter in ["k","m","b"]):
                 def convert_str_to_number(x):
@@ -556,6 +570,8 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
         else:
             await UserDatabaseFunctions.give(user_giving=user,user_taking=user_mentioned,amt=amt,boost_check=False)
             await ctx.reply(f"{user.name} gave {user_mentioned.name}, **{amt} credits**.")     
+            ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+            await ImportantFunctions.update_logs(type="give",user_id=user_mentioned.id,related_user_id=user.id,amt=amt,guild_id = ctx.guild.id)
 
     @checks.CustomCooldown(key="last_daily_command",delay=24*60*60)
     @commands.command(name="Daily", help='Get some bonus coins everyday.')

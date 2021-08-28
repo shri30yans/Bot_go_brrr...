@@ -1,4 +1,5 @@
 import discord,json,random
+from discord import message
 from discord.ext import commands
 import utils.awards as awards
 import utils.badges as badges
@@ -98,7 +99,7 @@ class ImportantFunctions(commands.Cog):
     
     @commands.Cog.listener(name="on_guild_join")
     async def on_guild_join(self,guild):  
-        await self.has_server_entry(guild=guild,action='add')
+        await self.has_server_entry(guild_id=guild.id)
         embed=discord.Embed(color = random.choice(colourlist))
         embed.add_field(name=f"Just joined {guild.name}",value=f"Members:{len(guild.members)} \nID: {guild.id} \n I am now in {str(len(self.bot.guilds))} servers. )") 
         embed.set_thumbnail(url=str(guild.icon_url))
@@ -108,7 +109,7 @@ class ImportantFunctions(commands.Cog):
 
     @commands.Cog.listener(name="on_guild_remove")
     async def on_guild_remove(self,guild):  
-        await self.has_server_entry(guild=guild,action="remove")
+        await self.remove_server_entry(guild_id=guild.id)
         embed=discord.Embed(color = random.choice(colourlist))
         embed.add_field(name=f"Just left {guild.name}",value=f"Members:{len(guild.members)} \nID: {guild.id} \n I am now in {str(len(self.bot.guilds))} servers. )") 
         embed.set_thumbnail(url=str(guild.icon_url))
@@ -117,43 +118,38 @@ class ImportantFunctions(commands.Cog):
         await guild_leave_update_channel.send(embed=embed)
     
     
-    async def has_server_entry(self,guild,action):
+    async def has_server_entry(self,guild_id):
         
-        async def create_new_server_entry(guild):
+        async def create_new_server_entry(guild_id):
             async with self.bot.pool.acquire() as connection:
                 async with connection.transaction():
                     prefixes = json.dumps({"prefixes": ["uwu"]})
                     polls=json.dumps({"polls":[]})
                     starboard=json.dumps({"starboard_posts": [], "stars_required": 6, "starboard_channel_id": None , "self_star": True,"nsfw":False,"private_channel":False,"lock": False, "emoji": ["\u2b50"]})
-                    await connection.execute('INSERT INTO server_info (id,ongoing_polls,starboard,prefixes) VALUES ($1,$2,$3,$4)',guild.id,polls,starboard,prefixes)
+                    await connection.execute('INSERT INTO server_info (id,ongoing_polls,starboard,prefixes) VALUES ($1,$2,$3,$4)',guild_id,polls,starboard,prefixes)
             
-        
-        async def remove_server_entry(guild):
-            async with self.bot.pool.acquire() as connection:
-                async with connection.transaction():
-                    await connection.execute('DELETE FROM server_info WHERE id = $1',guild.id)
         
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
-                server_record = dict(await connection.fetchrow("SELECT EXISTS(SELECT 1 FROM server_info WHERE id=$1)",guild.id))
-                if action == "add":
-                    if server_record["exists"] == False:
-                        await create_new_server_entry(guild)
-                    else:
-                        return 
-                elif action == "remove":
-                    if server_record["exists"] == False:
-                        return
-                    else:
-                        await remove_server_entry(guild)
+                server_record = dict(await connection.fetchrow("SELECT EXISTS(SELECT 1 FROM server_info WHERE id=$1)",guild_id))
+                if server_record["exists"] == False:
+                    await create_new_server_entry(guild_id)
+                else:
+                    return 
 
-               
+    
+    async def remove_server_entry(self,guild_id):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute('DELETE FROM server_info WHERE id = $1',guild_id)
+
 
 
     async def get_server_settings(self,guild_id):
         try:
             return self.bot.Info_Table[guild_id]
         except:
+            await self.has_server_entry(guild_id=guild_id)
             await self.update_server_settings_cache(guild_id)
             return self.bot.Info_Table[guild_id]
 
@@ -163,7 +159,6 @@ class ImportantFunctions(commands.Cog):
             async with connection.transaction():
                 row = await connection.fetchrow("SELECT * FROM server_info WHERE id = $1",guild_id)
                 self.bot.Info_Table[dict(row)["id"]] = dict(row)
-                #print(self.bot.Info_Table)
     
     
     async def update_server_settings_key_cache(self,guild_id,key,value):
@@ -197,6 +192,38 @@ class ImportantFunctions(commands.Cog):
             async with connection.transaction():
                 await connection.execute("UPDATE server_info SET prefixes = $1 WHERE id = $2",new_prefix_json,guild_id)
                 await self.update_server_settings_key_cache(guild_id=guild_id,key="prefixes",value=new_prefix_json)
+
+    async def update_logs(self,type,user_id,related_user_id,guild_id,amt=None,award_name=None,message_id:int=None,channel_id:int=None):
+        '''
+        Types of Actions
+        1) Awards {"award_name":name,"message_id":message.id}
+        2) Robbed {"amt":50000}
+        3) Give {"amt":50000}
+        '''
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                if type == "award":
+                    #awards given user
+                    await connection.execute('INSERT INTO logs (type,user_id,related_user_id,time,guild_id,message_id,award_name,channel_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',type,user_id,related_user_id,datetime.now(),guild_id,message_id,award_name,channel_id)
+                elif type == "robbed":
+                    #robbed from user
+                    await connection.execute('INSERT INTO logs (type,user_id,related_user_id,time,guild_id,amount) VALUES ($1,$2,$3,$4,$5,$6)',type,user_id,related_user_id,datetime.now(),guild_id,amt)
+                elif type == "give":
+                    #given_to_user
+                    await connection.execute('INSERT INTO logs (type,user_id,related_user_id,time,guild_id,amount) VALUES ($1,$2,$3,$4,$5,$6)',type,user_id,related_user_id,datetime.now(),guild_id,amt)
+                
+                
+
+
+
+    async def get_logs(self,user_id,offset):
+         async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                logs = await connection.fetch("SELECT * FROM logs WHERE user_id = $1 ORDER BY time DESC OFFSET $2",user_id,offset)
+                logs_list = [dict(log) for log in logs]
+                return  logs_list
+
+
 
 
    

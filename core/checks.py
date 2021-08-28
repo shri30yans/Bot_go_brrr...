@@ -53,6 +53,41 @@ def CustomCooldown(key,delay):
             return True
     return commands.check(get_last_cooldown)
 
+# def PassiveModeCheck(key,delay):
+#     async def get_last_cooldown(ctx):
+#         UserDatabaseFunctions = ctx.bot.get_cog('UserDatabaseFunctions')
+#         user=ctx.author
+#         async def set_cooldown_to_current(user,key):
+#             async with ctx.bot.pool.acquire() as connection:
+#                 async with connection.transaction():
+#                     user_account = await connection.fetchrow("SELECT cooldown FROM info WHERE user_id=$1",user.id)
+#                     cooldown_info = json.loads(user_account["cooldown"])
+#                     a_datetime = datetime.now()
+#                     formatted_datetime = a_datetime.isoformat()
+#                     cooldown_info[key]=formatted_datetime
+#                     json_datetime = json.dumps(cooldown_info)
+#                     await connection.execute("UPDATE info SET cooldown = $1 WHERE user_id=$2",json_datetime,user.id)
+
+#         cooldown = await UserDatabaseFunctions.get_user_passive_mode(user)
+        
+#         if key in cooldown_info:
+#             isoformat = cooldown_info[key]            
+#             elapsed = datetime.now() - datetime.fromisoformat(isoformat)
+#             seconds_elapsed=int(elapsed.total_seconds())
+#             retry_after=delay-seconds_elapsed
+            
+#             if retry_after <= 0: #Delay - Time elapsed will give less than 0 if the time elapsed since last command is greater than 0
+#                 await set_cooldown_to_current(user=user,key=key)
+#                 return True
+#             else:
+#                 raise CustomCommandOnCooldown(ctx=ctx,user=ctx.author,retry_after=retry_after)
+
+#         else:
+#             await set_cooldown_to_current(user=user,key=key)
+#             return True
+#     return commands.check(get_last_cooldown)
+
+
 async def get_last_robbed_from(ctx,user,delay):
     UserDatabaseFunctions = ctx.bot.get_cog('UserDatabaseFunctions')
     key="last_robbed_from"

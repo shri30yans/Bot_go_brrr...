@@ -32,7 +32,7 @@ class EmbedHelpCommand(commands.HelpCommand):
     #     return f'```diff\n- Usage format: <required> [optional]\n- Don\'t type these brackets to use the command.\n+ {self.clean_prefix}help [command] - get information on a command\n+ {self.clean_prefix}help [category] - get information on a category```'
 
     async def send_bot_help(self, mapping):
-        embed = discord.Embed(title='**Bot Commands**',description="[Invite Link](https://ptb.discord.com/api/oauth2/authorize?client_id=800371434785865789&permissions=1543896182&scope=bot) | [Support Server](https://discord.gg/cDk6pZYQWC) | [Source](https://github.com/shri30yans/Bot_go_brrr...) ",colour=random.choice(colourlist))
+        embed = discord.Embed(title='**Bot Commands**',description="[Invite Link](https://ptb.discord.com/api/oauth2/authorize?client_id=800371434785865789&permissions=1543896182&scope=bot \"Invite me.\") | [Support Server](https://discord.gg/cDk6pZYQWC \"Join our support server for help\") | [Source](https://github.com/shri30yans/Bot_go_brrr... \"My source code\") ",colour=random.choice(colourlist))
         #embed.add_field(name=f"How to get help", value=f"{self.get_format_info()}",inline=True)
         for cog,commands in mapping.items():
             filtered = await self.filter_commands(commands, sort=True)

@@ -23,6 +23,14 @@ class UserDatabaseFunctions(commands.Cog):
                 user_account=dict(user_account)
                 return user_account["cooldown"]
     
+    async def get_user_passive_mode(self,user):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await self.has_account(user)
+                user_account = await connection.fetchrow("SELECT passive FROM info WHERE user_id=$1",user.id)
+                user_account=dict(user_account)
+                return user_account["passive"]
+    
     async def get_user_credits(self,user):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
@@ -30,17 +38,7 @@ class UserDatabaseFunctions(commands.Cog):
                 user_account = await connection.fetchrow("SELECT credits FROM info WHERE user_id=$1",user.id)
                 user_account=dict(user_account)
                 return user_account["credits"]
-    
-    async def get_user_reactions(self,user):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                await self.has_account(user)
-                user_account = await connection.fetchrow("SELECT reactions_given,reactions_received FROM info WHERE user_id=$1",user.id)
-                user_account=dict(user_account)
-                reactions_given=json.loads(user_account["reactions_given"])
-                reactions_received=json.loads(user_account["reactions_received"])
-                return reactions_given,reactions_received
-
+   
     async def get_user_karma(self,user):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
@@ -61,7 +59,7 @@ class UserDatabaseFunctions(commands.Cog):
                     await self.has_account(user_taking) 
                     if boost_check:   
                         amt = await self.check_for_boosts(user_taking,amt,type="credits")
-                    await connection.execute("UPDATE info SET credits = credits + $1 WHERE user_id=$2",-amt,user_giving.id)
+                    await connection.execute("UPDATE info SET credits = credits - $1 WHERE user_id=$2",amt,user_giving.id)
                     await connection.execute("UPDATE info SET credits = credits + $1 WHERE user_id=$2",amt,user_taking.id)
     
     async def has_account(self,user:discord.Member):
@@ -126,12 +124,14 @@ class UserDatabaseFunctions(commands.Cog):
         
         if outcome:
             amt=amt*2
-            return amt
+            return amt*5
         else:
-            return amt
+            return amt*5
 
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
+        await self.has_account(user_recieving) 
+        await self.has_account(user_giving) 
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 
@@ -164,6 +164,7 @@ class UserDatabaseFunctions(commands.Cog):
                     await connection.execute("UPDATE info SET awards_given = $1 WHERE user_id=$2",awards_update,user_giving.id)
 
     async def edit_badges(self,user,badge_name:str,action="add"):
+        await self.has_account(user) 
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 if user.bot:
@@ -186,6 +187,7 @@ class UserDatabaseFunctions(commands.Cog):
                     return True
 
     async def check_if_badges_need_to_be_given(self,user):
+        await self.has_account(user) 
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():
                 if user.bot:
@@ -209,32 +211,6 @@ class UserDatabaseFunctions(commands.Cog):
                 badges_list=badges["badges"]
                 return badge_name in badges_list
                     
-    #Adds reaction count for each perosn
-    async def add_reactions(self,user_recieving,user_giving,reaction_name:str,num):
-        return
-        # await self.has_account(user=user_recieving)
-        # await self.has_account(user=user_giving)
-        # async with self.bot.pool.acquire() as connection:
-        #     async with connection.transaction():
-        #         if user_recieving.bot:#if the user recieving the award is a bot pass
-        #             pass
-        #         else:
-        #             user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_recieving.id)
-        #             user_account= dict(user_account)
-        #             reactions_received=json.loads(user_account["reactions_received"])
-        #             reactions_received[reaction_name]=reactions_received[reaction_name] + num
-        #             reactions_update=json.dumps(reactions_received)
-        #             await connection.execute("UPDATE info SET reactions_received = $1 WHERE user_id=$2",reactions_update,user_recieving.id)
-                
-        #         if user_giving.bot: #if the user giving the award is a bot pass
-        #             pass
-        #         else:
-        #             user_account = await connection.fetchrow("SELECT * FROM info WHERE user_id=$1",user_giving.id)
-        #             user_account= dict(user_account)
-        #             reactions_given=json.loads(user_account["reactions_given"])
-        #             reactions_given[reaction_name]=reactions_given[reaction_name] + num
-        #             reactions_update=json.dumps(reactions_given)
-        #             await connection.execute("UPDATE info SET reactions_given = $1 WHERE user_id=$2",reactions_update,user_giving.id)
 
 def setup(bot):
     bot.add_cog(UserDatabaseFunctions(bot))

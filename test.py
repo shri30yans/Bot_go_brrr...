@@ -59,8 +59,18 @@
 #         if len(x) > 1:
 #             num = float(x[:-1]) * num_map.get(x[-1].upper(), 1)
 #     return int(num)
-# print(convert_str_to_number("1,0,0k"))
-def f():
-    return True
-if f() and True:
-    print(True)
+#print(bool("False"))
+# import datetime
+# td = datetime.timedelta(seconds=9821332332)
+# years,remainder = divmod(td.days,365)   
+# months,days = divmod(remainder,30)
+# hours, remainder = divmod(td.seconds, 3600)
+# minutes, seconds = divmod(remainder, 60)
+# d={"years":years,"months":months,"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
+# print(d)
+l = ["APPLE","BIG_BANANA","ORANGE"]
+# string = ", ".join(for c in l c.lower())
+# string = ", ".join(for )
+# print(string)
+string = ", ".join(x.lower().capitalize().replace("_"," ") for y, x in enumerate(l))
+print(string)

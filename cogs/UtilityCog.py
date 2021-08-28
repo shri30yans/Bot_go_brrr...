@@ -1,10 +1,11 @@
+from core.ImportantFunctions import ImportantFunctions
 import os,discord,platform,random,json,asyncio,re
 from discord.enums import Status
 from discord.ext import commands
 import utils.awards as awards
 import config
 import core.checks as checks
-from datetime import datetime
+import datetime
 import time
 
 colourlist=config.embed_colours
@@ -12,7 +13,7 @@ colourlist=config.embed_colours
 class Utility(commands.Cog,name="Utility",description="Utilty functions"): 
     def __init__(self, bot):
         self.bot = bot
-        self.bot.launch_time = datetime.utcnow()
+        self.bot.launch_time = datetime.datetime.utcnow()
 
     # @commands.cooldown(1, 3, commands.BucketType.user)
     # @commands.command(name="Invite", help='Sends Invite link for bot \n sw invite ')
@@ -102,9 +103,15 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
     @commands.command(name="ServerInfo",aliases=['serverstats','server'], help=f'Finds server stats')
     async def stats(self,ctx):
             embed=discord.Embed(title=f"{ctx.guild.name}",color = random.choice(colourlist),timestamp=ctx.message.created_at)
-            embed.add_field(name="**Information:**",
-                            value=f"\n**Name** : `{ctx.guild.name}`\n**Region** : `{str(ctx.guild.region).capitalize()}`\n**ID** : `{ctx.guild.id}`\n**Owner** : `{str(ctx.guild.owner)}`",inline=False)
-            
+            embed.add_field(name="Name",value=f"{ctx.guild.name}",inline=False)
+            embed.add_field(name="Region",value =f"{str(ctx.guild.region).capitalize()}" ,inline=False)
+            embed.add_field(name="Owner",value =f" {str(ctx.guild.owner)}" ,inline=False)
+            embed.add_field(name="ID",value =f"{ctx.guild.id}",inline=False)
+            embed.add_field(name="Roles",value=f"{len(ctx.guild.roles)}",inline=False)
+            embed.add_field(name="Features" ,value= f"{(', '.join(x.lower().capitalize().replace('_',' ') for y, x in enumerate(ctx.guild.features))) or 'None'} ",inline=False)
+
+
+
             #Member calculator
             members_offline = 0
             members_online= 0
@@ -126,11 +133,12 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
                         members_offline+=1
 
                     
-                    created_at_time=await self.time_format_function(ctx.guild.created_at)
+                    #created_at_time=await self.time_format_function()
+                    time_ago=await self.find_time_difference(ctx.guild.created_at)
             total_members= members_online+ members_offline + members_idle + members_dnd
 
-            embed.add_field(name="**Statistics:**",
-            value=f"**Members** : ``` 😀 {total_members}     Total members\n 🟢 {members_online}      Online \n 🔴 {members_dnd}      Do not disturb \n 🟠 {members_idle}      Idle \n ⚫ {members_offline}     Offline \n 🤖 {no_of_bots}     Bots```\n**Roles** : `{len(ctx.guild.roles)}`\n**Created** : `{created_at_time}`",inline=False)
+            embed.add_field(name="Member",value =f"``` 😀 Total members  {total_members}\n 🟢 Online         {members_online}\n 🔴 Dnd            {members_dnd}\n 🟠 Idle           {members_idle}\n ⚫ Offline        {members_offline}\n 🤖 Bots           {no_of_bots}```",inline=False)
+            embed.add_field(name="Created" ,value= f"{time_ago} ago",inline=False)
             embed.set_thumbnail(url=str(ctx.guild.icon_url)) 
             embed.set_footer(icon_url=ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
             await ctx.reply(embed=embed)
@@ -139,27 +147,49 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
     @commands.command(name="Whois",aliases=["userinfo"], help=f'Shows information of a user')
     async def whois(self,ctx,user:discord.Member=None):
         user_mention = user or ctx.author
-        embed=discord.Embed(title = f"{user_mention.name}",color =random.choice(colourlist), timestamp=ctx.message.created_at)
-        embed.add_field(name="Status:",value=f"`{user_mention.raw_status.capitalize()}`")
-        joined_on_time=await self.time_format_function(user_mention.joined_at)
-        embed.add_field(name="Joined server at:",value=f"`{joined_on_time}`")
-        embed.add_field(name="Nickname:",value=f"`{str(user_mention.nick)}`")
-        if user_mention.is_on_mobile():
-            device = "📱 Mobile"
-        else:
-            device = "💻 Desktop"
-        embed.add_field(name="Device:",value=f"`{device}`")
+        embed=discord.Embed(title = f"{user_mention}",color = random.choice(colourlist), timestamp=ctx.message.created_at)
+        embed.add_field(name="Status:",value=f"{user_mention.raw_status.capitalize()}",inline=True)
+        embed.add_field(name="Nickname:",value=f"{str(user_mention.nick)}",inline=True)
+        embed.add_field(name="User ID:",value=f"{user_mention.id}",inline=False)
 
-        made_on_time=await self.time_format_function(user_mention.created_at)
-        time_ago=await self.find_time_difference(user_mention.created_at)
-        embed.add_field(name="Account made on:",value=f"`{made_on_time}`")
-        embed.add_field(name="User ID:",value=f"`{user_mention.id}`")
+        status_string=""
+        
+        if str(user_mention.mobile_status) != "offline":
+            status_string+="`📱` Mobile\n"
+        
+        if str(user_mention.desktop_status) != "offline":
+            status_string+="`💻` Desktop\n"
+        
+        if str(user_mention.web_status) != "offline":
+            status_string+="`🖥️` Web\n"
+        
+        if status_string == "":
+            status_string = "Offline"
+
+        embed.add_field(name="Device:",value=f"{status_string}",inline=True)
+        join_time_ago=await self.find_time_difference(user_mention.joined_at)
+        embed.add_field(name="Joined server:",value=f"{join_time_ago}",inline=False)
+        create_time_ago=await self.find_time_difference(user_mention.created_at)
+        embed.add_field(name="Account made:",value=f"{create_time_ago} ago",inline=False)
+        top_role = user_mention.top_role
+        if str(top_role) == "@everyone":
+            pass
+        else:
+            top_role = top_role.mention
+
+        embed.add_field(name="Top Role:",value=f"{top_role}",inline=False)
         #embed.add_field(name="",value=f"{user_mention.}")
         embed.set_thumbnail(url=str(user_mention.avatar_url)) 
 
         author_avatar=ctx.author.avatar_url
         embed.set_footer(icon_url= author_avatar,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
         await ctx.reply(embed=embed)
+
+    async def time_format_function(self,time):
+        time_inputted = time
+        output_time = time_inputted.strftime("%d/%m/%Y (D/M/Y), %H:%M:%S")
+        return output_time
+           
     
     @commands.cooldown(1,5, commands.BucketType.user)
     @commands.command(name="Avatar",aliases=['dp', 'pfp','av'], help=f'Shows the avatar of a user')
@@ -175,38 +205,80 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
         await ctx.send(embed=embed)  
 
     async def find_time_difference(self,datetime_object):
-        difference = datetime.utcnow() - datetime_object
-        return difference
+        time_difference = (datetime.datetime.utcnow() - datetime_object)
+        td = datetime.timedelta(seconds=time_difference.total_seconds())
+        years,remainder = divmod(td.days,365)   
+        months,days = divmod(remainder,30)
+        hours, remainder = divmod(td.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        d={"years":years,"months":months,"days":days,"hours":hours,"minutes":minutes}
+        
+        revised_d={}
+        string=""
+        for unit in list(d):
+            if d[unit] != 0:
+                revised_d[unit] = d[unit]
+        
+        #Units and conjuctions
+        for unit in list(revised_d):
+            string += f"{revised_d[unit]} {unit}"
+            if len(revised_d) > 1:
+                if list(revised_d)[-2] == unit:
+                    string += " and "
+                elif list(revised_d)[-1] == unit:
+                    pass
+                else:
+                    string += ", "
+        if string == "":
+            string = "1 second"
+        return string
 
-        # string = await self.convert(int(delta_uptime.total_seconds()))
-        # async def convert(seconds):
-        #     days = seconds // (3600 *24)
-        #     seconds %= (3600*24)
-        #     hours = seconds // 3600
-        #     seconds %= 3600
-        #     minutes = seconds // 60
-        #     seconds %= 60
-        #     string = ""
-        #     d={"days":days,"hours":hours,"minutes":minutes,"seconds":seconds}
-        #     revised_d={}
-        #     string=""
-        #     for unit in list(d):
-        #         if d[unit] != 0:
-        #             revised_d[unit] = d[unit]
+    @commands.cooldown(1,5, commands.BucketType.user)
+    @commands.command(name="Notifications",aliases=["notifs","logs"], help=f'See your notifications')
+    async def notifications(self,ctx,page=1):
+        user= ctx.author
+        ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+        logs = await  ImportantFunctions.get_logs(ctx.author.id,offset=page*10-10)
+        embed=discord.Embed(title = f"{user.name} notifications", color =random.choice(colourlist), timestamp=ctx.message.created_at)  
+        for log in logs:
             
-        #     for unit in list(revised_d):
-        #         string += f"{revised_d[unit]} {unit}"
-        #         if len(revised_d) > 1:
-        #             if list(revised_d)[-2] == unit:
-        #                 string += " and "
-        #             elif list(revised_d)[-1] == unit:
-        #                 pass
-        #             else:
-        #                 string += ", "
-        #     if string == "":
-        #         string = "1 second"
+            if log["type"] == "robbed":    
+                user_related = self.bot.get_user(log["related_user_id"])
+                guild = self.bot.get_guild(log["guild_id"])
+                embed.add_field(name= "You were robbed from!",value= f"{user_related.mention} has stolen **{log['amount']}** credits from you in **{guild.name}**!")
+           
+            elif log["type"] == "give":    
+                user_related = self.bot.get_user(log["related_user_id"])
+                guild = self.bot.get_guild(log["guild_id"])
+                embed.add_field(name= "You were given credits!",value= f"{user_related.mention} has given you **{log['amount']}** credits in **{guild.name}**!")
+            
+            elif log["type"] == "award":    
+                ImportantFunctions = self.bot.get_cog('ImportantFunctions')
+                award = ImportantFunctions.fetch_award(log["award_name"])
 
-        #     return string  
+                user_related = self.bot.get_user(log["related_user_id"])             
+                guild = self.bot.get_guild(log["guild_id"])
+                channel = self.bot.get_channel(log["channel_id"])
+                message = channel.get_partial_message(log["message_id"])
+                if guild is None:
+                    embed.add_field(name= "You were given a award!",value= f"{user_related} has given you a **{award.name}** Award.")
+                elif None in [channel,message]:
+                    embed.add_field(name= "You were given a award!",value= f"{user_related} has given you a **{award.name}** Award in **{guild.name}**!")
+                else:
+                    embed.add_field(name= "You were given a award!",value= f"{user_related} has given you a **{award.name}** Award for this [message]({message.jump_url} \"See the Awarded message.\") in **{guild.name}**!")
+        if len(logs) == 0:
+            embed.add_field(name= "No notifications",value= f"You have no notifcations to show.")
+
+
+        
+        embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name} ")
+        await ctx.send(embed=embed)
+
+
+                
+
+        
+       
      
           
     
@@ -469,13 +541,6 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
             else:
                 return str(text.content)
 
-
-    
-    async def time_format_function(self,time):
-        time_inputted = time
-        output_time = time_inputted.strftime("%d/%m/%Y (D/M/Y), %H:%M:%S")
-        return output_time
-           
 
 def setup(bot):
     bot.add_cog(Utility(bot))

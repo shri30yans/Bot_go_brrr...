@@ -1,6 +1,8 @@
 import discord,random
 from discord.ext import commands
 import config   
+import core.checks as checks
+from utils.ErrorHandler import InvalidSubcommand
     
 colour_list = config.embed_colours
 class Settings(commands.Cog,name="Settings",description="Bot settings"): 
@@ -33,6 +35,14 @@ class Settings(commands.Cog,name="Settings",description="Bot settings"):
             await ctx.send(embed=embed)
             ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
             await ImportantFunctions.update_server_prefix(new_prefix=new_prefix,guild_id=guild_id)
+    
+    @commands.guild_only()
+    @commands.group(name="Settings",invoke_without_command=True,case_insensitive=True,aliases=["usersettings","config"],help=f"Change starboard settings.")
+    async def settings(self,ctx):
+        raise InvalidSubcommand()
+
+
+    @starboard.command(name="Passive",help=f"Toggle the ability to interact with other users.")
 
         
 

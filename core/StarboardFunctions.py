@@ -132,7 +132,7 @@ class StarboardFunctions(commands.Cog):
             embed=discord.Embed(color = random.choice(colourlist),timestamp=message.created_at,description="`This post is in a NSFW channel.\nUse the Jump link to view that post here or make the Starboard channel a NSFW channel for future posts.`" )
         
         embed.set_author(name=message.author.name, icon_url= f"{message.author.avatar_url}")
-        embed.add_field(name="Source:", value=f"[Jump]({message.jump_url})", inline=False)
+        embed.add_field(name="Source:", value=f"[Jump]({message.jump_url} \"See the starred post.\")", inline=False)
         
         if len(message.attachments) and (channel.is_nsfw() is False): #basically if len !=0 or if attachments are there
             embed.set_image(url=message.attachments[0].url)

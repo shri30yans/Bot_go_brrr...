@@ -10,15 +10,16 @@ class Owner(commands.Cog,name="Owner",description="Owner Commands"):
     def __init__(self, bot):
         self.bot = bot
     
-    # @commands.is_owner()
-    # @commands.command(name="stuff",help=f"stuff")
-    # async def stuff(self,ctx):
-    #     async with self.bot.pool.acquire() as connection:
-    #         async with connection.transaction():
-    #             no_polls='{}'
-    #             await connection.execute("UPDATE info SET cooldown = $1",no_polls)
-    #             embed = discord.Embed(title="stuff done.",description=f"yes you read that right")
-    #             await ctx.send(embed=embed)
+    @commands.is_owner()
+    @commands.command(name="stuff",help=f"stuff")
+    async def stuff(self,ctx):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                no_polls='{}'
+                await connection.execute("UPDATE info SET cooldown = $1",no_polls)
+                await connection.execute("UPDATE info SET awards_received = $1",no_polls)
+                embed = discord.Embed(title="stuff done.",description=f"yes you read that right")
+                await ctx.send(embed=embed)
 
 
     #=============================================
@@ -195,7 +196,7 @@ class Owner(commands.Cog,name="Owner",description="Owner Commands"):
     @commands.command(name="Leave",help=f"Leave a guild. Leaves the current guild if no guild id is mentioned")
     async def leave(self,ctx,guild:discord.Guild=None):
         guild = guild or ctx.guild
-        user = ctx.guild
+        user = ctx.author
         embed = discord.Embed(title=f"Leave command executed.",description=f"Left {guild.name}",colour = random.choice(colour_list))
         embed.set_thumbnail(url=str(ctx.guild.icon_url)) 
         embed.set_footer(icon_url= user.avatar_url,text=f"Requested by {user.name} • {self.bot.user.name} ")

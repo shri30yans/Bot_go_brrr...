@@ -22,11 +22,10 @@ main_chat_id=748786284599705688
 suggestions_channel_id=799552024156045332
 meme_channel_id=748786284599705689
 dank_meme_channel_id=875615960843812874
-#giveaways_channel_id=761123670030286848
 events_channel_id=748786284599705688
 bot_commands_channel_id=748907059965067324
 
-award_reaction_menu_emoji=["🏆"]
+award_reaction_menu_emoji=["🏆","🏅","🎖️"]
 
 #Reactions
 upvote_reaction="<:Logo_Reddit_Upvote:748810439885979718>"
@@ -55,12 +54,12 @@ badge_gold_stonks="<:goldstonks:875432737861955625>"
 
 
 cog_emojis={"utility":"<:utility:878323140793630770>",
-"economy":"<:economy:878340364010942524>",
-"settings":"<:settings:878323779443507210>",
-"owner":"<:owner:878380736766431263>",
-"starboard":"<:starboard:878331707055570955>",
-"random":"<:random:878348942016913418>",
-"moderation":"<:moderation:878337158820270140>"}
+        "economy":"<:economy:878340364010942524>",
+        "settings":"<:settings:878323779443507210>",
+        "owner":"<:owner:878380736766431263>",
+        "starboard":"<:starboard:878331707055570955>",
+        "random":"<:random:878348942016913418>",
+        "moderation":"<:moderation:878337158820270140>"}
 
 meme_score_needed_to_pin=7
 
@@ -69,8 +68,8 @@ credits_emoji="<:credit:873523287760699412>"
 
 #Utility roles
 muted_role_id=748786284385796123
-admin_role_id=748786284385796122
-moderator_role_id=748786284385796121
+# admin_role_id=748786284385796122
+# moderator_role_id=748786284385796121
 
 guild_join_update_channel_id=878520341109039105
 guild_leave_update_channel_id=878520393118408704
@@ -88,8 +87,9 @@ help_animation_link="https://media.giphy.com/media/jGPb050sylyTulVFOi/giphy.gif"
 
 
 #to run the events
-run_event=True
-maintenance_mode=False  #locks all commands to owner only
+run_event=False
+#locks all commands to owner only
+maintenance_mode=False  
 
 
 # embed_colours=[ 0xFFFF00,#yellow

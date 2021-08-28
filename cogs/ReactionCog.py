@@ -19,6 +19,7 @@ class ReactionCog(commands.Cog):
 
     @commands.Cog.listener(name="on_raw_reaction_add")
     async def upvote_downvote_reaction_add(self,payload):  
+        await self.bot.wait_until_ready() 
         UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
         channel = self.bot.get_channel(payload.channel_id) 
@@ -27,6 +28,7 @@ class ReactionCog(commands.Cog):
         emoji=payload.emoji 
 
         if str(emoji) in config.award_reaction_menu_emoji:
+            #await message.remove_reaction(emoji,user)
             
             class CustomContext:
                 def __init__(self,channel,author):
@@ -56,13 +58,11 @@ class ReactionCog(commands.Cog):
             if str(emoji) == config.upvote_reaction and message.author != user:
                 amt = random.randint(0,2)
                 await UserDatabaseFunctions.add_karma(user=message.author,amt=amt)
-                await UserDatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=1)
             
             #Downvote remove Karma
             elif str(emoji) == config.downvote_reaction and message.author != user:
                 amt = random.randint(-3,-1)
                 await UserDatabaseFunctions.add_karma(user=message.author,amt=amt)
-                await UserDatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=1)
 
             
             #if any post crosses a certain limit of upvotes, award that posts author 100 credits
@@ -78,6 +78,7 @@ class ReactionCog(commands.Cog):
 
     @commands.Cog.listener(name="on_raw_reaction_remove")
     async def upvote_downvote_reaction_remove(self,payload):  
+        await self.bot.wait_until_ready() 
         UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         ImportantFunctions = self.bot.get_cog('ImportantFunctions') 
         channel=self.bot.get_channel(payload.channel_id) 
@@ -106,13 +107,11 @@ class ReactionCog(commands.Cog):
             elif str(emoji) == config.upvote_reaction and message.author != user:
                 amt = random.randint(-3,-1)
                 await UserDatabaseFunctions.add_karma(user=message.author,amt=amt)
-                await UserDatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="upvote",num=-1)
             
             #Removed Downvote add Karma
             if str(emoji) == config.downvote_reaction and message.author != user:
                 amt = random.randint(0,2)
                 await UserDatabaseFunctions.add_karma(user=message.author,amt=amt)
-                await UserDatabaseFunctions.add_reactions(user_recieving=message.author,user_giving=user,reaction_name="downvote",num=+1)
 
 
     async def send_to_dank_memes_channel(self,message):
@@ -144,6 +143,7 @@ class ReactionCog(commands.Cog):
     
     @commands.Cog.listener(name="on_message")
     async def automatic_reactions(self,message):
+        await self.bot.wait_until_ready() 
         if message.author == self.bot.user:
             return
 
@@ -161,6 +161,7 @@ class ReactionCog(commands.Cog):
     #For adding credits for chatting in #main_chat
     @commands.Cog.listener(name="on_message")
     async def add_credits_for_sending_messages(self,message):
+        await self.bot.wait_until_ready() 
         if message.guild is not None:
                 #if it is a guild
             if message.guild.id in config.APPROVED_SERVERS:
