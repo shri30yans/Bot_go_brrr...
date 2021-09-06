@@ -272,7 +272,7 @@ class Moderation(commands.Cog,name="Moderation",description="Perform moderation 
     #         else:
     #             embed.add_field(name=":speaker:  | Unmute command executed",value=f"**{warned_names}** was unmuted,")
     #         embed.set_footer(icon_url= ctx.author.avatar_url,text=f"Requested by {ctx.message.author} • {self.bot.user.name}")    
-            await ctx.send(embed=embed)
+            #await ctx.send(embed=embed)
 
 
 

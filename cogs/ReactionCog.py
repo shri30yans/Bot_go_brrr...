@@ -26,8 +26,11 @@ class ReactionCog(commands.Cog):
         user = self.bot.get_user(payload.user_id)
         message = await channel.fetch_message(payload.message_id)
         emoji=payload.emoji 
-
-        if str(emoji) in config.award_reaction_menu_emoji:
+        
+        if user.bot:
+            return
+        
+        elif str(emoji) in config.award_reaction_menu_emoji:
             #await message.remove_reaction(emoji,user)
             
             class CustomContext:
@@ -41,8 +44,6 @@ class ReactionCog(commands.Cog):
         
         
         if channel.guild.id in config.APPROVED_SERVERS:#if that server is approved/that server has the settings
-            if user.bot:
-                return 
             
             await self.check_if_message_is_poll(message=message,emoji=emoji,user=user,type_of_event="reaction_add")
 
@@ -87,6 +88,7 @@ class ReactionCog(commands.Cog):
         emoji=payload.emoji  
         
         if channel.guild.id in config.APPROVED_SERVERS:#if that server is approved/that server has the settings
+            
             if user.bot:
                 return
             
@@ -154,9 +156,12 @@ class ReactionCog(commands.Cog):
                 await message.add_reaction(config.upvote_reaction)
                 await message.add_reaction(config.downvote_reaction)
 
-        elif message.channel.id==config.meme_channel_id and len(message.attachments) !=0:
-            await message.add_reaction(config.upvote_reaction)
-            await message.add_reaction(config.downvote_reaction)
+        elif message.channel.id==config.meme_channel_id:
+            if len(message.attachments) !=0 or "https://www.reddit.com/r/" in message.content:
+                await message.add_reaction(config.upvote_reaction)
+                await message.add_reaction(config.downvote_reaction)
+                await message.add_reaction(config.award_reaction_menu_emoji[0])
+        
 
     #For adding credits for chatting in #main_chat
     @commands.Cog.listener(name="on_message")

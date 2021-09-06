@@ -31,6 +31,14 @@ class UserDatabaseFunctions(commands.Cog):
                 user_account=dict(user_account)
                 return user_account["passive"]
     
+
+    async def change_user_passive_mode(self,user,value:bool):
+        async with self.bot.pool.acquire() as connection:
+            async with connection.transaction():
+                await self.has_account(user)
+                await connection.execute("UPDATE info SET passive = $1 WHERE user_id=$2",value,user.id)
+
+
     async def get_user_credits(self,user):
         async with self.bot.pool.acquire() as connection:
             async with connection.transaction():

@@ -219,12 +219,11 @@ class Starboard(commands.Cog,name="Starboard",description="Starboard functions")
 
         def boolean_check(value:str):
             value = value.lower()
-            print(value)
             if value in ["true","enable"]:
-                print("True")
+
                 return True
             elif value in ["false","disable"]:
-                print("False")
+
                 return False
             else:
                 return 

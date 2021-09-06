@@ -13,7 +13,6 @@ class StarboardFunctions(commands.Cog):
         self.bot = bot
 
     async def post_to_starboard(self,message,channel,user,emoji,reaction_name): 
-        print("post")
         guild_id = message.guild.id
         starboard_info = await self.get_starboard_info(guild_id)
         starboard_post_list = starboard_info["starboard_posts"]

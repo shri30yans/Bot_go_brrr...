@@ -146,7 +146,7 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
             if ctx.message.reference is None and message is None:
                 embed = discord.Embed(title="Award",colour = random.choice(colourlist))
                 embed.add_field(name="You didn't mention a message.",value="To award a post:\n   - React with `🏆` to a message\n   - Use this command as a reply to the post you would like to award",)
-                await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+                await ctx.channel.send(content= user_giving.mention,embed = embed,delete_after=5)
                 return
             
             elif ctx.message.reference:
@@ -161,11 +161,13 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
 
         if user_recieving.bot:
             embed = discord.Embed(title="Award",description=f"{user_giving.mention} you can't award bots.",colour = random.choice(colourlist))
-            await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+            await ctx.channel.send(content= user_giving.mention,embed = embed,delete_after=5)
             return
-        if user_recieving == user_giving:
+        elif user_giving.bot:
+            return
+        elif user_recieving == user_giving:
             embed = discord.Embed(title="Award",description = f"{user_giving.mention} you can't award yourself.",colour = random.choice(colourlist))
-            await ctx.send(content= user_giving.mention,embed = embed,delete_after=5)
+            await ctx.channel.send(content= user_giving.mention,embed = embed,delete_after=5)
             return
         
        
@@ -297,6 +299,12 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
         elif user_robbed.id == user_robbing.id:
             await ctx.reply("Robbing yourself? huh you must be a some different kind of nuts.")
             ctx.command.reset_cooldown(ctx)
+
+        elif (await UserDatabaseFunctions.get_user_passive_mode(user_robbing)):
+            await ctx.send("You are in passive mode. Turn that off before sharing dum dum.")
+        
+        elif (await UserDatabaseFunctions.get_user_passive_mode(user_robbed)):
+            await ctx.send(f"{user_robbed.name} is in passive mode. You can't share with them.")
         
         else:
 
@@ -524,6 +532,14 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
         user=ctx.author
         UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         credits = await UserDatabaseFunctions.get_user_credits(user)
+         
+        if (await UserDatabaseFunctions.get_user_passive_mode(user)):
+            await ctx.send("You are in passive mode. Turn that off before sharing dum dum.")
+        
+        elif (await UserDatabaseFunctions.get_user_passive_mode(user)):
+            await ctx.send(f"{user_mentioned.name} is in passive mode. You can't share with them.")
+
+
 
         try:
             amt=int(amt)
