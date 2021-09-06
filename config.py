@@ -87,7 +87,7 @@ help_animation_link="https://media.giphy.com/media/jGPb050sylyTulVFOi/giphy.gif"
 
 
 #to run the events
-run_event=False
+run_event=True
 #locks all commands to owner only
 maintenance_mode=False  
 

@@ -132,9 +132,9 @@ class UserDatabaseFunctions(commands.Cog):
         
         if outcome:
             amt=amt*2
-            return amt*5
+            return amt
         else:
-            return amt*5
+            return amt
 
 
     async def add_awards(self,user_recieving,user_giving,award_name:str):
