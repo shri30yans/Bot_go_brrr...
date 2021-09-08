@@ -110,7 +110,7 @@ class StarboardFunctions(commands.Cog):
                     elif reaction_count >= starboard_stars_required:
                         await self.update_starboard_post(sb_emoji=sb_emoji,post=post,reaction_name=reaction_name,channel=channel,starboard_channel=starboard_channel,starboard_post_list=starboard_post_list,starboard_info=starboard_info,guild_id=guild_id,reaction_count=reaction_count)
 
-
+    
 
     async def create_new_starboard_post(self,sb_emoji,message,channel,starboard_channel,starboard_post_list,starboard_info,guild_id,reaction_count):
         reactions_of_post={}    
@@ -118,7 +118,7 @@ class StarboardFunctions(commands.Cog):
 
     
         #Embed
-        reaction_id_string = await self.formatted_starboard_awards_string(reactions_of_post=reactions_of_post,sb_emoji=sb_emoji)
+        reaction_id_string = await self.starboard_string(reactions_of_post=reactions_of_post,sb_emoji=sb_emoji)
         reaction_id_string = reaction_id_string + channel.mention
 
         if (channel.is_nsfw()) is False:
@@ -153,7 +153,7 @@ class StarboardFunctions(commands.Cog):
         reactions_of_post[reaction_name.lower()] = reaction_count
         
         #Embed
-        reaction_id_string = await self.formatted_starboard_awards_string(reactions_of_post=reactions_of_post,sb_emoji=sb_emoji)
+        reaction_id_string = await self.starboard_string(reactions_of_post=reactions_of_post,sb_emoji=sb_emoji)
         reaction_id_string = reaction_id_string + channel.mention
         await StarMessage.edit(content=f"{reaction_id_string}")
         
@@ -165,7 +165,7 @@ class StarboardFunctions(commands.Cog):
               
 
                 
-    async def formatted_starboard_awards_string(self,reactions_of_post,sb_emoji):
+    async def starboard_string(self,reactions_of_post,sb_emoji):
         #used to arrange the award and stars in order so that the order in starboard is [ternion,argentinum,platinum,gold....star]
         ordered_reactions_of_post={}
         for x in list(awards.awards_list.values())[::-1]:

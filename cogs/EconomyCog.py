@@ -68,7 +68,7 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
                 else:
                     reaction_id = award.reaction_id
                 reaction_id_string = reaction_id_string + f"{count} {reaction_id} ,   "
-            return reaction_id_string,total_awards
+            return reaction_id_string.strip(","),total_awards
 
         async def format_badges_in_order(self,badges_list):
             if len(badges_list) > 0:
@@ -99,7 +99,7 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
         UserDatabaseFunctions = self.bot.get_cog('UserDatabaseFunctions')
         user=ctx.author
         credits=await UserDatabaseFunctions.get_user_credits(user)
-        embed=discord.Embed(title=f"Awards",description=f"Your balance: **{credits} Credits**")
+        embed=discord.Embed(title=f"Awards",description=f"Your balance: **{credits} Credits**",colour = random.choice(colourlist))
 
         for award in list(awards.awards_list.values()):
             embed.add_field(name=f"{award.reaction_id} {award.name} ",value=f"{'{:,}'.format(award.cost)} credits \n {award.description} \n",inline=False)
@@ -206,8 +206,9 @@ class Economy(commands.Cog,name="Economy",description="Economy functions"):
                 embed.set_thumbnail(url=str(award_reaction.emoji.url))
                 embed.set_footer(icon_url= user_giving.avatar_url,text=f"Given by {user_giving.name} • {self.bot.user.name} ")
                 
-                await award_message.clear_reactions()
                 await award_message.edit(embed=embed)
+                await award_message.clear_reactions()
+
                 #post to starboard 
                 #has a check to see if Award posts to starboard                                  
                 #await ImportantFunctions.post_to_starboard(message=message,channel=channel,user=user_giving,emoji=award_reaction.emoji,reaction_name=award.name,reaction_type="add")

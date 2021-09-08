@@ -10,16 +10,16 @@ class Owner(commands.Cog,name="Owner",description="Owner Commands"):
     def __init__(self, bot):
         self.bot = bot
     
-    @commands.is_owner()
-    @commands.command(name="stuff",help=f"stuff")
-    async def stuff(self,ctx):
-        async with self.bot.pool.acquire() as connection:
-            async with connection.transaction():
-                no_polls='{}'
-                await connection.execute("UPDATE info SET cooldown = $1",no_polls)
-                await connection.execute("UPDATE info SET awards_received = $1",no_polls)
-                embed = discord.Embed(title="stuff done.",description=f"yes you read that right")
-                await ctx.send(embed=embed)
+    # @commands.is_owner()
+    # @commands.command(name="stuff",help=f"stuff")
+    # async def stuff(self,ctx):
+    #     async with self.bot.pool.acquire() as connection:
+    #         async with connection.transaction():
+    #             no_polls='{}'
+    #             await connection.execute("UPDATE info SET cooldown = $1",no_polls)
+    #             await connection.execute("UPDATE info SET awards_received = $1",no_polls)
+    #             embed = discord.Embed(title="stuff done.",description=f"yes you read that right")
+    #             await ctx.send(embed=embed)
 
 
     #=============================================

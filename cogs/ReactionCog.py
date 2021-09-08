@@ -37,6 +37,7 @@ class ReactionCog(commands.Cog):
                 def __init__(self,channel,author):
                     self.channel = channel
                     self.author = author
+                    self.guild = channel.guild
 
             cmd = self.bot.get_command("Award")
             await cmd(ctx = CustomContext(channel = channel,author = user),message=message)
