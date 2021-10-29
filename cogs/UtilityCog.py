@@ -66,12 +66,8 @@ class Utility(commands.Cog,name="Utility",description="Utilty functions"):
     @commands.cooldown(1,10, commands.BucketType.user)
     @commands.command(name="Uptime",help=f"Shows the amount of time the bot has been up.")
     async def uptime(self,ctx):
-        time =await self.find_time_difference(self.bot.launch_time)
-        
-        # delta_uptime = datetime.utcnow() - self.bot.launch_time
-        # string = await self.convert(int(delta_uptime.total_seconds()))
-        #await ctx.reply(f"{self.bot.user.name} has been up for {string}")
-        await ctx.reply(time)
+        time = await self.find_time_difference(self.bot.launch_time)
+        await ctx.reply("I have been up from", time)
         
 
     
