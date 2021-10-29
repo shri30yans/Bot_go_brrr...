@@ -30,7 +30,7 @@ sudo pip3 install -r requirements.txt
 ![whois](images/whois.png)   
 *Whois command*
 ![server info](images/serverinfo.png)   
-*Whois command*
+*Server info command*
 ![leaderboard](images/leaderboard.png)   
 *leaderboard command*
 ![starboard](images/starboard.png)   
