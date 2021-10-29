@@ -1,7 +1,6 @@
 import discord,random
 from discord.ext import commands
 import config   
-import core.checks as checks
 from utils.ErrorHandler import InvalidSubcommand
     
 colour_list = config.embed_colours
