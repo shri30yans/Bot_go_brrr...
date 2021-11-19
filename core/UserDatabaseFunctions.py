@@ -75,7 +75,7 @@ class UserDatabaseFunctions(commands.Cog):
             empty_json=json.dumps({})   
             reactions=json.dumps({"upvote":0,"downvote":0,"star":0}) 
             badges=json.dumps({"badges":[]})
-            await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given,reactions_received,reactions_given,badges,cooldown) VALUES ($1,0,0,$2,$3,$4,$5,$6,$7)',user.id,empty_json,empty_json,reactions,reactions,badges,empty_json)
+            await connection.execute('INSERT INTO info (user_id,credits,karma,awards_received,awards_given,badges,cooldown) VALUES ($1,0,0,$2,$3,$4,$5,)',user.id,empty_json,empty_json,badges,empty_json)
         if user.bot:
             return 
         else:
