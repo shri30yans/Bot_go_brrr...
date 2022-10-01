@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  bot:
+    image: "botgobrrr:latest"
+    build: .
+    volumes:
+      - ./bot.py:/app/bot.py
+      - ./docker.env:/app/.env
+    restart: on-failure
+  database:
+    image: "postgres:latest"
+    hostname: "pgsql.local"
+    environment:
+      POSTGRES_USER: example
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: example

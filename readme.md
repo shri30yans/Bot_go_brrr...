@@ -33,6 +33,18 @@ docker build -t botgobrrr .
 docker run botgobrrr
 ```
 
+### Developing the bot using docker-compose:
+1. Modify the `.env.docker` to your needs
+2. Build the docker container
+```
+docker-compose build
+```
+3. Run the bot:
+```
+docker-compose up
+```
+4. Have fun developing using docker!
+
 
 ### Images
 ![help](images/help.png)   
