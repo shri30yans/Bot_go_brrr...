@@ -1,5 +1,7 @@
 # Bot go brrr...
 A bot made for specific server needs.
+Table format is saved in the Tables Folder. Make these tables in your database.
+
 ### Functions:
 
 * Upvote/Downvote based Karma system
